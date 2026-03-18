@@ -7,16 +7,9 @@ namespace Aws;
 class PhpHash implements HashInterface
 {
     /** @var resource|\HashContext */
-    private $context;
+    private ?\HashContext $context = null;
 
-    /** @var string */
-    private $algo;
-
-    /** @var array */
-    private $options;
-
-    /** @var string */
-    private $hash;
+    private ?string $hash = null;
 
     /**
      * @param string $algo Hashing algorithm. One of PHP's hash_algos()
@@ -25,13 +18,11 @@ class PhpHash implements HashInterface
      *     - key: Secret key used with the hashing algorithm.
      *     - base64: Set to true to base64 encode the value when complete.
      */
-    public function __construct($algo, array $options = [])
+    public function __construct(private $algo, private array $options = [])
     {
-        $this->algo = $algo;
-        $this->options = $options;
     }
 
-    public function update($data)
+    public function update($data): void
     {
         if ($this->hash !== null) {
             $this->reset();
@@ -55,7 +46,7 @@ class PhpHash implements HashInterface
         return $this->hash;
     }
 
-    public function reset()
+    public function reset(): void
     {
         $this->context = $this->hash = null;
     }
@@ -68,7 +59,7 @@ class PhpHash implements HashInterface
     private function getContext()
     {
         if (!$this->context) {
-            $key = isset($this->options['key']) ? $this->options['key'] : '';
+            $key = $this->options['key'] ?? '';
             $this->context = hash_init(
                 $this->algo,
                 $key ? HASH_HMAC : 0,

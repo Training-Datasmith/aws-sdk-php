@@ -6,8 +6,6 @@ interface ProgressTrackerInterface
 {
     /**
      * To show the progress being tracked.
-     *
-     * @return void
      */
     public function showProgress(): void;
 }

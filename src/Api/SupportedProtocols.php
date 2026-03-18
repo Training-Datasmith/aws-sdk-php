@@ -17,7 +17,6 @@ enum SupportedProtocols: string
     /**
      * Check if a protocol is valid.
      *
-     * @param string $protocol
      * @return bool True if the protocol is supported, otherwise false.
      */
     public static function isSupported(string $protocol): bool

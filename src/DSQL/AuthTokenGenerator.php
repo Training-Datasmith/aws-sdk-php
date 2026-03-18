@@ -27,8 +27,6 @@ class AuthTokenGenerator
 
     /**
      * The constructor takes an instance of Credentials or a CredentialProvider
-     *
-     * @param Credentials|callable $creds
      */
     public function __construct(Credentials | callable $creds)
     {
@@ -40,13 +38,6 @@ class AuthTokenGenerator
         }
     }
 
-    /**
-     * @param string $endpoint
-     * @param string $region
-     * @param int $expiration
-     *
-     * @return string
-     */
     public function generateDbConnectAuthToken(
         string $endpoint,
         string $region,
@@ -56,13 +47,6 @@ class AuthTokenGenerator
         return $this->createToken($endpoint, $region, self::DB_CONNECT, $expiration);
     }
 
-    /**
-     * @param string $endpoint
-     * @param string $region
-     * @param int $expiration
-     *
-     * @return string
-     */
     public function generateDbConnectAdminAuthToken(
         string $endpoint,
         string $region,

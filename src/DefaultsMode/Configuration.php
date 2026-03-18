@@ -22,7 +22,7 @@ class Configuration implements ConfigurationInterface
 
     public function __construct($mode = 'legacy')
     {
-        $mode = strtolower($mode);
+        $mode = strtolower((string) $mode);
         if (!in_array($mode, $this->validModes)) {
             throw new \InvalidArgumentException("'{$mode}' is not a valid mode."
                 . " The mode has to be 'legacy', 'standard', 'cross-region', 'in-region',"
@@ -116,7 +116,7 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritdoc}
      */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'mode'                                       => $this->getMode(),

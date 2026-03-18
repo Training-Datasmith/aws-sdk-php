@@ -69,7 +69,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * This provider is automatically wrapped in a memoize function that caches
      * previously provided config options.
      *
-     * @param array $config
      *
      * @return callable
      */
@@ -85,7 +84,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         $configProviders[] = self::fallback();
 
         $memo = self::memoize(
-            call_user_func_array([ConfigurationProvider::class, 'chain'], $configProviders)
+            call_user_func_array(ConfigurationProvider::chain(...), $configProviders)
         );
 
         if (isset($config['retries'])
@@ -107,9 +106,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         return function () {
             // Use config from environment variables, if available
             $mode = getenv(self::ENV_MODE);
-            $maxAttempts = getenv(self::ENV_MAX_ATTEMPTS)
-                ? getenv(self::ENV_MAX_ATTEMPTS)
-                : self::DEFAULT_MAX_ATTEMPTS;
+            $maxAttempts = getenv(self::ENV_MAX_ATTEMPTS) ?: self::DEFAULT_MAX_ATTEMPTS;
             if (!empty($mode)) {
                 return Promise\Create::promiseFor(
                     new Configuration($mode, $maxAttempts)
@@ -128,11 +125,9 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      */
     public static function fallback()
     {
-        return function () {
-            return Promise\Create::promiseFor(
-                new Configuration(self::DEFAULT_MODE, self::DEFAULT_MAX_ATTEMPTS)
-            );
-        };
+        return fn() => Promise\Create::promiseFor(
+            new Configuration(self::DEFAULT_MODE, self::DEFAULT_MAX_ATTEMPTS)
+        );
     }
 
     /**
@@ -170,9 +165,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
                     not present in INI profile '{$profile}' ({$filename})");
             }
 
-            $maxAttempts = isset($data[$profile][self::INI_MAX_ATTEMPTS])
-                ? $data[$profile][self::INI_MAX_ATTEMPTS]
-                : self::DEFAULT_MAX_ATTEMPTS;
+            $maxAttempts = $data[$profile][self::INI_MAX_ATTEMPTS] ?? self::DEFAULT_MAX_ATTEMPTS;
 
             return Promise\Create::promiseFor(
                 new Configuration(
@@ -188,10 +181,9 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * always returning a ConfigurationInterface object.
      *
      * @param  mixed $config
-     * @return ConfigurationInterface
      * @throws \InvalidArgumentException
      */
-    public static function unwrap($config)
+    public static function unwrap($config): \Aws\Retry\ConfigurationInterface|\Aws\Retry\Configuration
     {
         if (is_callable($config)) {
             $config = $config();
@@ -210,9 +202,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         }
 
         if (is_array($config) && isset($config['mode'])) {
-            $maxAttempts = isset($config['max_attempts'])
-                ? $config['max_attempts']
-                : self::DEFAULT_MAX_ATTEMPTS;
+            $maxAttempts = $config['max_attempts'] ?? self::DEFAULT_MAX_ATTEMPTS;
             return new Configuration($config['mode'], $maxAttempts);
         }
 

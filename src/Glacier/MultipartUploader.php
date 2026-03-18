@@ -17,7 +17,7 @@ class MultipartUploader extends AbstractUploader
 {
     const PART_MIN_SIZE = 1048576;
 
-    private static $validPartSizes = [
+    private static array $validPartSizes = [
         1048576,    //   1 MB
         2097152,    //   2 MB
         4194304,    //   4 MB
@@ -41,15 +41,13 @@ class MultipartUploader extends AbstractUploader
      * @param string        $vaultName Vault name for the multipart upload.
      * @param string        $uploadId  Upload ID for the multipart upload.
      * @param string        $accountId Account ID for the multipart upload.
-     *
-     * @return UploadState
      */
     public static function getStateFromService(
         GlacierClient $client,
         $vaultName,
         $uploadId,
         $accountId = '-'
-    ) {
+    ): \Aws\Multipart\UploadState {
         $state = new UploadState([
             'accountId' => $accountId,
             'vaultName' => $vaultName,
@@ -63,7 +61,7 @@ class MultipartUploader extends AbstractUploader
             }
             // Mark all the parts returned by ListParts as uploaded.
             foreach ($result['Parts'] as $part) {
-                list($rangeIndex, $rangeSize) = self::parseRange(
+                [$rangeIndex, $rangeSize] = self::parseRange(
                     $part['RangeInBytes'],
                     $state->getPartSize()
                 );
@@ -123,7 +121,7 @@ class MultipartUploader extends AbstractUploader
         ]);
     }
 
-    protected function loadUploadWorkflowInfo()
+    protected function loadUploadWorkflowInfo(): array
     {
         return [
             'command' => [
@@ -154,7 +152,7 @@ class MultipartUploader extends AbstractUploader
         return $partSize;
     }
 
-    protected function createPart($seekable, $number)
+    protected function createPart($seekable, $number): false|array
     {
         $data = [];
         $firstByte = $this->source->tell();
@@ -194,10 +192,7 @@ class MultipartUploader extends AbstractUploader
 
     protected function handleResult(CommandInterface $command, ResultInterface $result)
     {
-        list($rangeIndex, $rangeSize) = $this->parseRange(
-            $command['range'],
-            $this->state->getPartSize()
-        );
+        [$rangeIndex, $rangeSize] = self::parseRange($command['range'], $this->state->getPartSize());
 
         $this->state->markPartAsUploaded($rangeIndex, [
             'size'     => $rangeSize,
@@ -205,7 +200,7 @@ class MultipartUploader extends AbstractUploader
         ]);
     }
 
-    protected function getInitiateParams()
+    protected function getInitiateParams(): array
     {
         $params = ['partSize' => $this->state->getPartSize()];
         if (isset($this->config['archive_description'])) {
@@ -215,7 +210,7 @@ class MultipartUploader extends AbstractUploader
         return $params;
     }
 
-    protected function getCompleteParams()
+    protected function getCompleteParams(): array
     {
         $treeHash = new TreeHash();
         $archiveSize = 0;
@@ -238,18 +233,18 @@ class MultipartUploader extends AbstractUploader
      *
      * @return Stream
      */
-    private function decorateWithHashes(Stream $stream, array &$data)
+    private function decorateWithHashes(Stream $stream, array &$data): \Aws\HashingStream
     {
         // Make sure that a tree hash is calculated.
         $stream = new HashingStream($stream, new TreeHash(),
-            function ($result) use (&$data) {
+            function ($result) use (&$data): void {
                 $data['checksum'] = bin2hex($result);
             }
         );
 
         // Make sure that a linear SHA256 hash is calculated.
         $stream = new HashingStream($stream, new PhpHash('sha256'),
-            function ($result) use (&$data) {
+            function ($result) use (&$data): void {
                 $data['ContentSHA256'] = bin2hex($result);
             }
         );
@@ -262,18 +257,16 @@ class MultipartUploader extends AbstractUploader
      *
      * @param string $range    Glacier range string (e.g., "bytes 5-5000/*")
      * @param int    $partSize The chosen part size
-     *
-     * @return array
      */
-    private static function parseRange($range, $partSize)
+    private static function parseRange($range, $partSize): array
     {
         // Strip away the prefix and suffix.
-        if (strpos($range, 'bytes') !== false) {
+        if (str_contains($range, 'bytes')) {
             $range = substr($range, 6, -2);
         }
 
         // Split that range into it's parts.
-        list($firstByte, $lastByte) = explode('-', $range);
+        [$firstByte, $lastByte] = explode('-', $range);
 
         // Calculate and return range index and range size
         return [

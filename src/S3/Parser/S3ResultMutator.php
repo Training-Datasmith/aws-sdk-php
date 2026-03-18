@@ -25,8 +25,6 @@ interface S3ResultMutator
      * @param ResultInterface $result the result object to be modified.
      * @param CommandInterface $command the command that originated the request.
      * @param ResponseInterface $response the response resulting from the request.
-     *
-     * @return ResultInterface
      */
     public function __invoke(
         ResultInterface $result,

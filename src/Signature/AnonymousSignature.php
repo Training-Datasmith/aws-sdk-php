@@ -15,7 +15,7 @@ class AnonymousSignature implements SignatureInterface
     public function signRequest(
         RequestInterface $request,
         CredentialsInterface $credentials
-    ) {
+    ): RequestInterface {
         return $request;
     }
 
@@ -27,7 +27,7 @@ class AnonymousSignature implements SignatureInterface
         CredentialsInterface $credentials,
         $expires,
         array $options = []
-    ) {
+    ): RequestInterface {
         return $request;
     }
 }

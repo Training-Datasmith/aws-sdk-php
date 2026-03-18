@@ -21,7 +21,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
      * @var string[] Default mapping of modeled auth trait auth schemes
      *               to the SDK's supported signature versions.
      */
-    private static $defaultAuthSchemeMap = [
+    private static array $defaultAuthSchemeMap = [
         'aws.auth#sigv4' => 'v4',
         'aws.auth#sigv4a' => 'v4a',
         'smithy.api#httpBearerAuth' => 'bearer',
@@ -55,10 +55,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
      * signature version.  For example, based on the default auth scheme mapping,
      * if `aws.auth#sigv4` is selected, `v4` will be returned.
      *
-     * @param array $authSchemes
      * @param $identity
-     *
-     * @return string
      * @throws UnresolvedAuthSchemeException
      */
     public function selectAuthScheme(
@@ -77,9 +74,8 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
                 }
 
                 return $normalizedAuthScheme;
-            } else {
-                $failureReasons[] = $this->getIncompatibilityMessage($normalizedAuthScheme);
             }
+            $failureReasons[] = $this->getIncompatibilityMessage($normalizedAuthScheme);
         }
 
         throw new UnresolvedAuthSchemeException(
@@ -93,22 +89,15 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
      * of the CRT extension.
      *
      * @param $authScheme
-     *
-     * @return bool
      */
     private function isCompatibleAuthScheme($authScheme): bool
     {
-        switch ($authScheme) {
-            case 'v4':
-            case 'anonymous':
-                return $this->hasAwsCredentialIdentity();
-            case 'v4a':
-                return extension_loaded('awscrt') && $this->hasAwsCredentialIdentity();
-            case 'bearer':
-                return $this->hasBearerTokenIdentity();
-            default:
-                return false;
-        }
+        return match ($authScheme) {
+            'v4', 'anonymous' => $this->hasAwsCredentialIdentity(),
+            'v4a' => extension_loaded('awscrt') && $this->hasAwsCredentialIdentity(),
+            'bearer' => $this->hasBearerTokenIdentity(),
+            default => false,
+        };
     }
 
     /**
@@ -116,28 +105,18 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
      * is encountered.
      *
      * @param $authScheme
-     *
-     * @return string
      */
     private function getIncompatibilityMessage($authScheme): string
     {
-        switch ($authScheme) {
-            case 'v4':
-                return 'Signature V4 requires AWS credentials for request signing';
-            case 'anonymous':
-                return 'Anonymous signatures require AWS credentials for request signing';
-            case 'v4a':
-                return 'The aws-crt-php extension and AWS credentials are required to use Signature V4A';
-            case 'bearer':
-                return 'Bearer token credentials must be provided to use Bearer authentication';
-            default:
-                return "The service does not support `{$authScheme}` authentication.";
-        }
+        return match ($authScheme) {
+            'v4' => 'Signature V4 requires AWS credentials for request signing',
+            'anonymous' => 'Anonymous signatures require AWS credentials for request signing',
+            'v4a' => 'The aws-crt-php extension and AWS credentials are required to use Signature V4A',
+            'bearer' => 'Bearer token credentials must be provided to use Bearer authentication',
+            default => "The service does not support `{$authScheme}` authentication.",
+        };
     }
 
-    /**
-     * @return bool
-     */
     private function hasAwsCredentialIdentity(): bool
     {
         $fn = $this->credentialProvider;
@@ -147,7 +126,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
             try {
                 $resolved = $result->wait();
                 return $resolved instanceof AwsCredentialIdentity;
-            } catch (CredentialsException $e) {
+            } catch (CredentialsException) {
                 return false;
             }
         }
@@ -155,9 +134,6 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
         return $result instanceof AwsCredentialIdentity;
     }
 
-    /**
-     * @return bool
-     */
     private function hasBearerTokenIdentity(): bool
     {
         if ($this->tokenProvider) {
@@ -168,7 +144,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
                 try {
                     $resolved = $result->wait();
                     return $resolved instanceof BearerTokenIdentity;
-                } catch (TokenException $e) {
+                } catch (TokenException) {
                     return false;
                 }
             }

@@ -32,10 +32,9 @@ class S3SignatureV4 extends SignatureV4
             );
         }
         $useCrt =
-            strpos($request->getUri()->getHost(), "accesspoint.s3-global")
-            !== false;
+            str_contains((string) $request->getUri()->getHost(), "accesspoint.s3-global");
         if (!$useCrt) {
-            if (strpos($request->getUri()->getHost(), "s3-object-lambda")) {
+            if (strpos((string) $request->getUri()->getHost(), "s3-object-lambda")) {
                 return parent::signRequest($request, $credentials, "s3-object-lambda");
             }
             return parent::signRequest($request, $credentials);
@@ -45,10 +44,7 @@ class S3SignatureV4 extends SignatureV4
     }
 
     /**
-     * @param CredentialsInterface $credentials
-     * @param RequestInterface $request
      * @param $signingService
-     * @param SigningConfigAWS|null $signingConfig
      * @return RequestInterface
      *
      * Instantiates a separate sigv4a signing config.  All services except S3
@@ -95,7 +91,7 @@ class S3SignatureV4 extends SignatureV4
             );
         }
 
-        if (strpos($request->getUri()->getHost(), "accesspoint.s3-global")) {
+        if (strpos((string) $request->getUri()->getHost(), "accesspoint.s3-global")) {
             $request = $request->withHeader("x-amz-region-set", "*");
         }
 
@@ -106,7 +102,7 @@ class S3SignatureV4 extends SignatureV4
      * Override used to allow pre-signed URLs to be created for an
      * in-determinate request payload.
      */
-    protected function getPresignedPayload(RequestInterface $request)
+    protected function getPresignedPayload(RequestInterface $request): string
     {
         return SignatureV4::UNSIGNED_PAYLOAD;
     }
@@ -114,11 +110,11 @@ class S3SignatureV4 extends SignatureV4
     /**
      * Amazon S3 does not double-encode the path component in the canonical request
      */
-    protected function createCanonicalizedPath($path)
+    protected function createCanonicalizedPath($path): string
     {
         // Only remove one slash in case of keys that have a preceding slash
-        if (substr($path, 0, 1) === '/') {
-            $path = substr($path, 1);
+        if (str_starts_with((string) $path, '/')) {
+            $path = substr((string) $path, 1);
         }
         return '/' . $path;
     }

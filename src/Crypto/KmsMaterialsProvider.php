@@ -17,31 +17,24 @@ class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProvide
 {
     const WRAP_ALGORITHM_NAME = 'kms';
 
-    private $kmsClient;
-    private $kmsKeyId;
-
     /**
      * @param KmsClient $kmsClient A KMS Client for use encrypting and
      *                             decrypting keys.
      * @param string $kmsKeyId The private KMS key id to be used for encrypting
      *                         and decrypting keys.
      */
-    public function __construct(
-        KmsClient $kmsClient,
-        $kmsKeyId = null
-    ) {
-        $this->kmsClient = $kmsClient;
-        $this->kmsKeyId = $kmsKeyId;
+    public function __construct(private readonly KmsClient $kmsClient, private $kmsKeyId = null)
+    {
     }
 
-    public function fromDecryptionEnvelope(MetadataEnvelope $envelope)
+    public function fromDecryptionEnvelope(MetadataEnvelope $envelope): self
     {
         if (empty($envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER])) {
             throw new \RuntimeException('Not able to detect the materials description.');
         }
 
         $materialsDescription = json_decode(
-            $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
+            (string) $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
             true
         );
 
@@ -54,24 +47,20 @@ class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProvide
 
         return new self(
             $this->kmsClient,
-            isset($materialsDescription['kms_cmk_id'])
-                ? $materialsDescription['kms_cmk_id']
-                : null
+            $materialsDescription['kms_cmk_id'] ?? null
         );
     }
 
     /**
      * The KMS key id for use in matching this Provider to its keys,
      * consistently with other SDKs as 'kms_cmk_id'.
-     *
-     * @return array
      */
-    public function getMaterialsDescription()
+    public function getMaterialsDescription(): array
     {
         return ['kms_cmk_id' => $this->kmsKeyId];
     }
 
-    public function getWrapAlgorithmName()
+    public function getWrapAlgorithmName(): string
     {
         return self::WRAP_ALGORITHM_NAME;
     }
@@ -85,17 +74,15 @@ class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProvide
      *                               Provider.
      * @param string $materialDescription Material Description for use in
      *                                    encrypting the $cek.
-     *
-     * @return string
      */
-    public function encryptCek($unencryptedCek, $materialDescription)
+    public function encryptCek($unencryptedCek, $materialDescription): string
     {
         $encryptedDataKey = $this->kmsClient->encrypt([
             'Plaintext' => $unencryptedCek,
             'KeyId' => $this->kmsKeyId,
             'EncryptionContext' => $materialDescription
         ]);
-        return base64_encode($encryptedDataKey['CiphertextBlob']);
+        return base64_encode((string) $encryptedDataKey['CiphertextBlob']);
     }
 
     /**

@@ -31,12 +31,6 @@ class LogFileIterator extends \IteratorIterator
     const ACCOUNT_ID = 'account_id';
     const LOG_REGION = 'log_region';
 
-    /** @var S3Client S3 client used to perform ListObjects operations */
-    private $s3Client;
-
-    /** @var string S3 bucket that contains the log files */
-    private $s3BucketName;
-
     /**
      * Constructs a LogRecordIterator. This factory method is used if the name
      * of the S3 bucket containing your logs is not known. This factory method
@@ -44,9 +38,6 @@ class LogFileIterator extends \IteratorIterator
      * information about the trail necessary for constructing the
      * LogRecordIterator.
      *
-     * @param S3Client         $s3Client
-     * @param CloudTrailClient $cloudTrailClient
-     * @param array            $options
      *
      * @return LogRecordIterator
      * @throws \InvalidArgumentException
@@ -56,10 +47,8 @@ class LogFileIterator extends \IteratorIterator
         S3Client $s3Client,
         CloudTrailClient $cloudTrailClient,
         array $options = []
-    ) {
-        $trailName = isset($options[self::TRAIL_NAME])
-            ? $options[self::TRAIL_NAME]
-            : self::DEFAULT_TRAIL_NAME;
+    ): self {
+        $trailName = $options[self::TRAIL_NAME] ?? self::DEFAULT_TRAIL_NAME;
 
         $s3BucketName = null;
 
@@ -79,7 +68,7 @@ class LogFileIterator extends \IteratorIterator
 
         // If the bucket name is still unknown, then throw an exception
         if (!$s3BucketName) {
-            $prev = isset($e) ? $e : null;
+            $prev = $e ?? null;
             throw new \InvalidArgumentException('The bucket name could not '
                 . 'be determined from the trail.', 0, $prev);
         }
@@ -107,17 +96,13 @@ class LogFileIterator extends \IteratorIterator
      *   Credentials* page. See https://console.aws.amazon.com/iam/home?#security_credential
      * - log_region: Region of the services of the log records you want to read.
      *
-     * @param S3Client $s3Client
      * @param string   $s3BucketName
-     * @param array    $options
      */
     public function __construct(
-        S3Client $s3Client,
-        $s3BucketName,
+        private readonly S3Client $s3Client,
+        private $s3BucketName,
         array $options = []
     ) {
-        $this->s3Client = $s3Client;
-        $this->s3BucketName = $s3BucketName;
         parent::__construct($this->buildListObjectsIterator($options));
     }
 
@@ -144,7 +129,6 @@ class LogFileIterator extends \IteratorIterator
      * Constructs an S3 ListObjects iterator, optionally decorated with
      * FilterIterators, based on the provided options.
      *
-     * @param array $options
      *
      * @return \Iterator
      */
@@ -160,15 +144,9 @@ class LogFileIterator extends \IteratorIterator
 
         // Determine the parts of the key prefix of the log files being read
         $parts = [
-            'prefix' => isset($options[self::KEY_PREFIX])
-                    ? $options[self::KEY_PREFIX]
-                    : null,
-            'account' => isset($options[self::ACCOUNT_ID])
-                    ? $options[self::ACCOUNT_ID]
-                    : self::PREFIX_WILDCARD,
-            'region' => isset($options[self::LOG_REGION])
-                    ? $options[self::LOG_REGION]
-                    : self::PREFIX_WILDCARD,
+            'prefix' => $options[self::KEY_PREFIX] ?? null,
+            'account' => $options[self::ACCOUNT_ID] ?? self::PREFIX_WILDCARD,
+            'region' => $options[self::LOG_REGION] ?? self::PREFIX_WILDCARD,
             'date' => $this->determineDateForPrefix($startDate, $endDate),
         ];
 
@@ -197,13 +175,11 @@ class LogFileIterator extends \IteratorIterator
             $candidatePrefix
         );
 
-        $objectsIterator = $this->applyDateFilter(
+        return $this->applyDateFilter(
             $objectsIterator,
             $startDate,
             $endDate
         );
-
-        return $objectsIterator;
     }
 
     /**
@@ -232,7 +208,7 @@ class LogFileIterator extends \IteratorIterator
     /**
      * Uses the provided date values to determine the date portion of the prefix
      */
-    private function determineDateForPrefix($startDate, $endDate)
+    private function determineDateForPrefix($startDate, $endDate): string
     {
         // The default date value should look like "*/*/*" after joining
         $dateParts = array_fill_keys(['Y', 'm', 'd'], self::PREFIX_WILDCARD);
@@ -258,15 +234,13 @@ class LogFileIterator extends \IteratorIterator
      * based on the provided options.
      *
      * @param \Iterator $objectsIterator
-     * @param string    $logKeyPrefix
-     * @param string    $candidatePrefix
      *
      * @return \Iterator
      */
     private function applyRegexFilter(
         $objectsIterator,
-        $logKeyPrefix,
-        $candidatePrefix
+        string $logKeyPrefix,
+        string $candidatePrefix
     ) {
         // If the prefix and candidate prefix are not the same, then there were
         // WILDCARDs.
@@ -283,9 +257,7 @@ class LogFileIterator extends \IteratorIterator
                 // match the provided options.
                 $objectsIterator = new \CallbackFilterIterator(
                     $objectsIterator,
-                    function ($object) use ($regex) {
-                        return preg_match("#{$regex}#", $object['Key']);
-                    }
+                    fn($object) => preg_match("#{$regex}#", (string) $object['Key'])
                 );
             }
         }
@@ -308,8 +280,8 @@ class LogFileIterator extends \IteratorIterator
         // If either a start or end date was provided, filter out dates that
         // don't match the date range.
         if ($startDate || $endDate) {
-            $fn = function ($object) use ($startDate, $endDate) {
-                if (!preg_match('/[0-9]{8}T[0-9]{4}Z/', $object['Key'], $m)) {
+            $fn = function (array $object) use ($startDate, $endDate): bool {
+                if (!preg_match('/[0-9]{8}T[0-9]{4}Z/', (string) $object['Key'], $m)) {
                     return false;
                 }
                 $date = strtotime($m[0]);

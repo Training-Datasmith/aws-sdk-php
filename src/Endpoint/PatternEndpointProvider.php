@@ -6,29 +6,25 @@ namespace Aws\Endpoint;
  */
 class PatternEndpointProvider
 {
-    /** @var array */
-    private $patterns;
-
     /**
      * @param array $patterns Hash of endpoint patterns mapping to endpoint
      *                        configurations.
      */
-    public function __construct(array $patterns)
+    public function __construct(private array $patterns)
     {
-        $this->patterns = $patterns;
     }
 
     public function __invoke(array $args = [])
     {
-        $service = isset($args['service']) ? $args['service'] : '';
-        $region = isset($args['region']) ? $args['region'] : '';
+        $service = $args['service'] ?? '';
+        $region = $args['region'] ?? '';
         $keys = ["{$region}/{$service}", "{$region}/*", "*/{$service}", "*/*"];
 
         foreach ($keys as $key) {
             if (isset($this->patterns[$key])) {
                 return $this->expand(
                     $this->patterns[$key],
-                    isset($args['scheme']) ? $args['scheme'] : 'https',
+                    $args['scheme'] ?? 'https',
                     $service,
                     $region
                 );
@@ -38,7 +34,7 @@ class PatternEndpointProvider
         return null;
     }
 
-    private function expand(array $config, $scheme, $service, $region)
+    private function expand(array $config, string $scheme, $service, $region): array
     {
         $config['endpoint'] = $scheme . '://'
             . strtr($config['endpoint'], [

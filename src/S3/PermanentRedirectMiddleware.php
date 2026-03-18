@@ -24,9 +24,7 @@ class PermanentRedirectMiddleware
      */
     public static function wrap()
     {
-        return function (callable $handler) {
-            return new self($handler);
-        };
+        return fn(callable $handler) => new self($handler);
     }
 
     /**
@@ -41,10 +39,8 @@ class PermanentRedirectMiddleware
     {
         $next = $this->nextHandler;
         return $next($command, $request)->then(
-            function (ResultInterface $result) use ($command) {
-                $status = isset($result['@metadata']['statusCode'])
-                    ? $result['@metadata']['statusCode']
-                    : null;
+            function (ResultInterface $result) use ($command): \Aws\ResultInterface {
+                $status = $result['@metadata']['statusCode'] ?? null;
                 if ($status == 301) {
                     throw new PermanentRedirectException(
                         'Encountered a permanent redirect while requesting '

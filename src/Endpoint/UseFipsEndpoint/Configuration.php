@@ -28,7 +28,7 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritdoc}
      */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'use_fips_endpoint' => $this->isUseFipsEndpoint(),

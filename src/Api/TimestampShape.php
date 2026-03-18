@@ -33,16 +33,12 @@ class TimestampShape extends Shape
                 . ' timestamp type: ' . gettype($value));
         }
 
-        switch ($format) {
-            case 'iso8601':
-                return gmdate('Y-m-d\TH:i:s\Z', (int) $value);
-            case 'rfc822':
-                return gmdate('D, d M Y H:i:s \G\M\T', (int) $value);
-            case 'unixTimestamp':
-                return $value;
-            default:
-                throw new \UnexpectedValueException('Unknown timestamp format: '
-                    . $format);
-        }
+        return match ($format) {
+            'iso8601' => gmdate('Y-m-d\TH:i:s\Z', (int) $value),
+            'rfc822' => gmdate('D, d M Y H:i:s \G\M\T', (int) $value),
+            'unixTimestamp' => $value,
+            default => throw new \UnexpectedValueException('Unknown timestamp format: '
+                . $format),
+        };
     }
 }

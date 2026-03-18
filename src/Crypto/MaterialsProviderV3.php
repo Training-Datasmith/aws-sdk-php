@@ -13,8 +13,6 @@ abstract class MaterialsProviderV3 implements MaterialsProviderInterfaceV3
      * Returns if the requested size is supported by AES.
      *
      * @param int $keySize Size of the requested key in bits.
-     *
-     * @return bool
      */
     public static function isSupportedKeySize(int $keySize): bool
     {
@@ -23,8 +21,6 @@ abstract class MaterialsProviderV3 implements MaterialsProviderInterfaceV3
 
     /**
      * Returns the wrap algorithm name for this Provider.
-     *
-     * @return string
      */
     abstract public function getWrapAlgorithmName(): string;
 
@@ -37,8 +33,6 @@ abstract class MaterialsProviderV3 implements MaterialsProviderInterfaceV3
      * @param array $materialDescription Material Description for use in
      *                                    decrypting the CEK.
      * @param array $options Options for use in decrypting the CEK.
-     *
-     * @return string
      */
     abstract public function decryptCek(
         string $encryptedCek,
@@ -51,8 +45,6 @@ abstract class MaterialsProviderV3 implements MaterialsProviderInterfaceV3
      *                        random content encryption key (CEK).
      * @param array $context Context map needed for key encryption
      * @param array $options Additional options to be used in CEK generation
-     *
-     * @return array
      */
     abstract public function generateCek(
         string $keySize,
@@ -63,8 +55,6 @@ abstract class MaterialsProviderV3 implements MaterialsProviderInterfaceV3
     /**
      * @param string $openSslName Cipher OpenSSL name to use for generating
      *                            an initialization vector.
-     *
-     * @return string
      */
     public function generateIv(string $openSslName): string
     {

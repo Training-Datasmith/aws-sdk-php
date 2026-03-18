@@ -19,23 +19,19 @@ class Service extends AbstractModel
     private $clientContextParams = [];
 
     /** @var Operation[] */
-    private $operations = [];
+    private array $operations = [];
 
     /** @var array */
-    private $paginators = null;
+    private $paginators;
 
     /** @var array */
-    private $waiters = null;
+    private $waiters;
 
-    /** @var boolean */
-    private $modifiedModel = false;
+    private bool $modifiedModel = false;
 
-    /** @var string */
-    private $protocol;
+    private readonly ?string $protocol;
 
     /**
-     * @param array    $definition
-     * @param callable $provider
      *
      * @internal param array $definition Service description
      */
@@ -266,10 +262,8 @@ class Service extends AbstractModel
      * Check if the description has a specific operation by name.
      *
      * @param string $name Operation to check by name
-     *
-     * @return bool
      */
-    public function hasOperation($name)
+    public function hasOperation($name): bool
     {
         return isset($this['operations'][$name]);
     }
@@ -307,7 +301,7 @@ class Service extends AbstractModel
      *
      * @return Operation[]
      */
-    public function getOperations()
+    public function getOperations(): array
     {
         $result = [];
         foreach ($this->definition['operations'] as $name => $definition) {
@@ -319,10 +313,8 @@ class Service extends AbstractModel
 
     /**
      * Get all of the error shapes of the service
-     *
-     * @return array
      */
-    public function getErrorShapes()
+    public function getErrorShapes(): array
     {
         $result = [];
         foreach ($this->definition['shapes'] as $name => $definition) {
@@ -348,11 +340,7 @@ class Service extends AbstractModel
             return $this['metadata'];
         }
 
-        if (isset($this->definition['metadata'][$key])) {
-            return $this->definition['metadata'][$key];
-        }
-
-        return null;
+        return $this->definition['metadata'][$key] ?? null;
     }
 
     /**
@@ -372,9 +360,7 @@ class Service extends AbstractModel
                 $this->serviceName,
                 $this->apiVersion
             );
-            $this->paginators = isset($res['pagination'])
-                ? $res['pagination']
-                : [];
+            $this->paginators = $res['pagination'] ?? [];
         }
 
         return $this->paginators;
@@ -384,10 +370,8 @@ class Service extends AbstractModel
      * Determines if the service has a paginator by name.
      *
      * @param string $name Name of the paginator.
-     *
-     * @return bool
      */
-    public function hasPaginator($name)
+    public function hasPaginator($name): bool
     {
         return isset($this->getPaginators()[$name]);
     }
@@ -401,7 +385,7 @@ class Service extends AbstractModel
      * @throws \UnexpectedValueException if the paginator does not exist.
      * @unstable The configuration format of paginators may change in the future
      */
-    public function getPaginatorConfig($name)
+    public function getPaginatorConfig($name): float|int|array
     {
         static $defaults = [
             'input_token'  => null,
@@ -435,9 +419,7 @@ class Service extends AbstractModel
                 $this->serviceName,
                 $this->apiVersion
             );
-            $this->waiters = isset($res['waiters'])
-                ? $res['waiters']
-                : [];
+            $this->waiters = $res['waiters'] ?? [];
         }
 
         return $this->waiters;
@@ -447,10 +429,8 @@ class Service extends AbstractModel
      * Determines if the service has a waiter by name.
      *
      * @param string $name Name of the waiter.
-     *
-     * @return bool
      */
-    public function hasWaiter($name)
+    public function hasWaiter($name): bool
     {
         return isset($this->getWaiters()[$name]);
     }
@@ -476,10 +456,8 @@ class Service extends AbstractModel
 
     /**
      * Get the shape map used by the API.
-     *
-     * @return ShapeMap
      */
-    public function getShapeMap()
+    public function getShapeMap(): \Aws\Api\ShapeMap
     {
         return $this->shapeMap;
     }
@@ -509,7 +487,7 @@ class Service extends AbstractModel
      *
      * @return callable
      */
-    public function getDefinition()
+    public function getDefinition(): array
     {
         return $this->definition;
     }
@@ -518,11 +496,10 @@ class Service extends AbstractModel
      * Sets the service's api definition.
      * Intended for internal use only.
      *
-     * @return void
      *
      * @internal
      */
-    public function setDefinition($definition)
+    public function setDefinition(array $definition): void
     {
         $this->definition = $definition;
         $this->shapeMap = new ShapeMap($definition['shapes']);
@@ -547,9 +524,7 @@ class Service extends AbstractModel
      * Returns the highest priority compatible auth scheme if the `protocols` trait is present.
      * Otherwise, returns the value of the `protocol` field, if set, or null.
      *
-     * @param array $definition
      *
-     * @return string|null
      */
     private function selectProtocol(array $definition): string | null
     {

@@ -71,7 +71,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * This provider is automatically wrapped in a memoize function that caches
      * previously provided config options.
      *
-     * @param array $config
      *
      * @return callable
      */
@@ -87,7 +86,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         $configProviders[] = self::fallback();
 
         $memo = self::memoize(
-            call_user_func_array([ConfigurationProvider::class, 'chain'], $configProviders)
+            call_user_func_array(ConfigurationProvider::chain(...), $configProviders)
         );
 
         if (isset($config['csm']) && $config['csm'] instanceof CacheInterface) {
@@ -131,16 +130,14 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      */
     public static function fallback()
     {
-        return function() {
-            return Promise\Create::promiseFor(
-                new Configuration(
-                    self::DEFAULT_ENABLED,
-                    self::DEFAULT_HOST,
-                    self::DEFAULT_PORT,
-                    self::DEFAULT_CLIENT_ID
-                )
-            );
-        };
+        return fn() => Promise\Create::promiseFor(
+            new Configuration(
+                self::DEFAULT_ENABLED,
+                self::DEFAULT_HOST,
+                self::DEFAULT_PORT,
+                self::DEFAULT_CLIENT_ID
+            )
+        );
     }
 
     /**
@@ -207,10 +204,9 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * always returning a ConfigurationInterface object.
      *
      * @param  mixed $config
-     * @return ConfigurationInterface
      * @throws \InvalidArgumentException
      */
-    public static function unwrap($config)
+    public static function unwrap($config): \Aws\ClientSideMonitoring\ConfigurationInterface|\Aws\ClientSideMonitoring\Configuration
     {
         if (is_callable($config)) {
             $config = $config();
@@ -220,13 +216,11 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         }
         if ($config instanceof ConfigurationInterface) {
             return $config;
-        } elseif (is_array($config) && isset($config['enabled'])) {
-            $client_id = isset($config['client_id']) ? $config['client_id']
-                : self::DEFAULT_CLIENT_ID;
-            $host = isset($config['host']) ? $config['host']
-                : self::DEFAULT_HOST;
-            $port = isset($config['port']) ? $config['port']
-                : self::DEFAULT_PORT;
+        }
+        if (is_array($config) && isset($config['enabled'])) {
+            $client_id = $config['client_id'] ?? self::DEFAULT_CLIENT_ID;
+            $host = $config['host'] ?? self::DEFAULT_HOST;
+            $port = $config['port'] ?? self::DEFAULT_PORT;
             return new Configuration($config['enabled'], $host, $port, $client_id);
         }
 

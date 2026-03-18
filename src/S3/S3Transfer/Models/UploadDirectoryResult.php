@@ -4,60 +4,27 @@ namespace Aws\S3\S3Transfer\Models;
 
 use Throwable;
 
-final class UploadDirectoryResult
+final class UploadDirectoryResult implements \Stringable
 {
-    /** @var int */
-    private int $objectsUploaded;
-
-    /** @var int */
-    private int $objectsFailed;
-
-    /** @var Throwable|null */
-    private ?Throwable $reason;
-
-    /**
-     * @param int $objectsUploaded
-     * @param int $objectsFailed
-     * @param Throwable|null $exception
-     */
-    public function __construct(
-        int $objectsUploaded,
-        int $objectsFailed,
-        ?Throwable $exception = null
-    )
+    public function __construct(private readonly int $objectsUploaded, private readonly int $objectsFailed, private readonly ?Throwable $reason = null)
     {
-        $this->objectsUploaded = $objectsUploaded;
-        $this->objectsFailed = $objectsFailed;
-        $this->reason = $exception;
     }
 
-    /**
-     * @return int
-     */
     public function getObjectsUploaded(): int
     {
         return $this->objectsUploaded;
     }
 
-    /**
-     * @return int
-     */
     public function getObjectsFailed(): int
     {
         return $this->objectsFailed;
     }
 
-    /**
-     * @return Throwable|null
-     */
     public function getReason(): ?Throwable
     {
         return $this->reason;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return sprintf(

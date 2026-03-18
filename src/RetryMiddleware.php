@@ -17,14 +17,14 @@ class RetryMiddleware
 {
     use RetryHelperTrait;
 
-    private static $retryStatusCodes = [
+    private static array $retryStatusCodes = [
         500 => true,
         502 => true,
         503 => true,
         504 => true
     ];
 
-    private static $retryCodes = [
+    private static array $retryCodes = [
         // Throttling error
         'RequestLimitExceeded'                   => true,
         'Throttling'                             => true,
@@ -42,7 +42,7 @@ class RetryMiddleware
     private $decider;
     private $delay;
     private $nextHandler;
-    private $collectStats;
+    private bool $collectStats;
 
     public function __construct(
         callable $decider,
@@ -91,9 +91,7 @@ class RetryMiddleware
             $error = null
         ) use ($maxRetries, $retryCurlErrors, $extraConfig) {
             // Allow command-level options to override this value
-            $maxRetries = null !== $command['@retries'] ?
-                $command['@retries']
-                : $maxRetries;
+            $maxRetries = $command['@retries'] ?? $maxRetries;
 
             $isRetryable = self::isRetryable(
                 $result,
@@ -117,10 +115,10 @@ class RetryMiddleware
     }
 
     private static function isRetryable(
-        $result,
+        ?\Aws\ResultInterface $result,
         $error,
-        $retryCurlErrors,
-        $extraConfig = []
+        array $retryCurlErrors,
+        array $extraConfig = []
     ) {
         $errorCodes = self::$retryCodes;
         if (!empty($extraConfig['error_codes'])
@@ -185,7 +183,7 @@ class RetryMiddleware
 
             $message = $previous->getMessage();
             foreach (array_keys($retryCurlErrors) as $curlError) {
-                if (strpos($message, 'cURL error ' . $curlError . ':') === 0) {
+                if (str_starts_with($message, 'cURL error ' . $curlError . ':')) {
                     return true;
                 }
             }
@@ -201,19 +199,16 @@ class RetryMiddleware
      *
      * @param $retries - The number of retries that have already been attempted
      *
-     * @return int
      *
      * @link https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
      */
-    public static function exponentialDelay($retries)
+    public static function exponentialDelay($retries): int
     {
-        return mt_rand(0, (int) min(20000, (int) pow(2, $retries) * 100));
+        return mt_rand(0, min(20000, (int) 2 ** $retries * 100));
     }
 
     /**
-     * @param CommandInterface $command
      * @param RequestInterface $request
-     *
      * @return PromiseInterface
      */
     public function __invoke(

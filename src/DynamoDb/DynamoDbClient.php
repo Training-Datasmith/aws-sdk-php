@@ -134,8 +134,8 @@ class DynamoDbClient extends AwsClient
     {
         $args = parent::getArguments();
         $args['retries']['default'] = 10;
-        $args['retries']['fn'] = [__CLASS__, '_applyRetryConfig'];
-        $args['api_provider']['fn'] = [__CLASS__, '_applyApiProvider'];
+        $args['retries']['fn'] = [self::class, '_applyRetryConfig'];
+        $args['api_provider']['fn'] = [self::class, '_applyApiProvider'];
 
         return $args;
     }
@@ -157,7 +157,7 @@ class DynamoDbClient extends AwsClient
     }
 
     /** @internal */
-    public static function _applyRetryConfig($value, array &$args, HandlerList $list)
+    public static function _applyRetryConfig($value, array &$args, HandlerList $list): void
     {
         if ($value) {
             $config = \Aws\Retry\ConfigurationProvider::unwrap($value);
@@ -169,14 +169,10 @@ class DynamoDbClient extends AwsClient
                             $config->getMaxAttempts() - 1,
                             ['error_codes' => ['TransactionInProgressException']]
                         ),
-                        function ($retries) {
-                            return $retries
-                                ? RetryMiddleware::exponentialDelay($retries) / 2
-                                : 0;
-                        },
-                        isset($args['stats']['retries'])
-                            ? (bool)$args['stats']['retries']
-                            : false
+                        fn($retries) => $retries
+                            ? RetryMiddleware::exponentialDelay($retries) / 2
+                            : 0,
+                        isset($args['stats']['retries']) && (bool)$args['stats']['retries']
                     ),
                     'retry'
                 );
@@ -196,7 +192,7 @@ class DynamoDbClient extends AwsClient
     }
 
     /** @internal */
-    public static function _applyApiProvider($value, array &$args, HandlerList $list)
+    public static function _applyApiProvider(callable $value, array &$args, HandlerList $list): void
     {
         ClientResolver::_apply_api_provider($value, $args);
         $args['parser'] = new Crc32ValidatingParser($args['parser']);

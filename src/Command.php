@@ -8,17 +8,12 @@ class Command implements CommandInterface
 {
     use HasDataTrait;
 
-    /** @var string */
-    private $name;
-
     /** @var HandlerList */
     private $handlerList;
 
-    /** @var array */
-    private $authSchemes;
+    private ?array $authSchemes = null;
 
-    /** @var MetricsBuilder */
-    private $metricsBuilder;
+    private \Aws\MetricsBuilder $metricsBuilder;
 
     /**
      * Accepts an associative array of command options, including:
@@ -30,13 +25,12 @@ class Command implements CommandInterface
      * @param HandlerList $list           Handler list
      */
     public function __construct(
-        $name,
+        private $name,
         array $args = [],
         ?HandlerList $list = null,
         ?MetricsBuilder $metricsBuilder = null
     )
     {
-        $this->name = $name;
         $this->data = $args;
         $this->handlerList = $list ?: new HandlerList();
 
@@ -59,7 +53,7 @@ class Command implements CommandInterface
         return $this->name;
     }
 
-    public function hasParam($name)
+    public function hasParam($name): bool
     {
         return array_key_exists($name, $this->data);
     }
@@ -73,16 +67,14 @@ class Command implements CommandInterface
      * For overriding auth schemes on a per endpoint basis when using
      * EndpointV2 provider. Intended for internal use only.
      *
-     * @param array $authSchemes
      *
      * @deprecated In favor of using the @context property bag.
      *             Auth Schemes are now accessible via the `signature_version` key
      *             in a Command's context, if applicable. Auth Schemes set using
      *             This method are no longer consumed.
-     *
      * @internal
      */
-    public function setAuthSchemes(array $authSchemes)
+    public function setAuthSchemes(array $authSchemes): void
     {
         trigger_error(__METHOD__ . ' is deprecated.  Auth schemes '
             . 'resolved using the service `auth` trait or via endpoint resolution '
@@ -124,8 +116,6 @@ class Command implements CommandInterface
      * Returns the metrics builder instance tied up to this command.
      *
      * @internal
-     *
-     * @return MetricsBuilder
      */
     public function getMetricsBuilder(): MetricsBuilder
     {

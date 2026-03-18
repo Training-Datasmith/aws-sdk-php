@@ -39,10 +39,8 @@ class PollyClient extends AwsClient
      *
      * @param array $args parameters array for `SynthesizeSpeech`
      *                    More information @see Aws\Polly\PollyClient::SynthesizeSpeech
-     *
-     * @return string
      */
-    public function createSynthesizeSpeechPreSignedUrl(array $args)
+    public function createSynthesizeSpeechPreSignedUrl(array $args): string
     {
         $uri = new Uri($this->getEndpoint());
         $uri = $uri->withPath('/v1/speech');

@@ -132,15 +132,16 @@ class Operation extends AbstractModel
     /**
      * Gets definition of modeled dynamic values used
      * for endpoint resolution
-     *
-     * @return array
      */
     public function getOperationContextParams(): array
     {
         return $this->operationContextParams;
     }
 
-    private function setContextParams()
+    /**
+     * @return array{shape: mixed, type: mixed}[]
+     */
+    private function setContextParams(): array
     {
         $members = $this->getInput()->getMembers();
         $contextParams = [];

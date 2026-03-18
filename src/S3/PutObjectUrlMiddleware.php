@@ -22,9 +22,7 @@ class PutObjectUrlMiddleware
      */
     public static function wrap()
     {
-        return function (callable $handler) {
-            return new self($handler);
-        };
+        return fn(callable $handler) => new self($handler);
     }
 
     /**
@@ -39,14 +37,12 @@ class PutObjectUrlMiddleware
     {
         $next = $this->nextHandler;
         return $next($command, $request)->then(
-            function (ResultInterface $result) use ($command) {
+            function (ResultInterface $result) use ($command): \Aws\ResultInterface {
                 $name = $command->getName();
                 switch ($name) {
                     case 'PutObject':
                     case 'CopyObject':
-                        $result['ObjectURL'] = isset($result['@metadata']['effectiveUri'])
-                            ? $result['@metadata']['effectiveUri']
-                            : null;
+                        $result['ObjectURL'] = $result['@metadata']['effectiveUri'] ?? null;
                         break;
                     case 'CompleteMultipartUpload':
                         $result['ObjectURL'] = urldecode($result['Location'] ?? '');

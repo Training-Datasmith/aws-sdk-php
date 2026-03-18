@@ -16,15 +16,11 @@ trait ResourceTypeAndIdTrait
         return $this->data['resource_id'];
     }
 
-    protected static function parseResourceTypeAndId(array $data)
+    protected static function parseResourceTypeAndId(array $data): array
     {
-        $resourceData = preg_split("/[\/:]/", $data['resource'], 2);
-        $data['resource_type'] = isset($resourceData[0])
-            ? $resourceData[0]
-            : null;
-        $data['resource_id'] = isset($resourceData[1])
-            ? $resourceData[1]
-            : null;
+        $resourceData = preg_split("/[\/:]/", (string) $data['resource'], 2);
+        $data['resource_type'] = $resourceData[0] ?? null;
+        $data['resource_id'] = $resourceData[1] ?? null;
         return $data;
     }
 }

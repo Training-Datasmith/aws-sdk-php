@@ -48,8 +48,7 @@ interface PartitionInterface
      * A partition must be invokable as an endpoint provider.
      *
      * @see EndpointProvider
-     * 
-     * @param array $args
+     *
      * @return array
      */
     public function __invoke(array $args = []);

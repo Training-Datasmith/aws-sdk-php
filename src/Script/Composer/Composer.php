@@ -16,17 +16,17 @@ class Composer
         'Signin' => true
     ];
 
-    public static function removeUnusedServicesInDev(Event $event, ?Filesystem $filesystem = null)
+    public static function removeUnusedServicesInDev(Event $event, ?Filesystem $filesystem = null): void
     {
         self::removeUnusedServicesWithConfig($event, $filesystem, true);
     }
 
-    public static function removeUnusedServices(Event $event, ?Filesystem $filesystem = null)
+    public static function removeUnusedServices(Event $event, ?Filesystem $filesystem = null): void
     {
         self::removeUnusedServicesWithConfig($event, $filesystem, false);
     }
 
-    private static function removeUnusedServicesWithConfig(Event $event, ?Filesystem $filesystem = null, $isDev = false)
+    private static function removeUnusedServicesWithConfig(Event $event, ?Filesystem $filesystem = null, bool $isDev = false): void
     {
         if ($isDev && !$event->isDevMode()){
             return;
@@ -55,7 +55,10 @@ class Composer
         }
     }
 
-    public static function buildServiceMapping()
+    /**
+     * @return mixed[]
+     */
+    public static function buildServiceMapping(): array
     {
         $serviceMapping = [];
         $manifest = require(__DIR__ . '/../../data/manifest.json.php');
@@ -67,7 +70,7 @@ class Composer
         return $serviceMapping;
     }
 
-    private static function verifyListedServices($serviceMapping, $listedServices)
+    private static function verifyListedServices(array $serviceMapping, $listedServices): void
     {
         foreach ($listedServices as $serviceToKeep) {
             if (!isset($serviceMapping[$serviceToKeep])) {
@@ -80,11 +83,11 @@ class Composer
 
     private static function removeServiceDirs(
         $event,
-        $filesystem,
+        \Symfony\Component\Filesystem\Filesystem $filesystem,
         $serviceMapping,
         $listedServices,
-        $vendorPath
-    ) {
+        string $vendorPath
+    ): void {
         $unsafeForDeletion = self::$unsafeForDeletion;
         if (in_array('DynamoDbStreams', $listedServices)) {
             $unsafeForDeletion['DynamoDb'] = true;
@@ -117,13 +120,12 @@ class Composer
                                 throw new IOException(
                                     "Removal failed after several attempts. Last error: " . $e->getMessage()
                                 );
-                            } else {
-                                sleep($delay);
-                                $event->getIO()->write(
-                                    "Error encountered: " . $e->getMessage() . ". Retrying..."
-                                );
-                                $delay += 2;
                             }
+                            sleep($delay);
+                            $event->getIO()->write(
+                                "Error encountered: " . $e->getMessage() . ". Retrying..."
+                            );
+                            $delay += 2;
                     }
                 }
 

@@ -37,7 +37,7 @@ class S3ExpressSignature extends S3SignatureV4
         );
     }
 
-    private function getSigningCredentials(CredentialsInterface $credentials)
+    private function getSigningCredentials(CredentialsInterface $credentials): \Aws\Credentials\Credentials
     {
         return new Credentials(
             $credentials->getAccessKeyId(),

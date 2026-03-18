@@ -10,15 +10,13 @@ use Aws\Exception\AwsException;
  */
 class History implements \Countable, \IteratorAggregate
 {
-    private $maxEntries;
-    private $entries = array();
+    private array $entries = [];
 
     /**
      * @param int $maxEntries Maximum number of entries to store.
      */
-    public function __construct($maxEntries = 10)
+    public function __construct(private $maxEntries = 10)
     {
-        $this->maxEntries = $maxEntries;
     }
 
     /**
@@ -99,7 +97,7 @@ class History implements \Countable, \IteratorAggregate
      *
      * @return string Returns the ticket used to finish the entry.
      */
-    public function start(CommandInterface $cmd, RequestInterface $req)
+    public function start(CommandInterface $cmd, RequestInterface $req): string
     {
         $ticket = uniqid();
         $this->entries[$ticket] = [
@@ -118,7 +116,7 @@ class History implements \Countable, \IteratorAggregate
      * @param string $ticket Ticket returned from the start call.
      * @param mixed  $result The result (an exception or AwsResult).
      */
-    public function finish($ticket, $result)
+    public function finish($ticket, $result): void
     {
         if (!isset($this->entries[$ticket])) {
             throw new \InvalidArgumentException('Invalid history ticket');
@@ -144,17 +142,15 @@ class History implements \Countable, \IteratorAggregate
     /**
      * Flush the history
      */
-    public function clear()
+    public function clear(): void
     {
         $this->entries = [];
     }
 
     /**
      * Converts the history to an array.
-     *
-     * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         return array_values($this->entries);
     }

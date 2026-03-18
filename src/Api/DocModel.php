@@ -8,21 +8,14 @@ namespace Aws\Api;
  */
 class DocModel
 {
-    /** @var array */
-    private $docs;
-
     /**
-     * @param array $docs
-     *
      * @throws \RuntimeException
      */
-    public function __construct(array $docs)
+    public function __construct(private array $docs)
     {
         if (!extension_loaded('tidy')) {
             throw new \RuntimeException('The "tidy" PHP extension is required.');
         }
-
-        $this->docs = $docs;
     }
 
     /**
@@ -42,7 +35,7 @@ class DocModel
      */
     public function getServiceDocs()
     {
-        return isset($this->docs['service']) ? $this->docs['service'] : null;
+        return $this->docs['service'] ?? null;
     }
 
     /**
@@ -54,9 +47,7 @@ class DocModel
      */
     public function getOperationDocs($operation)
     {
-        return isset($this->docs['operations'][$operation])
-            ? $this->docs['operations'][$operation]
-            : null;
+        return $this->docs['operations'][$operation] ?? null;
     }
 
     /**
@@ -68,9 +59,7 @@ class DocModel
      */
     public function getErrorDocs($error)
     {
-        return isset($this->docs['shapes'][$error]['base'])
-            ? $this->docs['shapes'][$error]['base']
-            : null;
+        return $this->docs['shapes'][$error]['base'] ?? null;
     }
 
     /**
@@ -114,7 +103,7 @@ class DocModel
     }
 
 
-    private function clean($content)
+    private function clean($content): string
     {
         if (!$content) {
             return '';

@@ -14,10 +14,7 @@ use Psr\Http\Message\RequestInterface;
 class EventBridgeEndpointMiddleware
 {
     private $nextHandler;
-    private $region;
-    private $config;
     private $endpointProvider;
-    private $isCustomEndpoint;
 
     /**
      * Provide the URI scheme of the client sending requests.
@@ -26,36 +23,26 @@ class EventBridgeEndpointMiddleware
      */
     public static function wrap($region, $config, $endpointProvider, $isCustomEndpoint)
     {
-        return function (callable $handler) use (
+        return fn(callable $handler) => new self(
+            $handler,
             $region,
             $config,
             $endpointProvider,
             $isCustomEndpoint
-        ) {
-            return new self(
-                $handler,
-                $region,
-                $config,
-                $endpointProvider,
-                $isCustomEndpoint
-            );
-        };
+        );
     }
 
     public function __construct(
         callable $nextHandler,
-        $region,
-        $config,
+        private $region,
+        private $config,
         $endpointProvider,
-        $isCustomEndpoint
+        private $isCustomEndpoint
     ) {
         $this->nextHandler = $nextHandler;
-        $this->region = $region;
-        $this->config = $config;
         $this->endpointProvider = is_null($endpointProvider)
             ? PartitionEndpointProvider::defaultProvider()
             : $endpointProvider;
-        $this->isCustomEndpoint = $isCustomEndpoint;
     }
 
     public function __invoke(CommandInterface $cmd, RequestInterface $req) {
@@ -79,12 +66,12 @@ class EventBridgeEndpointMiddleware
         return $f($cmd, $req);
     }
 
-    protected static function isValidHostLabel($string)
+    protected static function isValidHostLabel($string): bool
     {
-        if (empty($string) || strlen($string) > 63) {
+        if (empty($string) || strlen((string) $string) > 63) {
             return false;
         }
-        if ($value = preg_match("/^[a-zA-Z0-9-.]+$/", $string)) {
+        if ($value = preg_match("/^[a-zA-Z0-9-.]+$/", (string) $string)) {
             return true;
         }
         return false;
@@ -94,7 +81,7 @@ class EventBridgeEndpointMiddleware
      * @param $endpointID
      * @param CommandInterface $cmd
      */
-    private function validateEndpointId($endpointID)
+    private function validateEndpointId($endpointID): void
     {
         if (empty($endpointID)) {
             throw new \InvalidArgumentException("EventId must be a non-empty string");

@@ -10,8 +10,7 @@ use Aws\Api\StructureShape;
  */
 class RestJsonSerializer extends RestSerializer
 {
-    /** @var JsonBody */
-    private $jsonFormatter;
+    private readonly \Aws\Api\Serializer\JsonBody $jsonFormatter;
 
     /** @var string */
     private $contentType;

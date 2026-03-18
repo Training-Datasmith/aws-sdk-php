@@ -64,7 +64,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * This provider is automatically wrapped in a memoize function that caches
      * previously provided config options.
      *
-     * @param array $config
      *
      * @return callable
      */
@@ -80,7 +79,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         $configProviders[] = self::fallback();
 
         $memo = self::memoize(
-            call_user_func_array([ConfigurationProvider::class, 'chain'], $configProviders)
+            call_user_func_array(ConfigurationProvider::chain(...), $configProviders)
         );
 
         if (isset($config['use_arn_region'])
@@ -166,10 +165,8 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      */
     public static function fallback()
     {
-        return function () {
-            return Promise\Create::promiseFor(
-                new Configuration(self::DEFAULT_USE_ARN_REGION)
-            );
-        };
+        return fn() => Promise\Create::promiseFor(
+            new Configuration(self::DEFAULT_USE_ARN_REGION)
+        );
     }
 }

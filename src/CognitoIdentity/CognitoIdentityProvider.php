@@ -6,24 +6,18 @@ use GuzzleHttp\Promise;
 
 class CognitoIdentityProvider
 {
-    /** @var CognitoIdentityClient */
-    private $client;
-    /** @var string */
-    private $identityPoolId;
-    /** @var string|null */
-    private $accountId;
-    /** @var array */
-    private $logins;
+    private readonly \Aws\CognitoIdentity\CognitoIdentityClient $client;
 
+    /**
+     * @param string $poolId
+     * @param string|null $accountId
+     */
     public function __construct(
-        $poolId,
+        private $identityPoolId,
         array $clientOptions,
-        array $logins = [],
-        $accountId = null
+        private array $logins = [],
+        private $accountId = null
     ) {
-        $this->identityPoolId = $poolId;
-        $this->logins = $logins;
-        $this->accountId = $accountId;
         $this->client = new CognitoIdentityClient($clientOptions + [
             'credentials' => false,
         ]);
@@ -52,7 +46,7 @@ class CognitoIdentityProvider
         });
     }
 
-    public function updateLogin($key, $value)
+    public function updateLogin($key, $value): static
     {
         $this->logins[$key] = $value;
 

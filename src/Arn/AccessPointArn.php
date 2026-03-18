@@ -36,8 +36,6 @@ class AccessPointArn extends Arn implements AccessPointArnInterface
 
     /**
      * Validation specific to AccessPointArn
-     *
-     * @param array $data
      */
     protected static function validate(array $data)
     {
@@ -53,7 +51,7 @@ class AccessPointArn extends Arn implements AccessPointArnInterface
             throw new InvalidArnException("The 7th component of an access point ARN"
                 . " represents the resource ID and must not be empty.");
         }
-        if (strpos($data['resource_id'], ':') !== false) {
+        if (str_contains((string) $data['resource_id'], ':')) {
             throw new InvalidArnException("The resource ID component of an access"
                 . " point ARN must not contain additional components"
                 . " (delimited by ':').");

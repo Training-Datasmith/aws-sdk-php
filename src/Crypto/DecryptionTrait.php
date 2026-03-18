@@ -61,7 +61,7 @@ trait DecryptionTrait
         array $cipherOptions = []
     ) {
         $cipherOptions['Iv'] = base64_decode(
-            $envelope[MetadataEnvelope::IV_HEADER]
+            (string) $envelope[MetadataEnvelope::IV_HEADER]
         );
 
         $cipherOptions['TagLength'] =
@@ -69,10 +69,10 @@ trait DecryptionTrait
 
         $cek = $provider->decryptCek(
             base64_decode(
-                $envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER]
+                (string) $envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER]
             ),
             json_decode(
-                $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
+                (string) $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
                 true
             )
         );
@@ -141,8 +141,8 @@ trait DecryptionTrait
     protected function getDecryptingStream(
         $cipherText,
         $cek,
-        $cipherOptions
-    ) {
+        array $cipherOptions
+    ): \Aws\Crypto\AesGcmDecryptingStream|\Aws\Crypto\AesDecryptingStream {
         $cipherTextStream = Psr7\Utils::streamFor($cipherText);
         switch ($cipherOptions['Cipher']) {
             case 'gcm':
@@ -159,9 +159,7 @@ trait DecryptionTrait
                     $cek,
                     $cipherOptions['Iv'],
                     $cipherOptions['Tag'],
-                    $cipherOptions['Aad'] = isset($cipherOptions['Aad'])
-                        ? $cipherOptions['Aad']
-                        : '',
+                    $cipherOptions['Aad'] ??= '',
                     $cipherOptions['TagLength'] ?: null,
                     $cipherOptions['KeySize']
                 );

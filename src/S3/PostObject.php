@@ -9,10 +9,8 @@ use GuzzleHttp\Psr7\Uri;
  */
 class PostObject
 {
-    private $client;
-    private $bucket;
-    private $formAttributes;
-    private $formInputs;
+    private array $formAttributes;
+    private array $formInputs;
     private $jsonPolicy;
 
     /**
@@ -28,14 +26,11 @@ class PostObject
      *                                      behalf.
      */
     public function __construct(
-        S3ClientInterface $client,
-        $bucket,
+        private readonly S3ClientInterface $client,
+        private $bucket,
         array $formInputs,
         $jsonPolicy
     ) {
-        $this->client = $client;
-        $this->bucket = $bucket;
-
         if (is_array($jsonPolicy)) {
             $jsonPolicy = json_encode($jsonPolicy);
         }
@@ -48,7 +43,7 @@ class PostObject
         ];
 
         $this->formInputs = $formInputs + ['key' => '${filename}'];
-        $credentials = $client->getCredentials()->wait();
+        $credentials = $this->client->getCredentials()->wait();
         $this->formInputs += $this->getPolicyAndSignature($credentials);
     }
 
@@ -88,7 +83,7 @@ class PostObject
      * @param string $attribute Form attribute to set.
      * @param string $value     Value to set.
      */
-    public function setFormAttribute($attribute, $value)
+    public function setFormAttribute($attribute, $value): void
     {
         $this->formAttributes[$attribute] = $value;
     }
@@ -109,7 +104,7 @@ class PostObject
      * @param string $field Field name to set
      * @param string $value Value to set.
      */
-    public function setFormInput($field, $value)
+    public function setFormInput($field, $value): void
     {
         $this->formInputs[$field] = $value;
     }
@@ -124,13 +119,13 @@ class PostObject
         return $this->jsonPolicy;
     }
 
-    private function generateUri()
+    private function generateUri(): string
     {
         $uri = new Uri($this->client->getEndpoint());
 
         if ($this->client->getConfig('use_path_style_endpoint') === true
             || ($uri->getScheme() === 'https'
-            && strpos($this->bucket, '.') !== false)
+            && str_contains($this->bucket, '.'))
         ) {
             // Use path-style URLs
             $uri = $uri->withPath("/{$this->bucket}");
@@ -142,7 +137,7 @@ class PostObject
         return (string) $uri;
     }
 
-    protected function getPolicyAndSignature(CredentialsInterface $creds)
+    protected function getPolicyAndSignature(CredentialsInterface $creds): array
     {
         $jsonPolicy64 = base64_encode($this->jsonPolicy);
 

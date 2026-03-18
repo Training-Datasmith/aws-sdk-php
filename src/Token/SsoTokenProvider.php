@@ -16,14 +16,9 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
     const REFRESH_WINDOW_IN_SECS = 300;
     const REFRESH_ATTEMPT_WINDOW_IN_SECS = 30;
 
-    /** @var string $profileName */
-    private $profileName;
+    private string $profileName;
 
-    /** @var string $configFilePath */
-    private $configFilePath;
-
-    /** @var SSOOIDCClient $ssoOidcClient */
-    private $ssoOidcClient;
+    private string $configFilePath;
 
     /** @var string $ssoSessionName */
     private $ssoSessionName;
@@ -37,11 +32,10 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
     public function __construct(
         $profileName,
         $configFilePath = null,
-        ?SSOOIDCClient $ssoOidcClient = null
+        private ?SSOOIDCClient $ssoOidcClient = null
     ) {
         $this->profileName = $this->resolveProfileName($profileName);
         $this->configFilePath =  $this->resolveConfigFile($configFilePath);
-        $this->ssoOidcClient = $ssoOidcClient;
     }
 
     /**
@@ -51,16 +45,13 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
      * used.
      *
      * @param string|null $argProfileName The profile provided as argument.
-     *
-     * @return string
      */
     private function resolveProfileName($argProfileName): string
     {
         if (empty($argProfileName)) {
             return getenv(self::ENV_PROFILE) ?: 'default';
-        } else {
-            return $argProfileName;
         }
+        return $argProfileName;
     }
 
     /**
@@ -69,16 +60,13 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
      * it takes precedence over the default config file location.
      *
      * @param string|null $argConfigFilePath The config path provided as argument.
-     *
-     * @return string
      */
     private function resolveConfigFile($argConfigFilePath): string
     {
         if (empty($argConfigFilePath)) {
             return self::getHomeDir() . '/.aws/config';
-        } else{
-            return $argConfigFilePath;
         }
+        return $argConfigFilePath;
     }
 
     /**
@@ -141,7 +129,6 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
      * If a refresh is not possible then it just returns
      * the current token data as it is.
      *
-     * @return array
      * @throws TokenException
      */
     public function refresh(): array
@@ -188,8 +175,6 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
      * It will return true just if more than 30 seconds has happened
      * since last refresh, and if the expiration is within a 5-minutes
      * window from the current time.
-     *
-     * @return bool
      */
     public function shouldAttemptRefresh(): bool
     {
@@ -201,7 +186,7 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
             );
         }
 
-        $tokenExpiresAt = strtotime($tokenData['expiresAt']);
+        $tokenExpiresAt = strtotime((string) $tokenData['expiresAt']);
         $lastRefreshAt = filemtime($tokenLocation);
         $now = \time();
 
@@ -213,19 +198,17 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
 
     /**
      * @param $sso_session
-     * @return string
      */
     public static function getTokenLocation($sso_session): string
     {
         return self::getHomeDir()
             . '/.aws/sso/cache/'
-            . mb_convert_encoding(sha1($sso_session), "UTF-8")
+            . mb_convert_encoding(sha1((string) $sso_session), "UTF-8")
             . ".json";
     }
 
     /**
      * @param $tokenLocation
-     * @return array
      */
     function getTokenData($tokenLocation): array
     {
@@ -239,9 +222,8 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
     /**
      * @param $tokenData
      * @param $tokenLocation
-     * @return mixed
      */
-    private function validateTokenData($tokenLocation, $tokenData)
+    private function validateTokenData(string $tokenLocation, array $tokenData): array
     {
         foreach (['accessToken', 'expiresAt'] as $requiredProp) {
             if (empty($tokenData[$requiredProp])) {
@@ -251,23 +233,18 @@ class SsoTokenProvider implements RefreshableTokenProviderInterface
             }
         }
 
-        $expiration = strtotime($tokenData['expiresAt']);
+        $expiration = strtotime((string) $tokenData['expiresAt']);
         if ($expiration === false) {
             throw new TokenException("Cached SSO token returned an invalid expiration");
-        } elseif ($expiration < time()) {
+        }
+        if ($expiration < time()) {
             throw new TokenException("Cached SSO token returned an expired token");
         }
 
         return $tokenData;
     }
 
-    /**
-     * @param array $tokenData
-     * @param string $tokenLocation
-     *
-     * @return array
-     */
-    private function writeNewTokenDataToDisk(array $tokenData, $tokenLocation): array
+    private function writeNewTokenDataToDisk(array $tokenData, string $tokenLocation): array
     {
         $tokenData['expiresAt'] = gmdate(
             'Y-m-d\TH:i:s\Z',

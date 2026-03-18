@@ -91,7 +91,6 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
     const CRYPTO_VERSION = '3.0';
 
     private S3Client $client;
-    private ?string $instructionFileSuffix;
     private int $legacyWarningCount;
 
     /**
@@ -115,7 +114,7 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
         //= type=implication
         //# In this case, the Instruction File Configuration SHOULD be optional,
         //# such that its default configuration is used when none is provided.
-        ?string $instructionFileSuffix = null
+        private ?string $instructionFileSuffix = null
     ) {
         //= ../specification/s3-encryption/client.md#aws-sdk-compatibility
         //= type=implication
@@ -129,15 +128,6 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
                 . " An S3 Encryption Client is not a valid S3 client for an S3 Encryption Client.");   
         }
         $this->client = $client;
-        //= ../specification/s3-encryption/client.md#instruction-file-configuration
-        //= type=implication
-        //# The S3EC MAY support the option to provide Instruction File Configuration during its initialization.
-
-        //= ../specification/s3-encryption/client.md#instruction-file-configuration
-        //= type=implication
-        //# If the S3EC in a given language supports Instruction Files,
-        //# then it MUST accept Instruction File Configuration during its initialization.
-        $this->instructionFileSuffix = $instructionFileSuffix;
         $this->legacyWarningCount = 0;
         MetricsBuilder::appendMetricsCaptureMiddleware(
             $this->client->getHandlerList(),
@@ -170,13 +160,13 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
      * - @CommitmentPolicy: (string) Must be set to 'FORBID_ENCRYPT_ALLOW_DECRYPT',
      *         'REQUIRE_ENCRYPT_ALLOW_DECRYPT', or 'REQUIRE_ENCRYPT_REQUIRE_DECRYPT'.
      *      - 'FORBID_ENCRYPT_ALLOW_DECRYPT' indicates that the client is configured
-     *         to write messages without key commitment and read messages encrypted 
+     *         to write messages without key commitment and read messages encrypted
      *         with key commitment or without key commitment.
      *      - 'REQUIRE_ENCRYPT_ALLOW_DECRYPT' indicates that the client is configured
-     *         to write messages with key commitment and read messages encrypted 
+     *         to write messages with key commitment and read messages encrypted
      *         with key commitment or without key commitment.
      *      - 'REQUIRE_ENCRYPT_REQUIRE_DECRYPT' indicates that the client is configured
-     *         to write messages with key commitment and read messages encrypted 
+     *         to write messages with key commitment and read messages encrypted
      *         with key commitment.
      * - @CipherOptions: (array) Cipher options for encrypting data. Only the
      *   Cipher option is required. Accepts the following:
@@ -203,7 +193,6 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
      * - @InstructionFileSuffix: (string|null) Suffix used when writing to an
      *   instruction file if using an InstructionFileMetadataHandler.
      *
-     * @return PromiseInterface
      *
      * @throws \InvalidArgumentException Thrown when arguments above are not
      *                                   passed or are passed incorrectly.
@@ -262,7 +251,7 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
                 $envelope
             )
         )->then(
-                function ($encryptedBodyStream) use ($args) {
+                function ($encryptedBodyStream) use ($args): array {
                     $hash = new PhpHash('sha256');
                     $hashingEncryptedBodyStream = new HashingStream(
                         $encryptedBodyStream,
@@ -274,7 +263,7 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
                 }
             )->then(
                 function ($putObjectContents) use ($strategy, $envelope) {
-                    list($bodyStream, $args) = $putObjectContents;
+                    [$bodyStream, $args] = $putObjectContents;
                     if ($strategy === null) {
                         $strategy = self::getDefaultStrategy();
                     }
@@ -286,7 +275,7 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
                     return $updatedArgs;
                 }
             )->then(
-                function ($args) {
+                function (array $args) {
                     unset($args['@CipherOptions']);
                     
                     return $this->client->putObjectAsync($args);
@@ -294,9 +283,9 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
             );
     }
 
-    private static function getContentShaDecorator(&$args): \Closure
+    private static function getContentShaDecorator(array &$args): \Closure
     {
-        return function ($hash) use (&$args) {
+        return function ($hash) use (&$args): void {
             $args['ContentSHA256'] = bin2hex($hash);
         };
     }
@@ -378,13 +367,13 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
      * - @CommitmentPolicy: (string) Must be set to 'FORBID_ENCRYPT_ALLOW_DECRYPT',
      *         'REQUIRE_ENCRYPT_ALLOW_DECRYPT', or 'REQUIRE_ENCRYPT_REQUIRE_DECRYPT'.
      *      - 'FORBID_ENCRYPT_ALLOW_DECRYPT' indicates that the client is configured
-     *         to write messages without key commitment and read messages encrypted 
+     *         to write messages without key commitment and read messages encrypted
      *         with key commitment or without key commitment.
      *      - 'REQUIRE_ENCRYPT_ALLOW_DECRYPT' indicates that the client is configured
-     *         to write messages with key commitment and read messages encrypted 
+     *         to write messages with key commitment and read messages encrypted
      *         with key commitment or without key commitment.
      *      - 'REQUIRE_ENCRYPT_REQUIRE_DECRYPT' indicates that the client is configured
-     *         to write messages with key commitment and read messages encrypted 
+     *         to write messages with key commitment and read messages encrypted
      *         with key commitment.
      * - @SecurityProfile: (string) Must be set to 'V3' or 'V3_AND_LEGACY'.
      *      - 'V3' indicates that only objects encrypted with S3EncryptionClientV3
@@ -415,7 +404,6 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
      *   be specified and provided to the decrypt operation. Ignored for non-KMS
      *   materials providers. Defaults to false.
      *
-     * @return PromiseInterface
      *
      * @throws \InvalidArgumentException Thrown when required arguments are not
      *                                   passed or are passed incorrectly.
@@ -469,15 +457,15 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
             $saveAs = $args['SaveAs'];
         }
 
-        $promise = $this->client->getObjectAsync($args)
+        return $this->client->getObjectAsync($args)
             ->then(
-                function ($result) use (
+                function (array $result) use (
                     $provider,
                     $instructionFileSuffix,
                     $strategy,
                     $keyCommitmentPolicy,
                     $args
-                ) {
+                ): array {
                     if ($strategy === null) {
                         $strategy = $this->determineGetObjectStrategy(
                             $result,
@@ -502,7 +490,7 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
                     return $result;
                 }
             )->then(
-                function ($result) use ($saveAs) {
+                function (array $result) use ($saveAs): array {
                     if (!empty($saveAs)) {
                         file_put_contents(
                             $saveAs,
@@ -514,8 +502,6 @@ class S3EncryptionClientV3 extends AbstractCryptoClientV3
                     return $result;
                 }
             );
-
-        return $promise;
     }
 
     /**

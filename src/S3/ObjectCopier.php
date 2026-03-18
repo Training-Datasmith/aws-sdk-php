@@ -18,14 +18,11 @@ use InvalidArgumentException;
 class ObjectCopier implements PromisorInterface
 {
     const DEFAULT_MULTIPART_THRESHOLD = MultipartUploader::PART_MAX_SIZE;
+    private array $source;
+    private readonly array $destination;
+    private array $options;
 
-    private $client;
-    private $source;
-    private $destination;
-    private $acl;
-    private $options;
-
-    private static $defaults = [
+    private static array $defaults = [
         'before_lookup' => null,
         'before_upload' => null,
         'concurrency'   => 5,
@@ -57,19 +54,16 @@ class ObjectCopier implements PromisorInterface
      * @throws InvalidArgumentException
      */
     public function __construct(
-        S3ClientInterface $client,
+        private readonly S3ClientInterface $client,
         array $source,
         array $destination,
-        $acl = 'private',
+        private $acl = 'private',
         array $options = []
     ) {
         $this->validateLocation($source);
         $this->validateLocation($destination);
-
-        $this->client = $client;
         $this->source = $source;
         $this->destination = $destination;
-        $this->acl = $acl;
         $this->options = $options + self::$defaults;
     }
 
@@ -135,7 +129,7 @@ class ObjectCopier implements PromisorInterface
         return $this->promise()->wait();
     }
 
-    private function validateLocation(array $location)
+    private function validateLocation(array $location): void
     {
         if (empty($location['Bucket']) || empty($location['Key'])) {
             throw new \InvalidArgumentException('Locations provided to an'
@@ -143,7 +137,7 @@ class ObjectCopier implements PromisorInterface
         }
     }
 
-    private function getSourcePath()
+    private function getSourcePath(): string
     {
         $path = "/{$this->source['Bucket']}/";
         if (ArnParser::isArn($this->source['Bucket'])) {
@@ -160,7 +154,7 @@ class ObjectCopier implements PromisorInterface
             }
         }
 
-        $sourcePath = $path . rawurlencode($this->source['Key']);
+        $sourcePath = $path . rawurlencode((string) $this->source['Key']);
         if (isset($this->source['VersionId'])) {
             $sourcePath .= "?versionId={$this->source['VersionId']}";
         }

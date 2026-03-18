@@ -11,11 +11,8 @@ class Credentials extends AwsCredentialIdentity implements
     CredentialsInterface,
     \Serializable
 {
-    private $key;
-    private $secret;
-    private $token;
-    private $expires;
-    private $accountId;
+    private string $key;
+    private string $secret;
     private $source;
 
     /**
@@ -30,17 +27,14 @@ class Credentials extends AwsCredentialIdentity implements
     public function __construct(
         $key,
         $secret,
-        $token = null,
-        $expires = null,
-        $accountId = null,
+        private $token = null,
+        private $expires = null,
+        private $accountId = null,
         $source = CredentialSources::STATIC
     )
     {
         $this->key = trim((string) $key);
         $this->secret = trim((string) $secret);
-        $this->token = $token;
-        $this->expires = $expires;
-        $this->accountId = $accountId;
         $this->source = $source ?? CredentialSources::STATIC;
     }
 
@@ -76,7 +70,7 @@ class Credentials extends AwsCredentialIdentity implements
         return $this->expires;
     }
 
-    public function isExpired()
+    public function isExpired(): bool
     {
         return $this->expires !== null && time() >= $this->expires;
     }
@@ -91,7 +85,7 @@ class Credentials extends AwsCredentialIdentity implements
         return $this->source;
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'key'     => $this->key,
@@ -108,7 +102,7 @@ class Credentials extends AwsCredentialIdentity implements
         return json_encode($this->__serialize());
     }
 
-    public function unserialize($serialized)
+    public function unserialize($serialized): void
     {
         $data = json_decode($serialized, true);
 
@@ -120,7 +114,7 @@ class Credentials extends AwsCredentialIdentity implements
         return $this->toArray();
     }
 
-    public function __unserialize($data)
+    public function __unserialize(array $data)
     {
         $this->key = $data['key'];
         $this->secret = $data['secret'];
@@ -136,7 +130,7 @@ class Credentials extends AwsCredentialIdentity implements
      *
      * @internal
      */
-    public function extendExpiration() {
+    public function extendExpiration(): void {
         $extension = mt_rand(5, 10);
         $this->expires = time() + $extension * 60;
 

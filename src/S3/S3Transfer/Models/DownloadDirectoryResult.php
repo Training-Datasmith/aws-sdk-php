@@ -4,44 +4,17 @@ namespace Aws\S3\S3Transfer\Models;
 
 use Throwable;
 
-final class DownloadDirectoryResult
+final class DownloadDirectoryResult implements \Stringable
 {
-    /** @var int */
-    private int $objectsDownloaded;
-
-    /** @var int */
-    private int $objectsFailed;
-
-    /** @var Throwable|null */
-    private ?Throwable $reason;
-
-    /**
-     * @param int $objectsDownloaded
-     * @param int $objectsFailed
-     * @param Throwable|null $reason
-     */
-    public function __construct(
-        int $objectsDownloaded,
-        int $objectsFailed,
-        ?Throwable $reason = null
-    )
+    public function __construct(private readonly int $objectsDownloaded, private readonly int $objectsFailed, private readonly ?Throwable $reason = null)
     {
-        $this->objectsDownloaded = $objectsDownloaded;
-        $this->objectsFailed = $objectsFailed;
-        $this->reason = $reason;
     }
 
-    /**
-     * @return int
-     */
     public function getObjectsDownloaded(): int
     {
         return $this->objectsDownloaded;
     }
 
-    /**
-     * @return int
-     */
     public function getObjectsFailed(): int
     {
         return $this->objectsFailed;
@@ -52,9 +25,6 @@ final class DownloadDirectoryResult
         return $this->reason;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return sprintf(

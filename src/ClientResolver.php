@@ -45,9 +45,6 @@ use Psr\Http\Message\RequestInterface;
  */
 class ClientResolver
 {
-    /** @var array */
-    private $argDefinitions;
-
     /**
      * When using this option as default please make sure that, your config
      * has at least one data type defined in `valid` otherwise it will be
@@ -58,14 +55,14 @@ class ClientResolver
      * @var string
      */
     const DEFAULT_FROM_ENV_INI = [
-        __CLASS__,
+        self::class,
         '_resolve_from_env_ini'
     ];
     private const ANONYMOUS_SIGNATURE = 'anonymous';
     private const DPOP_SIGNATURE = 'dpop';
 
     /** @var array Map of types to a corresponding function */
-    private static $typeMap = [
+    private static array $typeMap = [
         'resource' => 'is_resource',
         'callable' => 'is_callable',
         'int'      => 'is_int',
@@ -76,7 +73,7 @@ class ClientResolver
         'array'    => 'is_array',
     ];
 
-    private static $defaultArgs = [
+    private static array $defaultArgs = [
         'service' => [
             'type'     => 'value',
             'valid'    => ['string'],
@@ -107,21 +104,21 @@ class ClientResolver
             'type'      => 'value',
             'valid'     => ['bool'],
             'doc'       => 'Set to true to disable endpoint urls configured using `AWS_ENDPOINT_URL` and `endpoint_url` shared config option.',
-            'fn'        => [__CLASS__, '_apply_ignore_configured_endpoint_urls'],
+            'fn'        => [self::class, '_apply_ignore_configured_endpoint_urls'],
             'default'   => self::DEFAULT_FROM_ENV_INI,
         ],
         'endpoint' => [
             'type'  => 'value',
             'valid' => ['string'],
             'doc'   => 'The full URI of the webservice. This is only required when connecting to a custom endpoint (e.g., a local version of S3).',
-            'fn'    => [__CLASS__, '_apply_endpoint'],
-            'default'   => [__CLASS__, '_default_endpoint']
+            'fn'    => [self::class, '_apply_endpoint'],
+            'default'   => [self::class, '_default_endpoint']
         ],
         'region' => [
             'type'     => 'value',
             'valid'    => ['string'],
             'doc'      => 'Region to connect to. See http://docs.aws.amazon.com/general/latest/gr/rande.html for a list of available regions.',
-            'fn'       => [__CLASS__, '_apply_region'],
+            'fn'       => [self::class, '_apply_region'],
             'default'  => self::DEFAULT_FROM_ENV_INI
         ],
         'version' => [
@@ -134,46 +131,46 @@ class ClientResolver
             'type'    => 'value',
             'valid'   => ['callable'],
             'doc'     => 'A callable that accepts a signature version name (e.g., "v4"), a service name, and region, and  returns a SignatureInterface object or null. This provider is used to create signers utilized by the client. See Aws\\Signature\\SignatureProvider for a list of built-in providers',
-            'default' => [__CLASS__, '_default_signature_provider'],
+            'default' => [self::class, '_default_signature_provider'],
         ],
         'api_provider' => [
             'type'     => 'value',
             'valid'    => ['callable'],
             'doc'      => 'An optional PHP callable that accepts a type, service, and version argument, and returns an array of corresponding configuration data. The type value can be one of api, waiter, or paginator.',
-            'fn'       => [__CLASS__, '_apply_api_provider'],
+            'fn'       => [self::class, '_apply_api_provider'],
             'default'  => [ApiProvider::class, 'defaultProvider'],
         ],
         'configuration_mode' => [
             'type'    => 'value',
             'valid'   => [ConfigModeInterface::class, CacheInterface::class, 'string', 'closure'],
             'doc'     => "Sets the default configuration mode. Otherwise provide an instance of Aws\DefaultsMode\ConfigurationInterface, an instance of  Aws\CacheInterface, or a string containing a valid mode",
-            'fn'      => [__CLASS__, '_apply_defaults'],
+            'fn'      => [self::class, '_apply_defaults'],
             'default' => [ConfigModeProvider::class, 'defaultProvider']
         ],
         'use_fips_endpoint' => [
             'type'      => 'value',
             'valid'     => ['bool', UseFipsEndpointConfiguration::class, CacheInterface::class, 'callable'],
             'doc'       => 'Set to true to enable the use of FIPS pseudo regions',
-            'fn'        => [__CLASS__, '_apply_use_fips_endpoint'],
-            'default'   => [__CLASS__, '_default_use_fips_endpoint'],
+            'fn'        => [self::class, '_apply_use_fips_endpoint'],
+            'default'   => [self::class, '_default_use_fips_endpoint'],
         ],
         'use_dual_stack_endpoint' => [
             'type'      => 'value',
             'valid'     => ['bool', UseDualStackEndpointConfiguration::class, CacheInterface::class, 'callable'],
             'doc'       => 'Set to true to enable the use of dual-stack endpoints',
-            'fn'        => [__CLASS__, '_apply_use_dual_stack_endpoint'],
-            'default'   => [__CLASS__, '_default_use_dual_stack_endpoint'],
+            'fn'        => [self::class, '_apply_use_dual_stack_endpoint'],
+            'default'   => [self::class, '_default_use_dual_stack_endpoint'],
         ],
         'endpoint_provider' => [
             'type'     => 'value',
             'valid'    => ['callable', EndpointV2\EndpointProviderV2::class],
-            'fn'       => [__CLASS__, '_apply_endpoint_provider'],
+            'fn'       => [self::class, '_apply_endpoint_provider'],
             'doc'      => 'An optional PHP callable that accepts a hash of options including a "service" and "region" key and returns NULL or a hash of endpoint data, of which the "endpoint" key is required. See Aws\\Endpoint\\EndpointProvider for a list of built-in providers.',
-            'default'  => [__CLASS__, '_default_endpoint_provider'],
+            'default'  => [self::class, '_default_endpoint_provider'],
         ],
         'serializer' => [
-            'default'   => [__CLASS__, '_default_serializer'],
-            'fn'        => [__CLASS__, '_apply_serializer'],
+            'default'   => [self::class, '_default_serializer'],
+            'fn'        => [self::class, '_apply_serializer'],
             'internal'  => true,
             'type'      => 'value',
             'valid'     => ['callable'],
@@ -182,72 +179,72 @@ class ClientResolver
             'type'    => 'config',
             'valid'   => ['string'],
             'doc'     => 'A string representing a custom signature version to use with a service (e.g., v4). Note that per/operation signature version MAY override this requested signature version.',
-            'default' => [__CLASS__, '_default_signature_version'],
+            'default' => [self::class, '_default_signature_version'],
         ],
         'signing_name' => [
             'type'    => 'config',
             'valid'   => ['string'],
             'doc'     => 'A string representing a custom service name to be used when calculating a request signature.',
-            'default' => [__CLASS__, '_default_signing_name'],
+            'default' => [self::class, '_default_signing_name'],
         ],
         'signing_region' => [
             'type'    => 'config',
             'valid'   => ['string'],
             'doc'     => 'A string representing a custom region name to be used when calculating a request signature.',
-            'default' => [__CLASS__, '_default_signing_region'],
+            'default' => [self::class, '_default_signing_region'],
         ],
         'profile' => [
             'type'  => 'config',
             'valid' => ['string'],
             'doc'   => 'Allows you to specify which profile to use when credentials are created from the AWS credentials file in your HOME directory. This setting overrides the AWS_PROFILE environment variable. Note: Specifying "profile" will cause the "credentials" and "use_aws_shared_config_files" keys to be ignored.',
-            'fn'    => [__CLASS__, '_apply_profile'],
+            'fn'    => [self::class, '_apply_profile'],
         ],
         'credentials' => [
             'type'    => 'value',
             'valid'   => [CredentialsInterface::class, CacheInterface::class, 'array', 'bool', 'callable'],
             'doc'     => 'Specifies the credentials used to sign requests. Provide an Aws\Credentials\CredentialsInterface object, an associative array of "key", "secret", and an optional "token" key, `false` to use null credentials, or a callable credentials provider used to create credentials or return null. See Aws\\Credentials\\CredentialProvider for a list of built-in credentials providers. If no credentials are provided, the SDK will attempt to load them from the environment.',
-            'fn'      => [__CLASS__, '_apply_credentials'],
-            'default' => [__CLASS__, '_default_credential_provider'],
+            'fn'      => [self::class, '_apply_credentials'],
+            'default' => [self::class, '_default_credential_provider'],
         ],
         'auth_scheme_preference' => [
             'type'    => 'value',
             'valid'   => ['string', 'array'],
             'doc'     => 'Comma-separated list of authentication scheme preferences in priority order. Configure via environment variable `AWS_AUTH_SCHEME_PREFERENCE`, INI config file `auth_scheme_preference`, or client constructor parameter `auth_scheme_preference` (string or array).\nExample: `AWS_AUTH_SCHEME_PREFERENCE=aws.auth#sigv4a,aws.auth#sigv4,smithy.api#httpBearerAuth`',
             'default' => self::DEFAULT_FROM_ENV_INI,
-            'fn' => [__CLASS__, '_apply_auth_scheme_preference'],
+            'fn' => [self::class, '_apply_auth_scheme_preference'],
         ],
         'token' => [
             'type'    => 'value',
             'valid'   => [TokenInterface::class, CacheInterface::class, 'array', 'bool', 'callable'],
             'doc'     => 'Specifies the token used to authorize requests. Provide an Aws\Token\TokenInterface object, an associative array of "token", and an optional "expiration" key, `false` to use a null token, or a callable token provider used to fetch a token or return null. See Aws\\Token\\TokenProvider for a list of built-in credentials providers. If no token is provided, the SDK will attempt to load one from the environment.',
-            'fn'      => [__CLASS__, '_apply_token'],
-            'default' => [__CLASS__, '_default_token_provider'],
+            'fn'      => [self::class, '_apply_token'],
+            'default' => [self::class, '_default_token_provider'],
         ],
         'auth_scheme_resolver' => [
             'type'    => 'value',
             'valid'   => [AuthSchemeResolverInterface::class],
             'doc'     => 'An instance of Aws\Auth\AuthSchemeResolverInterface which selects a modeled auth scheme and returns a signature version',
-            'default' => [__CLASS__, '_default_auth_scheme_resolver'],
+            'default' => [self::class, '_default_auth_scheme_resolver'],
         ],
         'endpoint_discovery' => [
             'type'     => 'value',
             'valid'    => [ConfigurationInterface::class, CacheInterface::class, 'array', 'callable'],
             'doc'      => 'Specifies settings for endpoint discovery. Provide an instance of Aws\EndpointDiscovery\ConfigurationInterface, an instance Aws\CacheInterface, a callable that provides a promise for a Configuration object, or an associative array with the following keys: enabled: (bool) Set to true to enable endpoint discovery, false to explicitly disable it. Defaults to false; cache_limit: (int) The maximum number of keys in the endpoints cache. Defaults to 1000.',
-            'fn'       => [__CLASS__, '_apply_endpoint_discovery'],
-            'default'  => [__CLASS__, '_default_endpoint_discovery_provider']
+            'fn'       => [self::class, '_apply_endpoint_discovery'],
+            'default'  => [self::class, '_default_endpoint_discovery_provider']
         ],
         'stats' => [
             'type'  => 'value',
             'valid' => ['bool', 'array'],
             'default' => false,
             'doc'   => 'Set to true to gather transfer statistics on requests sent. Alternatively, you can provide an associative array with the following keys: retries: (bool) Set to false to disable reporting on retries attempted; http: (bool) Set to true to enable collecting statistics from lower level HTTP adapters (e.g., values returned in GuzzleHttp\TransferStats). HTTP handlers must support an http_stats_receiver option for this to have an effect; timer: (bool) Set to true to enable a command timer that reports the total wall clock time spent on an operation in seconds.',
-            'fn'    => [__CLASS__, '_apply_stats'],
+            'fn'    => [self::class, '_apply_stats'],
         ],
         'retries' => [
             'type'    => 'value',
             'valid'   => ['int', RetryConfigInterface::class, CacheInterface::class, 'callable', 'array'],
             'doc'     => "Configures the retry mode and maximum number of allowed retries for a client (pass 0 to disable retries). Provide an integer for 'legacy' mode with the specified number of retries. Otherwise provide an instance of Aws\Retry\ConfigurationInterface, an instance of  Aws\CacheInterface, a callable function, or an array with the following keys: mode: (string) Set to 'legacy', 'standard' (uses retry quota management), or 'adapative' (an experimental mode that adds client-side rate limiting to standard mode); max_attempts: (int) The maximum number of attempts for a given request. ",
-            'fn'      => [__CLASS__, '_apply_retries'],
+            'fn'      => [self::class, '_apply_retries'],
             'default' => [RetryConfigProvider::class, 'defaultProvider']
         ],
         'validate' => [
@@ -255,33 +252,33 @@ class ClientResolver
             'valid'   => ['bool', 'array'],
             'default' => true,
             'doc'     => 'Set to false to disable client-side parameter validation. Set to true to utilize default validation constraints. Set to an associative array of validation options to enable specific validation constraints.',
-            'fn'      => [__CLASS__, '_apply_validate'],
+            'fn'      => [self::class, '_apply_validate'],
         ],
         'debug' => [
             'type'  => 'value',
             'valid' => ['bool', 'array'],
             'doc'   => 'Set to true to display debug information when sending requests. Alternatively, you can provide an associative array with the following keys: logfn: (callable) Function that is invoked with log messages; stream_size: (int) When the size of a stream is greater than this number, the stream data will not be logged (set to "0" to not log any stream data); scrub_auth: (bool) Set to false to disable the scrubbing of auth data from the logged messages; http: (bool) Set to false to disable the "debug" feature of lower level HTTP adapters (e.g., verbose curl output).',
-            'fn'    => [__CLASS__, '_apply_debug'],
+            'fn'    => [self::class, '_apply_debug'],
         ],
         'disable_request_compression' => [
             'type'      => 'value',
             'valid'     => ['bool', 'callable'],
             'doc'       => 'Set to true to disable request compression for supported operations',
-            'fn'        => [__CLASS__, '_apply_disable_request_compression'],
+            'fn'        => [self::class, '_apply_disable_request_compression'],
             'default'   => self::DEFAULT_FROM_ENV_INI,
         ],
         'request_min_compression_size_bytes' => [
             'type'      => 'value',
             'valid'     => ['int', 'callable'],
             'doc'       => 'Set to a value between between 0 and 10485760 bytes, inclusive. This value will be ignored if `disable_request_compression` is set to `true`',
-            'fn'        => [__CLASS__, '_apply_min_compression_size'],
-            'default'   => [__CLASS__, '_default_min_compression_size'],
+            'fn'        => [self::class, '_apply_min_compression_size'],
+            'default'   => [self::class, '_default_min_compression_size'],
         ],
         'csm' => [
             'type'     => 'value',
             'valid'    => [\Aws\ClientSideMonitoring\ConfigurationInterface::class, 'callable', 'array', 'bool'],
             'doc'      => 'CSM options for the client. Provides a callable wrapping a promise, a boolean "false", an instance of ConfigurationInterface, or an associative array of "enabled", "host", "port", and "client_id".',
-            'fn'       => [__CLASS__, '_apply_csm'],
+            'fn'       => [self::class, '_apply_csm'],
             'default'  => [\Aws\ClientSideMonitoring\ConfigurationProvider::class, 'defaultProvider']
         ],
         'http' => [
@@ -294,14 +291,14 @@ class ClientResolver
             'type'    => 'value',
             'valid'   => ['callable'],
             'doc'     => 'An HTTP handler is a function that accepts a PSR-7 request object and returns a promise that is fulfilled with a PSR-7 response object or rejected with an array of exception data. NOTE: This option supersedes any provided "handler" option.',
-            'fn'      => [__CLASS__, '_apply_http_handler']
+            'fn'      => [self::class, '_apply_http_handler']
         ],
         'handler' => [
             'type'     => 'value',
             'valid'    => ['callable'],
             'doc'      => 'A handler that accepts a command object, request object and returns a promise that is fulfilled with an Aws\ResultInterface object or rejected with an Aws\Exception\AwsException. A handler does not accept a next handler as it is terminal and expected to fulfill a command. If no handler is provided, a default Guzzle handler will be utilized.',
-            'fn'       => [__CLASS__, '_apply_handler'],
-            'default'  => [__CLASS__, '_default_handler']
+            'fn'       => [self::class, '_apply_handler'],
+            'default'  => [self::class, '_default_handler']
         ],
         'app_id' => [
             'type' => 'value',
@@ -309,14 +306,14 @@ class ClientResolver
             'doc' => 'app_id(AppId) is an optional application specific identifier that can be set. 
              When set it will be appended to the User-Agent header of every request in the form of App/{AppId}. 
              This value is also sourced from environment variable AWS_SDK_UA_APP_ID or the shared config profile attribute sdk_ua_app_id.',
-            'fn' => [__CLASS__, '_apply_app_id'],
-            'default' => [__CLASS__, '_default_app_id']
+            'fn' => [self::class, '_apply_app_id'],
+            'default' => [self::class, '_default_app_id']
         ],
         'ua_append' => [
             'type'     => 'value',
             'valid'    => ['string', 'array'],
             'doc'      => 'Provide a string or array of strings to send in the User-Agent header.',
-            'fn'       => [__CLASS__, '_apply_user_agent'],
+            'fn'       => [self::class, '_apply_user_agent'],
             'default'  => [],
         ],
         'idempotency_auto_fill' => [
@@ -324,7 +321,7 @@ class ClientResolver
             'valid'     => ['bool', 'callable'],
             'doc'       => 'Set to false to disable SDK to populate parameters that enabled \'idempotencyToken\' trait with a random UUID v4 value on your behalf. Using default value \'true\' still allows parameter value to be overwritten when provided. Note: auto-fill only works when cryptographically secure random bytes generator functions(random_bytes, openssl_random_pseudo_bytes or mcrypt_create_iv) can be found. You may also provide a callable source of random bytes.',
             'default'   => true,
-            'fn'        => [__CLASS__, '_apply_idempotency_auto_fill']
+            'fn'        => [self::class, '_apply_idempotency_auto_fill']
         ],
         'use_aws_shared_config_files' => [
             'type'      => 'value',
@@ -337,20 +334,20 @@ class ClientResolver
             'valid'     => ['bool'],
             'doc' => 'Set to true to suppress PHP runtime deprecation warnings. The current deprecation campaign is PHP versions 8.0.x and below, taking effect on 1/13/2025.',
             'default' => false,
-            'fn' => [__CLASS__, '_apply_suppress_php_deprecation_warning']
+            'fn' => [self::class, '_apply_suppress_php_deprecation_warning']
         ],
         'account_id_endpoint_mode' => [
             'type'      => 'value',
             'valid'     => ['string'],
             'doc'       => 'Decides whether account_id must a be a required resolved credentials property. If this configuration is set to disabled, then account_id is not required. If set to preferred a warning will be logged when account_id is not resolved, and when set to required an exception will be thrown if account_id is not resolved.',
-            'default'  => [__CLASS__, '_default_account_id_endpoint_mode'],
-            'fn'       => [__CLASS__, '_apply_account_id_endpoint_mode']
+            'default'  => [self::class, '_default_account_id_endpoint_mode'],
+            'fn'       => [self::class, '_apply_account_id_endpoint_mode']
         ],
         'sigv4a_signing_region_set' => [
             'type' => 'value',
             'valid' => ['string', 'array'],
             'doc' => 'A comma-delimited list of supported regions sent in sigv4a requests.',
-            'fn' => [__CLASS__, '_apply_sigv4a_signing_region_set'],
+            'fn' => [self::class, '_apply_sigv4a_signing_region_set'],
             'default' => self::DEFAULT_FROM_ENV_INI
         ]
     ];
@@ -391,9 +388,8 @@ class ClientResolver
     /**
      * @param array $argDefinitions Client arguments.
      */
-    public function __construct(array $argDefinitions)
+    public function __construct(private array $argDefinitions)
     {
-        $this->argDefinitions = $argDefinitions;
     }
 
     /**
@@ -407,7 +403,7 @@ class ClientResolver
      * @throws \InvalidArgumentException
      * @see Aws\AwsClient::__construct for a list of available options.
      */
-    public function resolve(array $args, HandlerList $list)
+    public function resolve(array $args, HandlerList $list): array
     {
         $args['config'] = [];
         foreach ($this->argDefinitions as $key => $a) {
@@ -478,7 +474,7 @@ class ClientResolver
      *                            available instead of the documentation.
      * @return string
      */
-    private function getArgMessage($name, $args = [], $useRequired = false)
+    private function getArgMessage($name, array $args = [], bool $useRequired = false)
     {
         $arg = $this->argDefinitions[$name];
         $msg = '';
@@ -511,7 +507,7 @@ class ClientResolver
      * @param mixed  $provided The provided value.
      * @throws \InvalidArgumentException
      */
-    private function invalidType($name, $provided)
+    private function invalidType($name, $provided): never
     {
         $expected = implode('|', $this->argDefinitions[$name]['valid']);
         $msg = "Invalid configuration value "
@@ -527,14 +523,17 @@ class ClientResolver
      * @param array $args Passed in arguments.
      * @throws \InvalidArgumentException
      */
-    private function throwRequired(array $args)
+    private function throwRequired(array $args): void
     {
         $missing = [];
         foreach ($this->argDefinitions as $k => $a) {
-            if (empty($a['required'])
-                || isset($a['default'])
-                || isset($args[$k])
-            ) {
+            if (empty($a['required'])) {
+                continue;
+            }
+            if (isset($a['default'])) {
+                continue;
+            }
+            if (isset($args[$k])) {
                 continue;
             }
             $missing[] = $this->getArgMessage($k, $args, true);
@@ -544,7 +543,7 @@ class ClientResolver
         throw new IAE($msg);
     }
 
-    public static function _apply_retries($value, array &$args, HandlerList $list)
+    public static function _apply_retries($value, array &$args, HandlerList $list): void
     {
         // A value of 0 for the config option disables retries
         if ($value) {
@@ -571,7 +570,7 @@ class ClientResolver
         }
     }
 
-    public static function _apply_defaults($value, array &$args, HandlerList $list)
+    public static function _apply_defaults($value, array &$args, HandlerList $list): void
     {
         $config = ConfigModeProvider::unwrap($value);
         if ($config->getMode() !== 'legacy') {
@@ -609,7 +608,7 @@ class ClientResolver
         }
     }
 
-    public static function _apply_disable_request_compression($value, array &$args) {
+    public static function _apply_disable_request_compression($value, array &$args): void {
         if (is_callable($value)) {
             $value = $value();
         }
@@ -622,7 +621,7 @@ class ClientResolver
         $args['config']['disable_request_compression'] = $value;
     }
 
-    public static function _apply_min_compression_size($value, array &$args) {
+    public static function _apply_min_compression_size($value, array &$args): void {
         if (is_callable($value)) {
             $value = $value();
         }
@@ -645,7 +644,7 @@ class ClientResolver
         );
     }
 
-    public static function _apply_credentials($value, array &$args)
+    public static function _apply_credentials($value, array &$args): void
     {
         if (is_callable($value)) {
             return;
@@ -690,7 +689,7 @@ class ClientResolver
         return CredentialProvider::defaultProvider($args);
     }
 
-    public static function _apply_token($value, array &$args)
+    public static function _apply_token($value, array &$args): void
     {
         if (is_callable($value)) {
             return;
@@ -731,7 +730,7 @@ class ClientResolver
         return TokenProvider::defaultProvider($args);
     }
 
-    public static function _apply_csm($value, array &$args, HandlerList $list)
+    public static function _apply_csm($value, array &$args, HandlerList $list): void
     {
         if ($value === false) {
             $value = new Configuration(
@@ -764,7 +763,7 @@ class ClientResolver
         );
     }
 
-    public static function _apply_api_provider(callable $value, array &$args)
+    public static function _apply_api_provider(callable $value, array &$args): void
     {
         $api = new Service(
             ApiProvider::resolve(
@@ -788,7 +787,7 @@ class ClientResolver
         $args['error_parser'] = Service::createErrorParser($api->getProtocol(), $api);
     }
 
-    public static function _apply_endpoint_provider($value, array &$args)
+    public static function _apply_endpoint_provider($value, array &$args): void
     {
         if (!isset($args['endpoint'])) {
             if ($value instanceof \Aws\EndpointV2\EndpointProviderV2) {
@@ -855,7 +854,7 @@ class ClientResolver
         }
     }
 
-    public static function _apply_endpoint_discovery($value, array &$args) {
+    public static function _apply_endpoint_discovery($value, array &$args): void {
         $args['endpoint_discovery'] = $value;
     }
 
@@ -864,7 +863,7 @@ class ClientResolver
         return ConfigurationProvider::defaultProvider($args);
     }
 
-    public static function _apply_use_fips_endpoint($value, array &$args) {
+    public static function _apply_use_fips_endpoint($value, array &$args): void {
         if ($value instanceof CacheInterface) {
             $value = UseFipsConfigProvider::defaultProvider($args);
         }
@@ -886,7 +885,7 @@ class ClientResolver
         return UseFipsConfigProvider::defaultProvider($args);
     }
 
-    public static function _apply_use_dual_stack_endpoint($value, array &$args) {
+    public static function _apply_use_dual_stack_endpoint($value, array &$args): void {
         if ($value instanceof CacheInterface) {
             $value = UseDualStackConfigProvider::defaultProvider($args);
         }
@@ -909,12 +908,12 @@ class ClientResolver
         return UseDualStackConfigProvider::defaultProvider($args);
     }
 
-    public static function _apply_serializer($value, array &$args, HandlerList $list)
+    public static function _apply_serializer($value, array &$args, HandlerList $list): void
     {
         $list->prependBuild(Middleware::requestBuilder($value), 'builder');
     }
 
-    public static function _apply_debug($value, array &$args, HandlerList $list)
+    public static function _apply_debug($value, array &$args, HandlerList $list): void
     {
         if ($value !== false) {
             $list->interpose(
@@ -925,7 +924,7 @@ class ClientResolver
         }
     }
 
-    public static function _apply_stats($value, array &$args, HandlerList $list)
+    public static function _apply_stats($value, array &$args, HandlerList $list): void
     {
         // Create an array of stat collectors that are disabled (set to false)
         // by default. If the user has passed in true, enable all stat
@@ -943,12 +942,12 @@ class ClientResolver
         }
     }
 
-    public static function _apply_profile($_, array &$args)
+    public static function _apply_profile($_, array &$args): void
     {
         $args['credentials'] = CredentialProvider::ini($args['profile']);
     }
 
-    public static function _apply_validate($value, array &$args, HandlerList $list)
+    public static function _apply_validate($value, array &$args, HandlerList $list): void
     {
         if ($value === false) {
             return;
@@ -963,12 +962,12 @@ class ClientResolver
         );
     }
 
-    public static function _apply_handler($value, array &$args, HandlerList $list)
+    public static function _apply_handler(callable $value, array &$args, HandlerList $list): void
     {
         $list->setHandler($value);
     }
 
-    public static function _default_handler(array &$args)
+    public static function _default_handler(array &$args): \Aws\WrappedHttpHandler
     {
         return new WrappedHttpHandler(
             default_http_handler(),
@@ -979,7 +978,7 @@ class ClientResolver
         );
     }
 
-    public static function _apply_http_handler($value, array &$args, HandlerList $list)
+    public static function _apply_http_handler($value, array &$args, HandlerList $list): void
     {
         $args['handler'] = new WrappedHttpHandler(
             $value,
@@ -990,11 +989,11 @@ class ClientResolver
         );
     }
 
-    public static function _apply_app_id($value, array &$args)
+    public static function _apply_app_id($value, array &$args): void
     {
         // AppId should not be longer than 50 chars
         static $MAX_APP_ID_LENGTH = 50;
-        if (strlen($value) > $MAX_APP_ID_LENGTH) {
+        if (strlen((string) $value) > $MAX_APP_ID_LENGTH) {
             trigger_error("The provided or configured value for `AppId`, "
                 ."which is an user agent parameter, exceeds the maximum length of "
             ."$MAX_APP_ID_LENGTH characters.", E_USER_WARNING);
@@ -1026,26 +1025,24 @@ class ClientResolver
             if (!is_array($inputUserAgent)) {
                 $inputUserAgent = [$inputUserAgent];
             }
-            $inputUserAgent = array_map('strval', $inputUserAgent);
+            $inputUserAgent = array_map(strval(...), $inputUserAgent);
             $userAgent = array_merge($userAgent, $inputUserAgent);
         }
 
         $args['ua_append'] = $userAgent;
 
         $list->appendBuild(
-            Middleware::mapRequest(function (RequestInterface $request) use ($userAgent) {
-                return $request->withHeader(
-                    'X-Amz-User-Agent',
-                    implode(' ', array_merge(
-                        $userAgent,
-                        $request->getHeader('X-Amz-User-Agent')
-                    ))
-                );
-            })
+            Middleware::mapRequest(fn(RequestInterface $request) => $request->withHeader(
+                'X-Amz-User-Agent',
+                implode(' ', array_merge(
+                    $userAgent,
+                    $request->getHeader('X-Amz-User-Agent')
+                ))
+            ))
         );
     }
 
-    public static function _apply_endpoint($value, array &$args, HandlerList $list)
+    public static function _apply_endpoint($value, array &$args, HandlerList $list): void
     {
         if (empty($value)) {
             unset($args['endpoint']);
@@ -1060,7 +1057,7 @@ class ClientResolver
         $value,
         array &$args,
         HandlerList $list
-    ) {
+    ): void {
         $enabled = false;
         $generator = null;
 
@@ -1090,7 +1087,7 @@ class ClientResolver
         );
     }
 
-    public static function _apply_account_id_endpoint_mode($value, array &$args)
+    public static function _apply_account_id_endpoint_mode($value, array &$args): void
     {
         static $accountIdEndpointModes = ['disabled', 'required', 'preferred'];
         if (!in_array($value, $accountIdEndpointModes)) {
@@ -1139,7 +1136,7 @@ class ClientResolver
         return SignatureProvider::defaultProvider();
     }
 
-    public static function _default_auth_scheme_resolver(array $args)
+    public static function _default_auth_scheme_resolver(array $args): \Aws\Auth\AuthSchemeResolver
     {
         return new AuthSchemeResolver($args['credentials'], $args['token']);
     }
@@ -1163,7 +1160,7 @@ class ClientResolver
 
         // Let`s trim each value to remove break lines, spaces and/or tabs
         foreach ($value as &$val) {
-            $val = trim($val);
+            $val = trim((string) $val);
         }
 
         // Assign user's preferred auth scheme list
@@ -1176,16 +1173,12 @@ class ClientResolver
             return $args['config']['signature_version'];
         }
 
-        $args['__partition_result'] = isset($args['__partition_result'])
-            ? isset($args['__partition_result'])
-            : call_user_func(PartitionEndpointProvider::defaultProvider(), [
-                'service' => $args['service'],
-                'region' => $args['region'],
-            ]);
+        $args['__partition_result'] = isset($args['__partition_result']) ?: call_user_func(PartitionEndpointProvider::defaultProvider(), [
+            'service' => $args['service'],
+            'region' => $args['region'],
+        ]);
 
-        return isset($args['__partition_result']['signatureVersion'])
-            ? $args['__partition_result']['signatureVersion']
-            : $args['api']->getSignatureVersion();
+        return $args['__partition_result']['signatureVersion'] ?? $args['api']->getSignatureVersion();
     }
 
     public static function _default_signing_name(array &$args)
@@ -1194,12 +1187,10 @@ class ClientResolver
             return $args['config']['signing_name'];
         }
 
-        $args['__partition_result'] = isset($args['__partition_result'])
-            ? isset($args['__partition_result'])
-            : call_user_func(PartitionEndpointProvider::defaultProvider(), [
-                'service' => $args['service'],
-                'region' => $args['region'],
-            ]);
+        $args['__partition_result'] = isset($args['__partition_result']) ?: call_user_func(PartitionEndpointProvider::defaultProvider(), [
+            'service' => $args['service'],
+            'region' => $args['region'],
+        ]);
 
         if (isset($args['__partition_result']['signingName'])) {
             return $args['__partition_result']['signingName'];
@@ -1218,22 +1209,20 @@ class ClientResolver
             return $args['config']['signing_region'];
         }
 
-        $args['__partition_result'] = isset($args['__partition_result'])
-            ? isset($args['__partition_result'])
-            : call_user_func(PartitionEndpointProvider::defaultProvider(), [
-                'service' => $args['service'],
-                'region' => $args['region'],
-            ]);
+        $args['__partition_result'] = isset($args['__partition_result']) ?: call_user_func(PartitionEndpointProvider::defaultProvider(), [
+            'service' => $args['service'],
+            'region' => $args['region'],
+        ]);
 
         return $args['__partition_result']['signingRegion'] ?? $args['region'];
     }
 
-    public static function _apply_ignore_configured_endpoint_urls($value, array &$args)
+    public static function _apply_ignore_configured_endpoint_urls($value, array &$args): void
     {
         $args['config']['ignore_configured_endpoint_urls'] = $value;
     }
 
-    public static function _apply_suppress_php_deprecation_warning($value, &$args)
+    public static function _apply_suppress_php_deprecation_warning($value, array &$args): void
     {
         if ($value)  {
             $args['suppress_php_deprecation_warning'] = true;
@@ -1287,7 +1276,7 @@ class ClientResolver
         return $value;
     }
 
-    public static function _apply_sigv4a_signing_region_set($value, array &$args)
+    public static function _apply_sigv4a_signing_region_set($value, array &$args): void
     {
         if (empty($value)) {
             $args['sigv4a_signing_region_set'] = null;
@@ -1298,7 +1287,7 @@ class ClientResolver
         }
     }
 
-    public static function _apply_region($value, array &$args)
+    public static function _apply_region($value, array &$args): void
     {
         if (empty($value)) {
             self::_missing_region($args);
@@ -1306,7 +1295,7 @@ class ClientResolver
         $args['region'] = $value;
     }
 
-    public static function _missing_region(array $args)
+    public static function _missing_region(array $args): never
     {
         $service = $args['service'] ?? '';
 
@@ -1353,11 +1342,8 @@ EOT;
 
     /**
      * Extracts client options for the endpoint provider to its own array
-     *
-     * @param array $args
-     * @return array
      */
-    private static function getEndpointProviderOptions(array $args)
+    private static function getEndpointProviderOptions(array $args): array
     {
         $options = [];
         $optionKeys = [
@@ -1392,7 +1378,7 @@ EOT;
         return is_valid_hostlabel($region);
     }
 
-    private function _apply_client_context_params(array $args)
+    private function _apply_client_context_params(array $args): void
     {
         if (isset($args['api'])
             && !empty($args['api']->getClientContextParams()))

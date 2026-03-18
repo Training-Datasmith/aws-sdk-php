@@ -6,15 +6,11 @@ namespace Aws\DynamoDb;
  */
 class SetValue implements \JsonSerializable, \Countable, \IteratorAggregate
 {
-    /** @var array Values in the set as provided. */
-    private $values;
-
     /**
      * @param array  $values Values in the set.
      */
-    public function __construct(array $values)
+    public function __construct(private readonly array $values)
     {
-        $this->values = $values;
     }
 
     /**

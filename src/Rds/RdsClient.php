@@ -341,7 +341,7 @@ class RdsClient extends AwsClient
 {
     public function __construct(array $args)
     {
-        $args['with_resolved'] = function (array $args) {
+        $args['with_resolved'] = function (array $args): void {
             $this->getHandlerList()->appendInit(
                 PresignUrlMiddleware::wrap(
                     $this,
@@ -377,7 +377,7 @@ class RdsClient extends AwsClient
      * @internal
      * @codeCoverageIgnore
      */
-    public static function applyDocFilters(array $api, array $docs)
+    public static function applyDocFilters(array $api, array $docs): array
     {
         // Add the SourceRegion parameter
         $docs['shapes']['SourceRegion']['base'] = 'A required parameter that indicates '

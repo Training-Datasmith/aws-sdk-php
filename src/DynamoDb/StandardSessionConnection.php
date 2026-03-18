@@ -10,20 +10,19 @@ class StandardSessionConnection implements SessionConnectionInterface
 {
     use SessionConnectionConfigTrait;
     
-    /** @var DynamoDbClient The DynamoDB client */
-    protected $client;
-    
     /**
      * @param DynamoDbClient    $client DynamoDB client
      * @param array             $config Session handler config
      */
-    public function __construct(DynamoDbClient $client, array $config = [])
+    public function __construct(protected \Aws\DynamoDb\DynamoDbClient $client, array $config = [])
     {
-        $this->client = $client;
         $this->initConfig($config);
     }
 
-    public function read($id)
+    /**
+     * @return mixed[]
+     */
+    public function read($id): array
     {
         $item = [];
         try {
@@ -35,11 +34,11 @@ class StandardSessionConnection implements SessionConnectionInterface
              ]);
 
             // Get the item values
-            $result = isset($result['Item']) ? $result['Item'] : [];
+            $result = $result['Item'] ?? [];
             foreach ($result as $key => $value) {
                 $item[$key] = current($value);
             }
-        } catch (DynamoDbException $e) {
+        } catch (DynamoDbException) {
             // Could not retrieve item, so return nothing.
         }
 
@@ -92,7 +91,7 @@ class StandardSessionConnection implements SessionConnectionInterface
         }
     }
 
-    public function deleteExpired()
+    public function deleteExpired(): void
     {
         // Create a Scan iterator for finding expired session items
         $scan = $this->client->getPaginator('Scan', [
@@ -126,20 +125,16 @@ class StandardSessionConnection implements SessionConnectionInterface
 
     /**
      * @param string $key
-     *
-     * @return array
      */
-    protected function formatKey($key)
+    protected function formatKey($key): array
     {
         return [$this->getHashKey() => ['S' => $key]];
     }
 
     /**
      * @param string $error
-     *
-     * @return bool
      */
-    protected function triggerError($error)
+    protected function triggerError($error): bool
     {
         trigger_error($error, E_USER_WARNING);
 

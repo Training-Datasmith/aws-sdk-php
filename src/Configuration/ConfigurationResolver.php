@@ -29,12 +29,10 @@ class ConfigurationResolver
         $key,
         $defaultValue,
         $expectedType,
-        $config = []
+        array $config = []
     )
     {
-        $iniOptions = isset($config['ini_resolver_options'])
-            ? $config['ini_resolver_options']
-            : [];
+        $iniOptions = $config['ini_resolver_options'] ?? [];
 
         $envValue = self::env($key, $expectedType);
         if (!is_null($envValue)) {
@@ -74,7 +72,7 @@ class ConfigurationResolver
         $envValue = getenv(self::$envPrefix . strtoupper($key));
         if (!empty($envValue)) {
             if ($expectedType) {
-                $envValue = self::convertType($envValue, $expectedType);
+                return self::convertType($envValue, $expectedType);
             }
             return $envValue;
         }
@@ -103,7 +101,7 @@ class ConfigurationResolver
         $expectedType,
         $profile = null,
         $filename = null,
-        $options = []
+        array $options = []
     ){
         $filename = $filename ?: (self::getDefaultConfigFilename());
         $profile = $profile ?: (getenv(self::ENV_PROFILE) ?: 'default');
@@ -201,7 +199,7 @@ class ConfigurationResolver
         if ($type === 'int'
             && filter_var($value, FILTER_VALIDATE_INT)
         ) {
-            $value = intVal($value);
+            return intVal($value);
         }
 
         return $value;
@@ -219,11 +217,11 @@ class ConfigurationResolver
      * @return mixed
      */
     private static function retrieveValueFromIniSubsection(
-        $data,
+        array $data,
         $profile,
-        $filename,
+        string $filename,
         $expectedType,
-        $options
+        array $options
     ){
         $section = $options['section'];
         if ($data === false

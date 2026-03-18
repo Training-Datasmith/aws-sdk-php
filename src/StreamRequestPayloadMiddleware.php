@@ -11,25 +11,20 @@ use Psr\Http\Message\RequestInterface;
 class StreamRequestPayloadMiddleware
 {
     private $nextHandler;
-    private $service;
 
     /**
      * Create a middleware wrapper function
      *
-     * @param Service $service
      * @return \Closure
      */
     public static function wrap(Service $service)
     {
-        return function (callable $handler) use ($service) {
-            return new self($handler, $service);
-        };
+        return fn(callable $handler) => new self($handler, $service);
     }
 
-    public function __construct(callable $nextHandler, Service $service)
+    public function __construct(callable $nextHandler, private readonly Service $service)
     {
         $this->nextHandler = $nextHandler;
-        $this->service = $service;
     }
 
     public function __invoke(CommandInterface $command, RequestInterface $request)

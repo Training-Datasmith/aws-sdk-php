@@ -28,8 +28,6 @@ class WrappedHttpHandler
     private $httpHandler;
     private $parser;
     private $errorParser;
-    private $exceptionClass;
-    private $collectStats;
 
     /**
      * @param callable $httpHandler    Function that accepts a request and array
@@ -48,14 +46,12 @@ class WrappedHttpHandler
         callable $httpHandler,
         callable $parser,
         callable $errorParser,
-        $exceptionClass = AwsException::class,
-        $collectStats = false
+        private $exceptionClass = AwsException::class,
+        private $collectStats = false
     ) {
         $this->httpHandler = $httpHandler;
         $this->parser = $parser;
         $this->errorParser = $errorParser;
-        $this->exceptionClass = $exceptionClass;
-        $this->collectStats = $collectStats;
     }
 
     /**
@@ -77,7 +73,7 @@ class WrappedHttpHandler
         if ($this->collectStats || !empty($options['collect_stats'])) {
             $options['http_stats_receiver'] = static function (
                 array $transferStats
-            ) use (&$stats) {
+            ) use (&$stats): void {
                 $stats = $transferStats;
             };
         } elseif (isset($options['http_stats_receiver'])) {
@@ -92,7 +88,7 @@ class WrappedHttpHandler
                 ) use ($command, $request, &$stats) {
                     return $this->parseResponse($command, $request, $res, $stats);
                 },
-                function ($err) use ($request, $command, &$stats) {
+                function ($err) use ($request, $command, &$stats): \GuzzleHttp\Promise\RejectedPromise {
                     if (is_array($err)) {
                         $err = $this->parseError(
                             $err,
@@ -107,10 +103,6 @@ class WrappedHttpHandler
     }
 
     /**
-     * @param CommandInterface  $command
-     * @param RequestInterface  $request
-     * @param ResponseInterface $response
-     * @param array             $stats
      *
      * @return ResultInterface
      */

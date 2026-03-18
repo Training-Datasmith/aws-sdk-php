@@ -42,10 +42,7 @@ trait EndpointRegionHelperTrait
     ) {
         $partition = $provider->getPartition($region, $service);
         $data = $partition->toArray();
-        if (isset($data['services'][$service]['endpoints'][$region]['credentialScope']['region'])) {
-            return $data['services'][$service]['endpoints'][$region]['credentialScope']['region'];
-        }
-        return $region;
+        return $data['services'][$service]['endpoints'][$region]['credentialScope']['region'] ?? $region;
     }
 
     private function isMatchingSigningRegion(
@@ -53,9 +50,9 @@ trait EndpointRegionHelperTrait
         $clientRegion,
         $service,
         PartitionEndpointProvider $provider
-    ) {
-        $arnRegion = \Aws\strip_fips_pseudo_regions(strtolower($arnRegion));
-        $clientRegion = strtolower($clientRegion);
+    ): bool {
+        $arnRegion = \Aws\strip_fips_pseudo_regions(strtolower((string) $arnRegion));
+        $clientRegion = strtolower((string) $clientRegion);
         if ($arnRegion === $clientRegion) {
             return true;
         }
@@ -65,9 +62,8 @@ trait EndpointRegionHelperTrait
         return false;
     }
 
-    private function validateFipsConfigurations(ArnInterface $arn)
+    private function validateFipsConfigurations(ArnInterface $arn): void
     {
-        $useFipsEndpoint = !empty($this->config['use_fips_endpoint']);
         if ($arn instanceof OutpostsArnInterface) {
             if (empty($this->config['use_arn_region'])
                 || !($this->config['use_arn_region']->isUseArnRegion())
@@ -85,7 +81,7 @@ trait EndpointRegionHelperTrait
         }
     }
 
-    private function validateMatchingRegion(ArnInterface $arn)
+    private function validateMatchingRegion(ArnInterface $arn): void
     {
         if (!($this->isMatchingSigningRegion(
             $arn->getRegion(),

@@ -35,37 +35,26 @@ class ApplyChecksumMiddleware
         'UploadPart' => true,
     ];
 
-    /** @var Service */
-    private $api;
-
-    /** @var array */
-    private $config;
-
     /** @var callable */
     private $nextHandler;
 
     /**
      * Create a middleware wrapper function.
      *
-     * @param Service $api
      * @return callable
      */
     public static function wrap(Service $api, array $config = [])
     {
-        return function (callable $handler) use ($api, $config) {
-            return new self($handler, $api, $config);
-        };
+        return fn(callable $handler) => new self($handler, $api, $config);
     }
 
     public function __construct(
         callable $nextHandler,
-        Service $api, 
-        array $config = []
+        private Service $api, 
+        private array $config = []
     )
     {
-        $this->api = $api;
         $this->nextHandler = $nextHandler;
-        $this->config = $config;
     }
 
     public function __invoke(
@@ -104,7 +93,7 @@ class ApplyChecksumMiddleware
         );
         if ($shouldAddChecksum) {
             if (!$this->hasAlgorithmHeader($request)) {
-                $supportedAlgorithms =  array_map('strtolower', $checksumMember['enum'] ?? []);
+                $supportedAlgorithms =  array_map(strtolower(...), $checksumMember['enum'] ?? []);
                 $algorithm = $this->determineChecksumAlgorithm(
                     $supportedAlgorithms,
                     $requestedAlgorithm,
@@ -133,11 +122,6 @@ class ApplyChecksumMiddleware
         return $next($command, $request);
     }
 
-    /**
-     * @param CommandInterface $command
-     *
-     * @return void
-     */
     private function handleDeprecatedAddContentMD5(CommandInterface $command): void
     {
         if (!empty($command['AddContentMD5'])) {
@@ -151,13 +135,8 @@ class ApplyChecksumMiddleware
     }
 
     /**
-     * @param string $mode
-     * @param Shape|null $checksumMember
      * @param string $name
-     * @param bool $checksumRequired
-     * @param string|null $requestedAlgorithm
      *
-     * @return bool
      */
     private function shouldAddChecksum(
         string $mode,
@@ -173,10 +152,7 @@ class ApplyChecksumMiddleware
 
     /**
      * @param Shape|null $checksumMember
-     * @param string|null $requestedAlgorithm
-     * @param string|null $checksumMemberName
      *
-     * @return string
      */
     private function determineChecksumAlgorithm(
         array $supportedAlgorithms,
@@ -201,13 +177,6 @@ class ApplyChecksumMiddleware
         return $algorithm;
     }
 
-    /**
-     * @param string $requestedAlgorithm
-     * @param RequestInterface $request
-     * @param StreamInterface $body
-     *
-     * @return RequestInterface
-     */
     private function addAlgorithmHeader(
         string $requestedAlgorithm,
         RequestInterface $request,
@@ -223,11 +192,6 @@ class ApplyChecksumMiddleware
         return $request;
     }
 
-    /**
-     * @param RequestInterface $request
-     *
-     * @return bool
-     */
     private function hasAlgorithmHeader(RequestInterface $request): bool
     {
         $headers = $request->getHeaders();

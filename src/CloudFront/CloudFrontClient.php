@@ -384,8 +384,8 @@ class CloudFrontClient extends AwsClient
 
         return $urlSigner->getSignedUrl(
             $options['url'],
-            isset($options['expires']) ? $options['expires'] : null,
-            isset($options['policy']) ? $options['policy'] : null
+            $options['expires'] ?? null,
+            $options['policy'] ?? null
         );
     }
 
@@ -426,9 +426,9 @@ class CloudFrontClient extends AwsClient
         );
 
         return $cookieSigner->getSignedCookie(
-            isset($options['url']) ? $options['url'] : null,
-            isset($options['expires']) ? $options['expires'] : null,
-            isset($options['policy']) ? $options['policy'] : null
+            $options['url'] ?? null,
+            $options['expires'] ?? null,
+            $options['policy'] ?? null
         );
     }
 }

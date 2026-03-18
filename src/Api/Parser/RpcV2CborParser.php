@@ -15,10 +15,8 @@ use Psr\Http\Message\StreamInterface;
  */
 final class RpcV2CborParser extends AbstractRpcV2Parser
 {
-    /** @var string  */
     protected static string $smithyProtocol = 'rpc-v2-cbor';
 
-    /** @var CborDecoder  */
     private CborDecoder $decoder;
 
     use RpcV2ParserTrait;
@@ -33,11 +31,8 @@ final class RpcV2CborParser extends AbstractRpcV2Parser
     }
 
     /**
-     * @param StreamInterface $stream
-     * @param StructureShape $member
      * @param $response
      *
-     * @return mixed
      */
     public function parseMemberFromStream(
         StreamInterface $stream,

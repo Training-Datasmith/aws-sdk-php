@@ -16,7 +16,7 @@ class Result implements ResultInterface, MonitoringEventsInterface
         $this->data = $data;
     }
 
-    public function hasKey($name)
+    public function hasKey($name): bool
     {
         return isset($this->data[$name]);
     }
@@ -31,7 +31,7 @@ class Result implements ResultInterface, MonitoringEventsInterface
         return JmesPath::search($expression, $this->toArray());
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         $jsonData = json_encode($this->toArray(), JSON_PRETTY_PRINT);
         return <<<EOT

@@ -12,58 +12,8 @@ final class S3TransferManagerConfig
     public const DEFAULT_CONCURRENCY = 5;
     private const DEFAULT_TRACK_PROGRESS = false;
 
-    /** @var int  */
-    private int $targetPartSizeBytes;
-
-    /** @var int  */
-    private int $multipartUploadThresholdBytes;
-
-    /** @var string */
-    private string $requestChecksumCalculation;
-
-    /** @var string */
-    private string $responseChecksumValidation;
-
-    /** @var string */
-    private string $multipartDownloadType;
-
-    /** @var int */
-    private int $concurrency;
-
-    /** @var bool */
-    private bool $trackProgress;
-
-    /** @var string|null */
-    private ?string $defaultRegion;
-
-    /**
-     * @param int $targetPartSizeBytes
-     * @param int $multipartUploadThresholdBytes
-     * @param string $requestChecksumCalculation
-     * @param string $responseChecksumValidation
-     * @param string $multipartDownloadType
-     * @param int $concurrency
-     * @param bool $trackProgress
-     * @param string|null $defaultRegion
-     */
-    public function __construct(
-        int $targetPartSizeBytes,
-        int $multipartUploadThresholdBytes,
-        string $requestChecksumCalculation,
-        string $responseChecksumValidation,
-        string $multipartDownloadType,
-        int $concurrency,
-        bool $trackProgress,
-        ?string $defaultRegion
-    ) {
-        $this->targetPartSizeBytes = $targetPartSizeBytes;
-        $this->multipartUploadThresholdBytes = $multipartUploadThresholdBytes;
-        $this->requestChecksumCalculation = $requestChecksumCalculation;
-        $this->responseChecksumValidation = $responseChecksumValidation;
-        $this->multipartDownloadType = $multipartDownloadType;
-        $this->concurrency = $concurrency;
-        $this->trackProgress = $trackProgress;
-        $this->defaultRegion = $defaultRegion;
+    public function __construct(private readonly int $targetPartSizeBytes, private readonly int $multipartUploadThresholdBytes, private readonly string $requestChecksumCalculation, private readonly string $responseChecksumValidation, private readonly string $multipartDownloadType, private readonly int $concurrency, private readonly bool $trackProgress, private readonly ?string $defaultRegion)
+    {
     }
 
     /** $config:
@@ -103,73 +53,46 @@ final class S3TransferManagerConfig
         );
     }
 
-    /**
-     * @return int
-     */
     public function getTargetPartSizeBytes(): int
     {
         return $this->targetPartSizeBytes;
     }
 
-    /**
-     * @return int
-     */
     public function getMultipartUploadThresholdBytes(): int
     {
         return $this->multipartUploadThresholdBytes;
     }
 
-    /**
-     * @return string
-     */
     public function getRequestChecksumCalculation(): string
     {
         return $this->requestChecksumCalculation;
     }
 
-    /**
-     * @return string
-     */
     public function getResponseChecksumValidation(): string
     {
         return $this->responseChecksumValidation;
     }
 
-    /**
-     * @return string
-     */
     public function getMultipartDownloadType(): string
     {
         return $this->multipartDownloadType;
     }
 
-    /**
-     * @return int
-     */
     public function getConcurrency(): int
     {
         return $this->concurrency;
     }
 
-    /**
-     * @return bool
-     */
     public function isTrackProgress(): bool
     {
         return $this->trackProgress;
     }
 
-    /**
-     * @return string|null
-     */
     public function getDefaultRegion(): ?string
     {
         return $this->defaultRegion;
     }
 
-    /**
-     * @return array
-     */
     public function toArray(): array
     {
         return [

@@ -31,11 +31,9 @@ class AssumeRoleWithWebIdentityCredentialProvider
     /** @var integer */
     private $retries;
 
-    /** @var integer */
-    private $authenticationAttempts;
+    private int $authenticationAttempts;
 
-    /** @var integer */
-    private $tokenFileReadAttempts;
+    private int $tokenFileReadAttempts;
 
     /** @var string */
     private $source;
@@ -68,7 +66,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
             throw new \InvalidArgumentException("'WebIdentityTokenFile' must be an absolute path.");
         }
 
-        $this->retries = (int) getenv(self::ENV_RETRIES) ?: (isset($config['retries']) ? $config['retries'] : 3);
+        $this->retries = (int) getenv(self::ENV_RETRIES) ?: ($config['retries'] ?? 3);
         $this->authenticationAttempts = 0;
         $this->tokenFileReadAttempts = 0;
         $this->session = $config['SessionName']
@@ -115,7 +113,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
                     }
                     if (empty($token)) {
                         if ($this->tokenFileReadAttempts < $this->retries) {
-                            sleep((int) pow(1.2, $this->tokenFileReadAttempts));
+                            sleep((int) 1.2 ** $this->tokenFileReadAttempts);
                             $this->tokenFileReadAttempts++;
                             continue;
                         }
@@ -140,7 +138,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
                 } catch (AwsException $e) {
                     if ($e->getAwsErrorCode() == 'InvalidIdentityToken') {
                         if ($this->authenticationAttempts < $this->retries) {
-                            sleep((int) pow(1.2, $this->authenticationAttempts));
+                            sleep((int) 1.2 ** $this->authenticationAttempts);
                         } else {
                             throw new CredentialsException(
                                 "InvalidIdentityToken, retries exhausted"
@@ -169,11 +167,6 @@ class AssumeRoleWithWebIdentityCredentialProvider
         });
     }
 
-    /**
-     * @param string|null $region
-     *
-     * @return StsClient
-     */
     private function createDefaultStsClient(
         ?string $region
     ): StsClient

@@ -58,17 +58,12 @@ final class MetricsBuilder
     const S3_TRANSFER_DOWNLOAD_DIRECTORY = "+";
     const CREDENTIALS_PROFILE_LOGIN = "AC";
 
-    /** @var int */
-    private static $MAX_METRICS_SIZE = 1024; // 1KB or 1024 B
+    private static int $MAX_METRICS_SIZE = 1024; // 1KB or 1024 B
+    private static string $METRIC_SEPARATOR = ",";
 
-    /** @var string */
-    private static $METRIC_SEPARATOR = ",";
+    private array $metrics;
 
-    /** @var array $metrics */
-    private $metrics;
-
-    /** @var int $metricsSize */
-    private $metricsSize;
+    private int $metricsSize;
 
     public function __construct()
     {
@@ -80,8 +75,6 @@ final class MetricsBuilder
 
     /**
      * Build the metrics string value.
-     *
-     * @return string
      */
     public function build(): string
     {
@@ -96,8 +89,6 @@ final class MetricsBuilder
      * Encodes the metrics by separating each metric
      * with a comma. Example: for the metrics[A,B,C] then
      * the output would be "A,B,C".
-     *
-     * @return string
      */
     private function encode(): string
     {
@@ -111,8 +102,6 @@ final class MetricsBuilder
      * Example: $currentSize = $currentSize + len($newMetric) + len($separator)
      *
      * @param string $metric The metric to append.
-     *
-     * @return void
      */
     public function append(string $metric): void
     {
@@ -131,8 +120,6 @@ final class MetricsBuilder
      *
      * @param string $featureGroup the feature group such as `signature`.
      * @param mixed $value the value for identifying the metric.
-     *
-     * @return void
      */
     public function identifyMetricByValueAndAppend(
         string $featureGroup,
@@ -161,9 +148,7 @@ final class MetricsBuilder
     /**
      * Appends the signature metric based on the signature value.
      *
-     * @param string $signature
      *
-     * @return void
      */
     private function appendSignatureMetric(string $signature): void
     {
@@ -177,9 +162,7 @@ final class MetricsBuilder
     /**
      * Appends the request compression metric based on the format resolved.
      *
-     * @param string $format
      *
-     * @return void
      */
     private function appendRequestCompressionMetric(string $format): void
     {
@@ -191,9 +174,7 @@ final class MetricsBuilder
     /**
      * Appends the request checksum metric based on the algorithm.
      *
-     * @param string $algorithm
      *
-     * @return void
      */
     private function appendRequestChecksumMetric(string $algorithm): void
     {
@@ -215,9 +196,7 @@ final class MetricsBuilder
      * Appends the credentials metric based on the type of credentials
      * resolved.
      *
-     * @param CredentialsInterface $credentials
      *
-     * @return void
      */
     private function appendCredentialsMetric(
         CredentialsInterface $credentials
@@ -295,9 +274,7 @@ final class MetricsBuilder
      * Appends the account_id_endpoint_mode metrics based on
      * the value resolved.
      *
-     * @param string $accountIdEndpointMode
      *
-     * @return void
      */
     private function appendAccountIdEndpointMode(
         string $accountIdEndpointMode
@@ -320,9 +297,7 @@ final class MetricsBuilder
      * Appends the account_id_endpoint metric whenever a resolved endpoint
      * matches an account_id endpoint pattern which also defined here.
      *
-     * @param string $endpoint
      *
-     * @return void
      */
     private function appendAccountIdEndpoint(string $endpoint): void
     {
@@ -335,9 +310,7 @@ final class MetricsBuilder
     /**
      * Resolves metrics from client arguments.
      *
-     * @param array $args
      *
-     * @return void
      */
     public function resolveAndAppendFromArgs(array $args = []): void
     {
@@ -355,9 +328,7 @@ final class MetricsBuilder
      * Appends the endpoint metric into the metrics builder,
      * just if a custom endpoint was provided at client construction.
      *
-     * @param array $args
      *
-     * @return void
      */
     private function appendEndpointMetric(array $args): void
     {
@@ -370,9 +341,7 @@ final class MetricsBuilder
      * Appends the retry mode metric into the metrics builder,
      * based on the resolved retry config mode.
      *
-     * @param array $args
      *
-     * @return void
      */
     private function appendRetryConfigMetric(array $args): void
     {
@@ -408,9 +377,7 @@ final class MetricsBuilder
     /**
      * Appends the provided/resolved response checksum validation mode.
      *
-     * @param array $args
      *
-     * @return void
      */
     private function appendResponseChecksumValidationMetric(array $args): void
     {
@@ -466,8 +433,6 @@ final class MetricsBuilder
      * Returns the metrics builder from the property @context of a command.
      *
      * @param Command $command
-     *
-     * @return MetricsBuilder
      */
     public static function fromCommand(CommandInterface $command): MetricsBuilder
     {
@@ -479,21 +444,19 @@ final class MetricsBuilder
      * handler stack given. The middleware appended here is on top of the
      * build step.
      *
-     * @param HandlerList $handlerList
      * @param $metric
      *
-     * @return void
      */
     public static function appendMetricsCaptureMiddleware(
         HandlerList $handlerList,
-        $metric
+        string $metric
     ): void
     {
         $middlewareName = 'metrics-capture-'.$metric;
         if (!$handlerList->hasMiddleware($middlewareName)) {
             $handlerList->appendBuild(
                 Middleware::tap(
-                    function (CommandInterface $command) use ($metric) {
+                    function (CommandInterface $command) use ($metric): void {
                         self::fromCommand($command)->append(
                             $metric
                         );

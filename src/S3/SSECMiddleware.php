@@ -10,7 +10,6 @@ use Psr\Http\Message\RequestInterface;
  */
 class SSECMiddleware
 {
-    private $endpointScheme;
     private $nextHandler;
 
     /**
@@ -22,15 +21,12 @@ class SSECMiddleware
      */
     public static function wrap($endpointScheme)
     {
-        return function (callable $handler) use ($endpointScheme) {
-            return new self($endpointScheme, $handler);
-        };
+        return fn(callable $handler) => new self($endpointScheme, $handler);
     }
 
-    public function __construct($endpointScheme, callable $nextHandler)
+    public function __construct(private $endpointScheme, callable $nextHandler)
     {
         $this->nextHandler = $nextHandler;
-        $this->endpointScheme = $endpointScheme;
     }
 
     public function __invoke(
@@ -59,17 +55,17 @@ class SSECMiddleware
         return $f($command, $request);
     }
 
-    private function prepareSseParams(CommandInterface $command, $prefix = '')
+    private function prepareSseParams(CommandInterface $command, string $prefix = ''): void
     {
         // Base64 encode the provided key
         $key = $command[$prefix . 'SSECustomerKey'];
-        $command[$prefix . 'SSECustomerKey'] = base64_encode($key);
+        $command[$prefix . 'SSECustomerKey'] = base64_encode((string) $key);
 
         // Base64 the provided MD5 or, generate an MD5 if not provided
         if ($md5 = $command[$prefix . 'SSECustomerKeyMD5']) {
-            $command[$prefix . 'SSECustomerKeyMD5'] = base64_encode($md5);
+            $command[$prefix . 'SSECustomerKeyMD5'] = base64_encode((string) $md5);
         } else {
-            $command[$prefix . 'SSECustomerKeyMD5'] = base64_encode(md5($key, true));
+            $command[$prefix . 'SSECustomerKeyMD5'] = base64_encode(md5((string) $key, true));
         }
     }
 }

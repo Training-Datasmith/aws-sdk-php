@@ -14,7 +14,7 @@ class UploadState
     const COMPLETED = 2;
     const PROGRESS_THRESHOLD_SIZE = 8;
 
-    private $progressBar = [
+    private array $progressBar = [
         "Transfer initiated...\n|                    | 0.0%\n",
         "|==                  | 12.5%\n",
         "|=====               | 25.0%\n",
@@ -26,31 +26,26 @@ class UploadState
         "|====================| 100.0%\nTransfer complete!\n"
     ];
 
-    /** @var array Params used to identity the upload. */
-    private $id;
-
     /** @var int Part size being used by the upload. */
     private $partSize;
 
     /** @var array Parts that have been uploaded. */
-    private $uploadedParts = [];
+    private array $uploadedParts = [];
 
     /** @var int Identifies the status the upload. */
     private $status = self::CREATED;
 
     /** @var array Thresholds for progress of the upload. */
-    private $progressThresholds = [];
+    private array $progressThresholds = [];
 
     /** @var boolean Determines status for tracking the upload */
-    private $displayProgress = false;
+    private bool $displayProgress = false;
 
     /**
      * @param array $id Params used to identity the upload.
      */
-    public function __construct(array $id, array $config = [])
+    public function __construct(private array $id, array $config = [])
     {
-        $this->id = $id;
-
         if (isset($config['display_progress'])
             && is_bool($config['display_progress'])
         ) {
@@ -76,7 +71,7 @@ class UploadState
      * @param string $key   The param key of the upload_id.
      * @param string $value The param value of the upload_id.
      */
-    public function setUploadId($key, $value)
+    public function setUploadId($key, $value): void
     {
         $this->id[$key] = $value;
     }
@@ -96,7 +91,7 @@ class UploadState
      *
      * @param $partSize int Size of upload parts.
      */
-    public function setPartSize($partSize)
+    public function setPartSize($partSize): void
     {
         $this->partSize = $partSize;
     }
@@ -106,8 +101,6 @@ class UploadState
      * 'track_upload' is true.
      *
      * @param $totalSize numeric Size of object to upload.
-     *
-     * @return array
      */
     public function setProgressThresholds($totalSize): array
     {
@@ -157,7 +150,7 @@ class UploadState
      * @param array $partData   Data from the upload operation that needs to be
      *                          recalled during the complete operation.
      */
-    public function markPartAsUploaded($partNumber, array $partData = [])
+    public function markPartAsUploaded($partNumber, array $partData = []): void
     {
         $this->uploadedParts[$partNumber] = $partData;
     }
@@ -166,10 +159,8 @@ class UploadState
      * Returns whether a part has been uploaded.
      *
      * @param int $partNumber The part number.
-     *
-     * @return bool
      */
-    public function hasPartBeenUploaded($partNumber)
+    public function hasPartBeenUploaded($partNumber): bool
     {
         return isset($this->uploadedParts[$partNumber]);
     }
@@ -191,27 +182,23 @@ class UploadState
      * @param int $status Status is an integer code defined by the constants
      *                    CREATED, INITIATED, and COMPLETED on this class.
      */
-    public function setStatus($status)
+    public function setStatus($status): void
     {
         $this->status = $status;
     }
 
     /**
      * Determines whether the upload state is in the INITIATED status.
-     *
-     * @return bool
      */
-    public function isInitiated()
+    public function isInitiated(): bool
     {
         return $this->status === self::INITIATED;
     }
 
     /**
      * Determines whether the upload state is in the COMPLETED status.
-     *
-     * @return bool
      */
-    public function isCompleted()
+    public function isCompleted(): bool
     {
         return $this->status === self::COMPLETED;
     }

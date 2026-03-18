@@ -7,19 +7,15 @@ use GuzzleHttp\Promise;
 
 class S3ExpressIdentityProvider
 {
-    private $cache;
-    private $region;
-    private $config;
+    private readonly \Aws\LruArrayCache $cache;
     private $s3Client;
 
-    public function __construct($clientRegion, array $config = [])
+    public function __construct(private $region, private array $config = [])
     {
         $this->cache = new LruArrayCache(100);
-        $this->region = $clientRegion;
-        $this->config = $config;
     }
 
-    public function __invoke($command)
+    public function __invoke(array $command)
     {
         $s3Client = $this->getS3Client();
         $bucket = $command['Bucket'];

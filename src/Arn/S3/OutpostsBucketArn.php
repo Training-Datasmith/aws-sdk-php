@@ -41,28 +41,18 @@ class OutpostsBucketArn extends Arn implements
         return $this->data['outpost_id'];
     }
 
-    private static function parseOutpostData(array $data)
+    private static function parseOutpostData(array $data): array
     {
-        $resourceData = preg_split("/[\/:]/", $data['resource_id'], 3);
+        $resourceData = preg_split("/[\/:]/", (string) $data['resource_id'], 3);
 
-        $data['outpost_id'] = isset($resourceData[0])
-            ? $resourceData[0]
-            : null;
-        $data['bucket_label'] = isset($resourceData[1])
-            ? $resourceData[1]
-            : null;
-        $data['bucket_name'] = isset($resourceData[2])
-            ? $resourceData[2]
-            : null;
+        $data['outpost_id'] = $resourceData[0] ?? null;
+        $data['bucket_label'] = $resourceData[1] ?? null;
+        $data['bucket_name'] = $resourceData[2] ?? null;
 
         return $data;
     }
 
-    /**
-     *
-     * @param array $data
-     */
-    public static function validate(array $data)
+    public static function validate(array $data): void
     {
         Arn::validate($data);
 

@@ -89,7 +89,7 @@ class EndpointProvider
      *
      * @return callable
      */
-    public static function patterns(array $patterns)
+    public static function patterns(array $patterns): \Aws\Endpoint\PatternEndpointProvider
     {
         return new PatternEndpointProvider($patterns);
     }

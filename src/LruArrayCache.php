@@ -13,23 +13,19 @@ namespace Aws;
  */
 class LruArrayCache implements CacheInterface, \Countable
 {
-    /** @var int */
-    private $maxItems;
-
     /** @var array */
-    private $items = array();
+    private $items = [];
 
     /**
      * @param int $maxItems Maximum number of allowed cache items.
      */
-    public function __construct($maxItems = 1000)
+    public function __construct(private $maxItems = 1000)
     {
-        $this->maxItems = $maxItems;
     }
 
     public function get($key)
     {
-        $key = $key ?? '';
+        $key ??= '';
         if (!isset($this->items[$key])) {
             return null;
         }
@@ -48,9 +44,9 @@ class LruArrayCache implements CacheInterface, \Countable
         return null;
     }
 
-    public function set($key, $value, $ttl = 0)
+    public function set($key, $value, $ttl = 0): void
     {
-        $key = $key ?? '';
+        $key ??= '';
         // Only call time() if the TTL is not 0/false/null
         $ttl = $ttl ? time() + $ttl : 0;
         $this->items[$key] = [$value, $ttl];
@@ -69,9 +65,9 @@ class LruArrayCache implements CacheInterface, \Countable
         }
     }
 
-    public function remove($key)
+    public function remove($key): void
     {
-        $key = $key ?? '';
+        $key ??= '';
         unset($this->items[$key]);
     }
 

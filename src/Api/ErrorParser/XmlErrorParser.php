@@ -16,7 +16,7 @@ class XmlErrorParser extends AbstractErrorParser
 {
     use PayloadParserTrait;
 
-    protected $parser;
+    protected \Aws\Api\Parser\XmlParser $parser;
 
     public function __construct(?Service $api = null, ?XmlParser $parser = null)
     {
@@ -24,10 +24,13 @@ class XmlErrorParser extends AbstractErrorParser
         $this->parser = $parser ?: new XmlParser();
     }
 
+    /**
+     * @return mixed[]
+     */
     public function __invoke(
         ResponseInterface $response,
         ?CommandInterface $command = null
-    ) {
+    ): array {
         $response = AbstractParser::getResponseWithCachingStream($response);
         $code = (string) $response->getStatusCode();
 
@@ -51,7 +54,7 @@ class XmlErrorParser extends AbstractErrorParser
         return $data;
     }
 
-    private function parseHeaders(ResponseInterface $response, array &$data)
+    private function parseHeaders(ResponseInterface $response, array &$data): void
     {
         if ($response->getStatusCode() == '404') {
             $data['code'] = 'NotFound';
@@ -66,7 +69,7 @@ class XmlErrorParser extends AbstractErrorParser
         }
     }
 
-    private function parseBody(\SimpleXMLElement $body, array &$data)
+    private function parseBody(\SimpleXMLElement $body, array &$data): void
     {
         $data['parsed'] = $body;
         $prefix = $this->registerNamespacePrefix($body);
@@ -85,7 +88,7 @@ class XmlErrorParser extends AbstractErrorParser
         }
     }
 
-    protected function registerNamespacePrefix(\SimpleXMLElement $element)
+    protected function registerNamespacePrefix(\SimpleXMLElement $element): string
     {
         $namespaces = $element->getDocNamespaces();
         if (!isset($namespaces[''])) {

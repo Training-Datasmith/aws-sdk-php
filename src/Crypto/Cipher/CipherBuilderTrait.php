@@ -13,10 +13,8 @@ trait CipherBuilderTrait
      *                           or decrypting.
      * @param int $keySize Size of the encryption key, in bits, that will be
      *                     used.
-     *
-     * @return string
      */
-    protected function getCipherOpenSslName($cipherName, $keySize)
+    protected function getCipherOpenSslName($cipherName, $keySize): string
     {
         return "aes-{$keySize}-{$cipherName}";
     }
@@ -34,17 +32,15 @@ trait CipherBuilderTrait
      *
      * @internal
      */
-    protected function buildCipherMethod($cipherName, $iv, $keySize)
+    protected function buildCipherMethod($cipherName, $iv, $keySize): ?\Aws\Crypto\Cipher\Cbc
     {
-        switch ($cipherName) {
-            case 'cbc':
-                return new Cbc(
-                    $iv,
-                    $keySize
-                );
-            default:
-                return null;
-        }
+        return match ($cipherName) {
+            'cbc' => new Cbc(
+                $iv,
+                $keySize
+            ),
+            default => null,
+        };
     }
 
     /**
@@ -53,20 +49,16 @@ trait CipherBuilderTrait
      *
      * @param $aesName
      *
-     * @return string
      *
      * @internal
      */
-    protected function getCipherFromAesName($aesName)
+    protected function getCipherFromAesName($aesName): string
     {
-        switch ($aesName) {
-            case 'AES/GCM/NoPadding':
-                return 'gcm';
-            case 'AES/CBC/PKCS5Padding':
-                return 'cbc';
-            default:
-                throw new CryptoException('Unrecognized or unsupported'
-                    . ' AESName for reverse lookup.');
-        }
+        return match ($aesName) {
+            'AES/GCM/NoPadding' => 'gcm',
+            'AES/CBC/PKCS5Padding' => 'cbc',
+            default => throw new CryptoException('Unrecognized or unsupported'
+                . ' AESName for reverse lookup.'),
+        };
     }
 }

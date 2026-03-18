@@ -17,15 +17,13 @@ trait MultipartUploadingTrait
      * @param string            $bucket   Bucket for the multipart upload.
      * @param string            $key      Object key for the multipart upload.
      * @param string            $uploadId Upload ID for the multipart upload.
-     *
-     * @return UploadState
      */
     public static function getStateFromService(
         S3ClientInterface $client,
         $bucket,
         $key,
         $uploadId
-    ) {
+    ): \Aws\Multipart\UploadState {
         $state = new UploadState([
             'Bucket'   => $bucket,
             'Key'      => $key,
@@ -62,7 +60,7 @@ trait MultipartUploadingTrait
             : $result[$commandName . 'Result'];
 
         if (isset($command['ChecksumAlgorithm'])) {
-            $checksumMemberName = 'Checksum' . strtoupper($command['ChecksumAlgorithm']);
+            $checksumMemberName = 'Checksum' . strtoupper((string) $command['ChecksumAlgorithm']);
             $partData[$checksumMemberName] = $checksumResult[$checksumMemberName] ?? null;
         }
 
@@ -81,7 +79,7 @@ trait MultipartUploadingTrait
     protected function getCompleteParams()
     {
         $config = $this->getConfig();
-        $params = isset($config['params']) ? $config['params'] : [];
+        $params = $config['params'] ?? [];
 
         $params['MultipartUpload'] = [
             'Parts' => $this->getState()->getUploadedParts()
@@ -115,7 +113,7 @@ trait MultipartUploadingTrait
     protected function getInitiateParams()
     {
         $config = $this->getConfig();
-        $params = isset($config['params']) ? $config['params'] : [];
+        $params = $config['params'] ?? [];
 
         if (isset($config['acl'])) {
             $params['ACL'] = $config['acl'];

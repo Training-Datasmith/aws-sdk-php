@@ -18,7 +18,7 @@ class RequestCompressionMiddleware
     private $nextHandler;
     private $encodings;
     private $encoding;
-    private $encodingMap = [
+    private array $encodingMap = [
         'gzip' => 'gzencode'
     ];
 
@@ -29,12 +29,10 @@ class RequestCompressionMiddleware
      */
     public static function wrap(array $config)
     {
-        return function (callable $handler) use ($config) {
-            return new self($handler, $config);
-        };
+        return fn(callable $handler) => new self($handler, $config);
     }
 
-    public function __construct(callable $nextHandler, $config)
+    public function __construct(callable $nextHandler, array $config)
     {
         $this->minimumCompressionSize = $this->determineMinimumCompressionSize($config);
         $this->api = $config['api'];
@@ -106,17 +104,16 @@ class RequestCompressionMiddleware
 
     private function shouldCompressRequestBody(
         $compressionInfo,
-        $command,
+        \Aws\CommandInterface $command,
         $operation,
         $request
-    ){
+    ): bool{
         if ($compressionInfo) {
             if (isset($command['@disable_request_compression'])
-                && $command['@disable_request_compression'] === true
-            ) {
+                && $command['@disable_request_compression'] === true) {
                 return false;
-            } elseif ($this->hasStreamingTraitWithoutRequiresLength($command, $operation)
-            ) {
+            }
+            if ($this->hasStreamingTraitWithoutRequiresLength($command, $operation)) {
                 return true;
             }
 
@@ -131,7 +128,7 @@ class RequestCompressionMiddleware
         return false;
     }
 
-    private function hasStreamingTraitWithoutRequiresLength($command, $operation)
+    private function hasStreamingTraitWithoutRequiresLength(array $command, $operation): bool
     {
         foreach ($operation->getInput()->getMembers() as $name => $member) {
             if (isset($command[$name])
@@ -144,7 +141,7 @@ class RequestCompressionMiddleware
         return false;
     }
 
-    private function determineMinimumCompressionSize($config) {
+    private function determineMinimumCompressionSize(array $config) {
         if (is_callable($config['request_min_compression_size_bytes'])) {
             $minCompressionSz = $config['request_min_compression_size_bytes']();
         } else {
@@ -156,7 +153,7 @@ class RequestCompressionMiddleware
         }
     }
 
-    private function isValidCompressionSize($compressionSize)
+    private function isValidCompressionSize($compressionSize): bool
     {
         if (is_numeric($compressionSize)
             && ($compressionSize >= 0 && $compressionSize <= 10485760)

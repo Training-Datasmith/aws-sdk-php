@@ -66,7 +66,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * This provider is automatically wrapped in a memoize function that caches
      * previously provided config options.
      *
-     * @param array $config
      *
      * @return callable
      */
@@ -82,7 +81,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         $configProviders[] = self::fallback();
 
         $memo = self::memoize(
-            call_user_func_array([ConfigurationProvider::class, 'chain'], $configProviders)
+            call_user_func_array(ConfigurationProvider::chain(...), $configProviders)
         );
 
         if (isset($config['defaultsMode'])
@@ -122,11 +121,9 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      */
     public static function fallback()
     {
-        return function () {
-            return Promise\Create::promiseFor(
-                new Configuration( self::DEFAULT_MODE)
-            );
-        };
+        return fn() => Promise\Create::promiseFor(
+            new Configuration( self::DEFAULT_MODE)
+        );
     }
 
     /**
@@ -176,10 +173,9 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * always returning a ConfigurationInterface object.
      *
      * @param  mixed $config
-     * @return ConfigurationInterface
      * @throws \InvalidArgumentException
      */
-    public static function unwrap($config)
+    public static function unwrap($config): \Aws\DefaultsMode\ConfigurationInterface|\Aws\DefaultsMode\Configuration
     {
         if (is_callable($config)) {
             $config = $config();

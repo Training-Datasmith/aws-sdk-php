@@ -63,7 +63,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * This provider is automatically wrapped in a memoize function that caches
      * previously provided config options.
      *
-     * @param array $config
      *
      * @return callable
      */
@@ -80,7 +79,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         $configProviders[] = self::fallback($region);
 
         $memo = self::memoize(
-            call_user_func_array([ConfigurationProvider::class, 'chain'], $configProviders)
+            call_user_func_array(ConfigurationProvider::chain(...), $configProviders)
         );
 
         if (isset($config['use_dual_stack_endpoint'])
@@ -166,8 +165,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      */
     public static function fallback($region)
     {
-        return function () use ($region) {
-            return Promise\Create::promiseFor(new Configuration(false, $region));
-        };
+        return fn() => Promise\Create::promiseFor(new Configuration(false, $region));
     }
 }

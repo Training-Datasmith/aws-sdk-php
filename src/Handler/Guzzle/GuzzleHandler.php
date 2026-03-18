@@ -28,8 +28,6 @@ class GuzzleHandler
     }
 
     /**
-     * @param Psr7Request $request
-     * @param array       $options
      *
      * @return Promise\Promise
      */
@@ -43,7 +41,7 @@ class GuzzleHandler
 
         return $this->client->sendAsync($request, $this->parseOptions($options))
             ->otherwise(
-                static function ($e) {
+                static function ($e): \GuzzleHttp\Promise\RejectedPromise {
                     $error = [
                         'exception'        => $e,
                         'connection_error' => $e instanceof ConnectException,
@@ -62,19 +60,17 @@ class GuzzleHandler
             );
     }
 
-    private function parseOptions(array $options)
+    private function parseOptions(array $options): array
     {
         if (isset($options['http_stats_receiver'])) {
             $fn = $options['http_stats_receiver'];
             unset($options['http_stats_receiver']);
 
-            $prev = isset($options['on_stats'])
-                ? $options['on_stats']
-                : null;
+            $prev = $options['on_stats'] ?? null;
 
             $options['on_stats'] = static function (
                 TransferStats $stats
-            ) use ($fn, $prev) {
+            ) use ($fn, $prev): void {
                 if (is_callable($prev)) {
                     $prev($stats);
                 }

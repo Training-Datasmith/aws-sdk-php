@@ -13,27 +13,20 @@ class KmsMaterialsProviderV2 extends MaterialsProviderV2 implements MaterialsPro
 {
     const WRAP_ALGORITHM_NAME = 'kms+context';
 
-    private $kmsClient;
-    private $kmsKeyId;
-
     /**
      * @param KmsClient $kmsClient A KMS Client for use encrypting and
      *                             decrypting keys.
      * @param string $kmsKeyId The private KMS key id to be used for encrypting
      *                         and decrypting keys.
      */
-    public function __construct(
-        KmsClient $kmsClient,
-        $kmsKeyId = null
-    ) {
-        $this->kmsClient = $kmsClient;
-        $this->kmsKeyId = $kmsKeyId;
+    public function __construct(private readonly KmsClient $kmsClient, private $kmsKeyId = null)
+    {
     }
 
     /**
      * @inheritDoc
      */
-    public function getWrapAlgorithmName()
+    public function getWrapAlgorithmName(): string
     {
         return self::WRAP_ALGORITHM_NAME;
     }
@@ -65,7 +58,7 @@ class KmsMaterialsProviderV2 extends MaterialsProviderV2 implements MaterialsPro
     /**
      * @inheritDoc
      */
-    public function generateCek($keySize, $context, $options)
+    public function generateCek($keySize, $context, $options): array
     {
         if (empty($this->kmsKeyId)) {
             throw new CryptoException('A KMS key id is required for encryption'
@@ -93,7 +86,7 @@ class KmsMaterialsProviderV2 extends MaterialsProviderV2 implements MaterialsPro
         ]);
         return [
             'Plaintext' => $result['Plaintext'],
-            'Ciphertext' => base64_encode($result['CiphertextBlob']),
+            'Ciphertext' => base64_encode((string) $result['CiphertextBlob']),
             'UpdatedContext' => $context
         ];
     }

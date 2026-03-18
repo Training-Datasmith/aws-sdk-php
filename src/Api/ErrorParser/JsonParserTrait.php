@@ -66,7 +66,6 @@ trait JsonParserTrait
     /**
      * Parse AWS Query Compatible error from header
      *
-     * @param ResponseInterface $response
      * @return array|null Returns ['code' => string, 'type' => string] or null
      */
     private function parseAwsQueryCompatibleHeader(ResponseInterface $response): ?array
@@ -86,9 +85,6 @@ trait JsonParserTrait
 
     /**
      * Parse error code from response body
-     *
-     * @param array|null $parsedBody
-     * @return string|null
      */
     private function parseErrorFromBody(?array $parsedBody): ?string
     {
@@ -104,9 +100,6 @@ trait JsonParserTrait
 
     /**
      * Extract error code from raw error string containing # and/or : delimiters
-     *
-     * @param string $rawErrorCode
-     * @return string
      */
     private function extractErrorCode(string $rawErrorCode): string
     {

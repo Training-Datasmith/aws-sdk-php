@@ -14,7 +14,7 @@ final class Partition implements ArrayAccess, PartitionInterface
 {
     use HasDataTrait;
 
-    private $stsLegacyGlobalRegions = [
+    private array $stsLegacyGlobalRegions = [
         'ap-northeast-1',
         'ap-south-1',
         'ap-southeast-1',
@@ -53,7 +53,6 @@ final class Partition implements ArrayAccess, PartitionInterface
      * - `services`: (array, required) A map of service endpoint prefix name
      *   (the value found in a hostname) to information about the service.
      *
-     * @param array $definition
      *
      * @throws Iae if any required options are missing
      */
@@ -103,7 +102,7 @@ final class Partition implements ArrayAccess, PartitionInterface
     public function getAvailableEndpoints(
         $service,
         $allowNonRegionalEndpoints = false
-    ) {
+    ): array {
         if ($this->isServicePartitionGlobal($service)) {
             return [$this->getPartitionEndpoint($service)];
         }
@@ -123,22 +122,20 @@ final class Partition implements ArrayAccess, PartitionInterface
         return [];
     }
 
-    public function __invoke(array $args = [])
+    public function __invoke(array $args = []): array
     {
-        $service = isset($args['service']) ? $args['service'] : '';
-        $region = isset($args['region']) ? $args['region'] : '';
-        $scheme = isset($args['scheme']) ? $args['scheme'] : 'https';
-        $options = isset($args['options']) ? $args['options'] : [];
+        $service = $args['service'] ?? '';
+        $region = $args['region'] ?? '';
+        $scheme = $args['scheme'] ?? 'https';
+        $options = $args['options'] ?? [];
         $data = $this->getEndpointData($service, $region, $options);
         $variant = $this->getVariant($options, $data);
         if (isset($variant['hostname'])) {
             $template = $variant['hostname'];
         } else {
-            $template = isset($data['hostname']) ? $data['hostname'] : '';
+            $template = $data['hostname'] ?? '';
         }
-        $dnsSuffix = isset($variant['dnsSuffix'])
-            ? $variant['dnsSuffix']
-            : $this->data['dnsSuffix'];
+        $dnsSuffix = $variant['dnsSuffix'] ?? $this->data['dnsSuffix'];
         return [
             'endpoint' => "{$scheme}://" . $this->formatEndpoint(
                     $template,
@@ -147,32 +144,21 @@ final class Partition implements ArrayAccess, PartitionInterface
                     $dnsSuffix
                 ),
             'signatureVersion' => $this->getSignatureVersion($data),
-            'signingRegion' => isset($data['credentialScope']['region'])
-                ? $data['credentialScope']['region']
-                : $region,
-            'signingName' => isset($data['credentialScope']['service'])
-                ? $data['credentialScope']['service']
-                : $service,
+            'signingRegion' => $data['credentialScope']['region'] ?? $region,
+            'signingName' => $data['credentialScope']['service'] ?? $service,
         ];
     }
 
-    private function getEndpointData($service, $region, $options)
+    private function getEndpointData($service, $region, $options): float|int|array
     {
         $defaultRegion = $this->resolveRegion($service, $region, $options);
-        $data = isset($this->data['services'][$service]['endpoints'][$defaultRegion])
-            ? $this->data['services'][$service]['endpoints'][$defaultRegion]
-            : [];
-        $data += isset($this->data['services'][$service]['defaults'])
-            ? $this->data['services'][$service]['defaults']
-            : [];
-        $data += isset($this->data['defaults'])
-            ? $this->data['defaults']
-            : [];
+        $data = $this->data['services'][$service]['endpoints'][$defaultRegion] ?? [];
+        $data += $this->data['services'][$service]['defaults'] ?? [];
 
-        return $data;
+        return $data + ($this->data['defaults'] ?? []);
     }
 
-    private function getSignatureVersion(array $data)
+    private function getSignatureVersion(array $data): mixed
     {
         static $supportedBySdk = [
             's3v4',
@@ -182,9 +168,7 @@ final class Partition implements ArrayAccess, PartitionInterface
 
         $possibilities = array_intersect(
             $supportedBySdk,
-            isset($data['signatureVersions'])
-                ? $data['signatureVersions']
-                : ['v4']
+            $data['signatureVersions'] ?? ['v4']
         );
 
         return array_shift($possibilities);
@@ -208,7 +192,7 @@ final class Partition implements ArrayAccess, PartitionInterface
         return $region;
     }
 
-    private function isServicePartitionGlobal($service)
+    private function isServicePartitionGlobal($service): bool
     {
         return isset($this->data['services'][$service]['isRegionalized'])
             && false === $this->data['services'][$service]['isRegionalized']
@@ -221,10 +205,8 @@ final class Partition implements ArrayAccess, PartitionInterface
      *
      * @param string $service
      * @param string $region
-     * @param array $options
-     * @return bool
      */
-    private function isStsLegacyEndpointUsed($service, $region, $options)
+    private function isStsLegacyEndpointUsed($service, $region, array $options): bool
     {
         return $service === 'sts'
             && in_array($region, $this->stsLegacyGlobalRegions)
@@ -241,10 +223,8 @@ final class Partition implements ArrayAccess, PartitionInterface
      *
      * @param string $service
      * @param string $region
-     * @param array $options
-     * @return bool
      */
-    private function isS3LegacyEndpointUsed($service, $region, $options)
+    private function isS3LegacyEndpointUsed($service, $region, array $options): bool
     {
         return $service === 's3'
             && $region === 'us-east-1'
@@ -260,7 +240,7 @@ final class Partition implements ArrayAccess, PartitionInterface
         return $this->data['services'][$service]['partitionEndpoint'];
     }
 
-    private function formatEndpoint($template, $service, $region, $dnsSuffix)
+    private function formatEndpoint($template, $service, $region, $dnsSuffix): string
     {
         return strtr($template, [
             '{service}' => $service,
@@ -271,16 +251,13 @@ final class Partition implements ArrayAccess, PartitionInterface
 
     /**
      * @param $region
-     * @return bool
      */
-    private function isFipsEndpointUsed($region)
+    private function isFipsEndpointUsed($region): bool
     {
-        return strpos($region, "fips") !== false;
+        return str_contains((string) $region, "fips");
     }
 
     /**
-     * @param array $options
-     * @param array $data
      * @return array
      */
     private function getVariant(array $options, array $data)

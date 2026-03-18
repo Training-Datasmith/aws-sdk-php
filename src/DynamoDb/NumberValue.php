@@ -4,10 +4,10 @@ namespace Aws\DynamoDb;
 /**
  * Special object to represent a DynamoDB Number (N) value.
  */
-class NumberValue implements \JsonSerializable
+class NumberValue implements \JsonSerializable, \Stringable
 {
     /** @var string Number value. */
-    private $value;
+    private readonly string $value;
 
     /**
      * @param string|int|float $value A number value.
@@ -23,7 +23,7 @@ class NumberValue implements \JsonSerializable
         return $this->value;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->value;
     }

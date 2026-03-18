@@ -9,8 +9,7 @@ use Aws\Api\Service;
  */
 class RestXmlSerializer extends RestSerializer
 {
-    /** @var XmlBody */
-    private $xmlBody;
+    private readonly \Aws\Api\Serializer\XmlBody $xmlBody;
 
     /**
      * @param Service $api      Service API description
@@ -34,17 +33,11 @@ class RestXmlSerializer extends RestSerializer
         $opts['body'] = $body;
     }
 
-    /**
-     * @param StructureShape $member
-     * @param array $value
-     * @return string
-     */
-    private function getXmlBody(StructureShape $member, array $value)
+    private function getXmlBody(StructureShape $member, array $value): string
     {
         $xmlBody = $this->xmlBody->build($member, $value);
         $xmlBody = str_replace("'", "&apos;", $xmlBody);
         $xmlBody = str_replace('\r', "&#13;", $xmlBody);
-        $xmlBody = str_replace('\n', "&#10;", $xmlBody);
-        return $xmlBody;
+        return str_replace('\n', "&#10;", $xmlBody);
     }
 }

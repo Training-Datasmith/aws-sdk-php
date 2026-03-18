@@ -262,11 +262,9 @@ class S3Client extends AwsClient implements S3ClientInterface
                                             .'(?!.*(?:-s3alias|--ol-s3|\.mrap))$/';
     use S3ClientTrait;
 
-    /** @var array */
-    private static $mandatoryAttributes = ['Bucket', 'Key'];
+    private static array $mandatoryAttributes = ['Bucket', 'Key'];
 
-    /** @var array */
-    private static $checksumOptionEnum = [
+    private static array $checksumOptionEnum = [
         'when_supported' => true,
         'when_required' => true
     ];
@@ -274,8 +272,8 @@ class S3Client extends AwsClient implements S3ClientInterface
     public static function getArguments()
     {
         $args = parent::getArguments();
-        $args['retries']['fn'] = [__CLASS__, '_applyRetryConfig'];
-        $args['api_provider']['fn'] = [__CLASS__, '_applyApiProvider'];
+        $args['retries']['fn'] = [self::class, '_applyRetryConfig'];
+        $args['api_provider']['fn'] = [self::class, '_applyApiProvider'];
 
         return
             [
@@ -286,8 +284,8 @@ class S3Client extends AwsClient implements S3ClientInterface
                         . ' `when_supported` results in checksum calculation when an operation has modeled checksum support.'
                         . ' `when_required` results in checksum calculation when an operation has modeled checksum support and'
                         . ' request checksums are modeled as required.',
-                    'fn' => [__CLASS__, '_apply_request_checksum_calculation'],
-                    'default' => [__CLASS__, '_default_request_checksum_calculation'],
+                    'fn' => [self::class, '_apply_request_checksum_calculation'],
+                    'default' => [self::class, '_default_request_checksum_calculation'],
                 ],
                 'response_checksum_validation' => [
                     'type' => 'config',
@@ -296,8 +294,8 @@ class S3Client extends AwsClient implements S3ClientInterface
                         . ' `when_supported` results in checksum validation when an operation has modeled checksum support.'
                         . ' `when_required` results in checksum validation when an operation has modeled checksum support and'
                         . ' `CheckSumMode` is set to `enabled`.',
-                    'fn' => [__CLASS__, '_apply_response_checksum_validation'],
-                    'default' => [__CLASS__, '_default_response_checksum_validation'],
+                    'fn' => [self::class, '_apply_response_checksum_validation'],
+                    'default' => [self::class, '_default_response_checksum_validation'],
                 ]
             ]
             + $args + [
@@ -319,8 +317,8 @@ class S3Client extends AwsClient implements S3ClientInterface
                     ],
                     'doc'     => 'Set to true to allow passed in ARNs to override'
                         . ' client region. Accepts...',
-                    'fn' => [__CLASS__, '_apply_use_arn_region'],
-                    'default' => [UseArnRegionConfigurationProvider::class, 'defaultProvider'],
+                    'fn' => [self::class, '_apply_use_arn_region'],
+                    'default' => UseArnRegionConfigurationProvider::defaultProvider(...),
                 ],
                 'use_accelerate_endpoint' => [
                     'type' => 'config',
@@ -356,7 +354,7 @@ class S3Client extends AwsClient implements S3ClientInterface
                     'valid' => ['bool'],
                     'doc' => 'Set to true to disable the usage of'
                         . ' s3 express session authentication. This is enabled by default.',
-                    'default' => [__CLASS__, '_default_disable_express_session_auth'],
+                    'default' => [self::class, '_default_disable_express_session_auth'],
                 ],
                 's3_express_identity_provider' => [
                     'type'    => 'config',
@@ -367,7 +365,7 @@ class S3Client extends AwsClient implements S3ClientInterface
                     'doc'     => 'Specifies the provider used to generate identities to sign s3 express requests.  '
                         . 'Set to `false` to disable s3 express auth, or a callable provider used to create s3 express '
                         . 'identities or return null.',
-                    'default' => [__CLASS__, '_default_s3_express_identity_provider'],
+                    'default' => [self::class, '_default_s3_express_identity_provider'],
             ],
         ];
     }
@@ -424,8 +422,6 @@ class S3Client extends AwsClient implements S3ClientInterface
      *   Can be enabled or disabled on individual operations by setting
      *   '@disable_multiregion_access_points\' to true or false. Note:
      *   you cannot use it together with an accelerate or dualstack endpoint.
-     *
-     * @param array $args
      */
     public function __construct(array $args)
     {
@@ -438,7 +434,7 @@ class S3Client extends AwsClient implements S3ClientInterface
         $this->addBuiltIns($args);
         parent::__construct($args);
         $stack = $this->getHandlerList();
-        $config = $this->getConfig();
+        $this->getConfig();
         $stack->appendInit(SSECMiddleware::wrap($this->getEndpoint()->getScheme()), 's3.ssec');
         $stack->appendBuild(
             ApplyChecksumMiddleware::wrap($this->getApi(), $this->getConfig()),
@@ -541,7 +537,7 @@ class S3Client extends AwsClient implements S3ClientInterface
             preg_match('/^[a-z0-9]([a-z0-9\-\.]*[a-z0-9])?$/', $bucket);
     }
 
-    public static function _apply_use_arn_region($value, array &$args, HandlerList $list)
+    public static function _apply_use_arn_region($value, array &$args, HandlerList $list): void
     {
         if ($value instanceof CacheInterface) {
             $value = UseArnRegionConfigurationProvider::defaultProvider($args);
@@ -602,7 +598,7 @@ class S3Client extends AwsClient implements S3ClientInterface
         array &$args
     ): void
     {
-        $value = strtolower($value);
+        $value = strtolower((string) $value);
         if (array_key_exists($value, self::$checksumOptionEnum)) {
             $args['response_checksum_validation'] = $value;
         } else {
@@ -624,7 +620,7 @@ class S3Client extends AwsClient implements S3ClientInterface
         );
     }
 
-    public static function _default_s3_express_identity_provider(array $args)
+    public static function _default_s3_express_identity_provider(array $args): false|\Aws\Identity\S3\S3ExpressIdentityProvider
     {
         if ($args['config']['disable_express_session_auth']) {
             return false;
@@ -698,7 +694,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      *
      * @return string The URL to the object
      */
-    public function getObjectUrl($bucket, $key)
+    public function getObjectUrl($bucket, $key): string
     {
         $command = $this->getCommand('GetObject', [
             'Bucket' => $bucket,
@@ -715,7 +711,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      *
      * @return string Returns the encoded key
      */
-    public static function encodeKey($key)
+    public static function encodeKey($key): string
     {
         return str_replace('%2F', '/', rawurlencode($key));
     }
@@ -728,27 +724,25 @@ class S3Client extends AwsClient implements S3ClientInterface
     private function getLocationConstraintMiddleware()
     {
         $region = $this->getRegion();
-        return static function (callable $handler) use ($region) {
-            return function (Command $command, $request = null) use ($handler, $region) {
-                if ($command->getName() === 'CreateBucket'
-                    && !self::isDirectoryBucket($command['Bucket'])
-                ) {
-                    $locationConstraint = $command['CreateBucketConfiguration']['LocationConstraint']
-                        ?? null;
+        return static fn(callable $handler) => function (Command $command, $request = null) use ($handler, $region) {
+            if ($command->getName() === 'CreateBucket'
+                && !self::isDirectoryBucket($command['Bucket'])
+            ) {
+                $locationConstraint = $command['CreateBucketConfiguration']['LocationConstraint']
+                    ?? null;
 
-                    if ($locationConstraint === 'us-east-1') {
-                        unset($command['CreateBucketConfiguration']);
-                    } elseif ('us-east-1' !== $region && empty($locationConstraint)) {
-                        if (isset($command['CreateBucketConfiguration'])) {
-                            $command['CreateBucketConfiguration']['LocationConstraint'] = $region;
-                        } else {
-                            $command['CreateBucketConfiguration'] = ['LocationConstraint' => $region];
-                        }
+                if ($locationConstraint === 'us-east-1') {
+                    unset($command['CreateBucketConfiguration']);
+                } elseif ('us-east-1' !== $region && empty($locationConstraint)) {
+                    if (isset($command['CreateBucketConfiguration'])) {
+                        $command['CreateBucketConfiguration']['LocationConstraint'] = $region;
+                    } else {
+                        $command['CreateBucketConfiguration'] = ['LocationConstraint' => $region];
                     }
                 }
+            }
 
-                return $handler($command, $request);
-            };
+            return $handler($command, $request);
         };
     }
 
@@ -759,15 +753,13 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     private function getSaveAsParameter()
     {
-        return static function (callable $handler) {
-            return function (Command $command, $request = null) use ($handler) {
-                if ($command->getName() === 'GetObject' && isset($command['SaveAs'])) {
-                    $command['@http']['sink'] = $command['SaveAs'];
-                    unset($command['SaveAs']);
-                }
+        return static fn(callable $handler) => function (Command $command, $request = null) use ($handler) {
+            if ($command->getName() === 'GetObject' && isset($command['SaveAs'])) {
+                $command['@http']['sink'] = $command['SaveAs'];
+                unset($command['SaveAs']);
+            }
 
-                return $handler($command, $request);
-            };
+            return $handler($command, $request);
         };
     }
 
@@ -779,19 +771,17 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     private function getHeadObjectMiddleware()
     {
-        return static function (callable $handler) {
-            return function (
-                CommandInterface $command,
-                ?RequestInterface $request = null
-            ) use ($handler) {
-                if ($command->getName() === 'HeadObject'
-                    && !isset($command['@http']['decode_content'])
-                ) {
-                    $command['@http']['decode_content'] = false;
-                }
+        return static fn(callable $handler) => function (
+            CommandInterface $command,
+            ?RequestInterface $request = null
+        ) use ($handler) {
+            if ($command->getName() === 'HeadObject'
+                && !isset($command['@http']['decode_content'])
+            ) {
+                $command['@http']['decode_content'] = false;
+            }
 
-                return $handler($command, $request);
-            };
+            return $handler($command, $request);
         };
     }
 
@@ -803,51 +793,49 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     private function getEncodingTypeMiddleware()
     {
-        return static function (callable $handler) {
-            return function (Command $command, $request = null) use ($handler) {
-                $autoSet = false;
-                if ($command->getName() === 'ListObjects'
-                    && empty($command['EncodingType'])
-                ) {
-                    $command['EncodingType'] = 'url';
-                    $autoSet = true;
-                }
+        return static fn(callable $handler) => function (Command $command, $request = null) use ($handler) {
+            $autoSet = false;
+            if ($command->getName() === 'ListObjects'
+                && empty($command['EncodingType'])
+            ) {
+                $command['EncodingType'] = 'url';
+                $autoSet = true;
+            }
 
-                return $handler($command, $request)
-                    ->then(function (ResultInterface $result) use ($autoSet) {
-                        if ($result['EncodingType'] === 'url' && $autoSet) {
-                            static $topLevel = [
-                                'Delimiter',
-                                'Marker',
-                                'NextMarker',
-                                'Prefix',
-                            ];
-                            static $nested = [
-                                ['Contents', 'Key'],
-                                ['CommonPrefixes', 'Prefix'],
-                            ];
+            return $handler($command, $request)
+                ->then(function (ResultInterface $result) use ($autoSet): \Aws\ResultInterface {
+                    if ($result['EncodingType'] === 'url' && $autoSet) {
+                        static $topLevel = [
+                            'Delimiter',
+                            'Marker',
+                            'NextMarker',
+                            'Prefix',
+                        ];
+                        static $nested = [
+                            ['Contents', 'Key'],
+                            ['CommonPrefixes', 'Prefix'],
+                        ];
 
-                            foreach ($topLevel as $key) {
-                                if (isset($result[$key])) {
-                                    $result[$key] = urldecode($result[$key]);
-                                }
+                        foreach ($topLevel as $key) {
+                            if (isset($result[$key])) {
+                                $result[$key] = urldecode((string) $result[$key]);
                             }
-                            foreach ($nested as $steps) {
-                                if (isset($result[$steps[0]])) {
-                                    foreach ($result[$steps[0]] as $key => $part) {
-                                        if (isset($part[$steps[1]])) {
-                                            $result[$steps[0]][$key][$steps[1]]
-                                                = urldecode($part[$steps[1]]);
-                                        }
+                        }
+                        foreach ($nested as $steps) {
+                            if (isset($result[$steps[0]])) {
+                                foreach ($result[$steps[0]] as $key => $part) {
+                                    if (isset($part[$steps[1]])) {
+                                        $result[$steps[0]][$key][$steps[1]]
+                                            = urldecode((string) $part[$steps[1]]);
                                     }
                                 }
                             }
-
                         }
 
-                        return $result;
-                    });
-            };
+                    }
+
+                    return $result;
+                });
         };
     }
 
@@ -859,16 +847,14 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     private function getEmptyPathWithQuery()
     {
-        return static function (callable $handler) {
-            return function (Command $command, RequestInterface $request) use ($handler) {
-                $uri = $request->getUri();
-                if (empty($uri->getPath()) && !empty($uri->getQuery())) {
-                    $uri = $uri->withPath('/');
-                    $request = $request->withUri($uri);
-                }
+        return static fn(callable $handler) => function (Command $command, RequestInterface $request) use ($handler) {
+            $uri = $request->getUri();
+            if (empty($uri->getPath()) && !empty($uri->getQuery())) {
+                $uri = $uri->withPath('/');
+                $request = $request->withUri($uri);
+            }
 
-                return $handler($command, $request);
-            };
+            return $handler($command, $request);
         };
     }
 
@@ -880,18 +866,16 @@ class S3Client extends AwsClient implements S3ClientInterface
      */
     private function getDisableExpressSessionAuthMiddleware()
     {
-        return function (callable $handler) {
-            return function (
-                CommandInterface $command,
-                ?RequestInterface $request = null
-            ) use ($handler) {
-                if (!empty($command['@context']['signature_version'])
-                    && $command['@context']['signature_version'] === 'v4-s3express'
-                ) {
-                    $command['@context']['signature_version'] = 's3v4';
-                }
-                return $handler($command, $request);
-            };
+        return fn(callable $handler) => function (
+            CommandInterface $command,
+            ?RequestInterface $request = null
+        ) use ($handler) {
+            if (!empty($command['@context']['signature_version'])
+                && $command['@context']['signature_version'] === 'v4-s3express'
+            ) {
+                $command['@context']['signature_version'] = 's3v4';
+            }
+            return $handler($command, $request);
         };
     }
 
@@ -919,7 +903,6 @@ class S3Client extends AwsClient implements S3ClientInterface
      * `Expires` type to ensure it remains set to `timestamp`.
      *
      * @param array $args
-     * @return void
      *
      * @internal
      */
@@ -947,7 +930,7 @@ class S3Client extends AwsClient implements S3ClientInterface
 
         foreach ($definition['shapes'] as $key => &$value) {
             $suffix = 'Output';
-            if (str_ends_with($key, $suffix)) {
+            if (str_ends_with((string) $key, $suffix)) {
                 if (isset($value['members']['Expires'])) {
                     $value['members']['Expires']['deprecated'] = true;
                     $value['members']['ExpiresString'] = [
@@ -969,7 +952,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      *
      * @return void
      */
-    private function addBuiltIns($args)
+    private function addBuiltIns(array $args)
     {
         if (isset($args['region'])
             && $args['region'] !== 'us-east-1'
@@ -1010,9 +993,6 @@ class S3Client extends AwsClient implements S3ClientInterface
     /**
      * Determines whether a bucket is a directory bucket.
      * Only considers the availability zone/suffix format
-     *
-     * @param string $bucket
-     * @return bool
      */
     public static function isDirectoryBucket(string $bucket): bool
     {
@@ -1020,7 +1000,7 @@ class S3Client extends AwsClient implements S3ClientInterface
     }
 
     /** @internal */
-    public static function _applyRetryConfig($value, $args, HandlerList $list)
+    public static function _applyRetryConfig($value, array $args, HandlerList $list): void
     {
         if ($value) {
             $config = \Aws\Retry\ConfigurationProvider::unwrap($value);
@@ -1028,7 +1008,7 @@ class S3Client extends AwsClient implements S3ClientInterface
             if ($config->getMode() === 'legacy') {
                 $maxRetries = $config->getMaxAttempts() - 1;
                 $decider = RetryMiddleware::createDefaultDecider($maxRetries);
-                $decider = function ($retries, $command, $request, $result, $error) use ($decider, $maxRetries) {
+                $decider = function ($retries, array $command, $request, $result, $error) use ($decider, $maxRetries): bool {
                     $maxRetries = $command['@retries'] ?? $maxRetries;
 
                     if ($decider($retries, $command, $request, $result, $error)) {
@@ -1041,10 +1021,10 @@ class S3Client extends AwsClient implements S3ClientInterface
                         if ($error->getResponse()
                             && $error->getResponse()->getStatusCode() >= 400
                         ) {
-                            return strpos(
-                                    $error->getResponse()->getBody(),
+                            return str_contains(
+                                    (string) $error->getResponse()->getBody(),
                                     'Your socket connection to the server'
-                                ) !== false;
+                                );
                         }
 
                         if ($error->getPrevious() instanceof RequestException) {
@@ -1084,10 +1064,10 @@ class S3Client extends AwsClient implements S3ClientInterface
                                     if (!empty($result->getResponse())
                                         && $result->getResponse()->getStatusCode() >= 400
                                     ) {
-                                        return strpos(
-                                                $result->getResponse()->getBody(),
+                                        return str_contains(
+                                                (string) $result->getResponse()->getBody(),
                                                 'Your socket connection to the server'
-                                            ) !== false;
+                                            );
                                     }
 
                                     if ($result->getPrevious() instanceof RequestException
@@ -1108,7 +1088,7 @@ class S3Client extends AwsClient implements S3ClientInterface
     }
 
     /** @internal */
-    public static function _applyApiProvider($value, array &$args, HandlerList $list)
+    public static function _applyApiProvider(callable $value, array &$args, HandlerList $list): void
     {
         ClientResolver::_apply_api_provider($value, $args);
         $s3Parser = new S3Parser(
@@ -1135,7 +1115,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      * @internal
      * @codeCoverageIgnore
      */
-    public static function applyDocFilters(array $api, array $docs)
+    public static function applyDocFilters(array $api, array $docs): array
     {
         $b64 = '<div class="alert alert-info">This value will be base64 encoded on your behalf.</div>';
         $opt = '<div class="alert alert-info">This value will be computed for you it is not supplied.</div>';
@@ -1234,7 +1214,7 @@ class S3Client extends AwsClient implements S3ClientInterface
         // Ensure `Expires` type remains timestamp
         foreach ($api['shapes'] as $key => &$value) {
             $suffix = 'Output';
-            if (substr($key, -strlen($suffix)) === $suffix) {
+            if (str_ends_with((string) $key, $suffix)) {
                 if (isset($value['members']['Expires'])) {
                     $value['members']['Expires']['deprecated'] = true;
                     $value['members']['ExpiresString'] = [
@@ -1261,7 +1241,7 @@ class S3Client extends AwsClient implements S3ClientInterface
      * @internal
      * @codeCoverageIgnore
      */
-    public static function addDocExamples($examples)
+    public static function addDocExamples(array $examples): array
     {
         $getObjectExample = [
             'input' => [
@@ -1314,7 +1294,6 @@ class S3Client extends AwsClient implements S3ClientInterface
     }
 
     /**
-     * @param CommandInterface $command
      * @return array|mixed|null
      */
     private function getSignatureVersionFromCommand(CommandInterface $command)

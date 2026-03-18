@@ -48,7 +48,10 @@ class TreeRule extends AbstractRule
         return false;
     }
 
-    private function createRules(array $rules)
+    /**
+     * @return mixed[]
+     */
+    private function createRules(array $rules): array
     {
         $rulesList = [];
 

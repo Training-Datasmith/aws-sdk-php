@@ -190,13 +190,10 @@ final class DpopSignature
         $pos = 0;
         
         // Parse SEQUENCE tag (0x30)
-        if (substr($hex, $pos, 2) !== '30') {
+        if (!str_starts_with($hex, '30')) {
             throw new \Exception('Invalid DER signature format: missing SEQUENCE tag');
         }
         $pos += 2;
-        
-        // Parse SEQUENCE length
-        $seqLen = hexdec(substr($hex, $pos, 2));
         $pos += 2;
         
         // Parse first INTEGER tag (0x02) for R

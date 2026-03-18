@@ -37,19 +37,13 @@ class OutpostsAccessPointArn extends BaseAccessPointArn implements
         return $this->data['accesspoint_name'];
     }
 
-    private static function parseOutpostData(array $data)
+    private static function parseOutpostData(array $data): array
     {
-        $resourceData = preg_split("/[\/:]/", $data['resource_id']);
+        $resourceData = preg_split("/[\/:]/", (string) $data['resource_id']);
 
-        $data['outpost_id'] = isset($resourceData[0])
-            ? $resourceData[0]
-            : null;
-        $data['accesspoint_type'] = isset($resourceData[1])
-            ? $resourceData[1]
-            : null;
-        $data['accesspoint_name'] = isset($resourceData[2])
-            ? $resourceData[2]
-            : null;
+        $data['outpost_id'] = $resourceData[0] ?? null;
+        $data['accesspoint_type'] = $resourceData[1] ?? null;
+        $data['accesspoint_name'] = $resourceData[2] ?? null;
         if (isset($resourceData[3])) {
             $data['resource_extra'] = implode(':', array_slice($resourceData, 3));
         }
@@ -61,10 +55,8 @@ class OutpostsAccessPointArn extends BaseAccessPointArn implements
      * Validation specific to OutpostsAccessPointArn. Note this uses the base Arn
      * class validation instead of the direct parent due to it having slightly
      * differing requirements from its parent.
-     *
-     * @param array $data
      */
-    public static function validate(array $data)
+    public static function validate(array $data): void
     {
         Arn::validate($data);
 

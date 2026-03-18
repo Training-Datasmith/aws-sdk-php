@@ -11,7 +11,7 @@ use Exception;
  * DateTime overrides that make DateTime work more seamlessly as a string,
  * with JSON documents, and with JMESPath.
  */
-class DateTimeResult extends \DateTime implements \JsonSerializable
+class DateTimeResult extends \DateTime implements \JsonSerializable, \Stringable
 {
     private const ISO8601_NANOSECOND_REGEX = '/^(.*\.\d{6})(\d{1,3})(Z|[+-]\d{2}:\d{2})?$/';
 
@@ -21,16 +21,15 @@ class DateTimeResult extends \DateTime implements \JsonSerializable
      * timestamp) is the number of seconds that have elapsed since
      * January 1, 1970 (midnight UTC/GMT).
      *
-     * @return DateTimeResult
      * @throws Exception
      */
-    public static function fromEpoch($unixTimestamp)
+    public static function fromEpoch($unixTimestamp): self
     {
         if (!is_numeric($unixTimestamp)) {
             throw new ParserException('Invalid timestamp value passed to DateTimeResult::fromEpoch');
         }
 
-        $decimalSeparator = isset(localeconv()['decimal_point']) ? localeconv()['decimal_point'] : ".";
+        $decimalSeparator = localeconv()['decimal_point'] ?? ".";
         $formatString = "U" . $decimalSeparator . "u";
         $dateTime = DateTime::createFromFormat(
             $formatString,
@@ -48,10 +47,7 @@ class DateTimeResult extends \DateTime implements \JsonSerializable
         );
     }
 
-    /**
-     * @return DateTimeResult
-     */
-    public static function fromISO8601($iso8601Timestamp)
+    public static function fromISO8601($iso8601Timestamp): \Aws\Api\DateTimeResult
     {
         if (is_numeric($iso8601Timestamp) || !is_string($iso8601Timestamp)) {
             throw new ParserException('Invalid timestamp value passed to DateTimeResult::fromISO8601');
@@ -88,30 +84,28 @@ class DateTimeResult extends \DateTime implements \JsonSerializable
             if ($expectedFormat == 'iso8601') {
                 try {
                     return self::fromISO8601($timestamp);
-                } catch (Exception $exception) {
+                } catch (Exception) {
                     return self::fromEpoch($timestamp);
                 }
             } else if ($expectedFormat == 'unixTimestamp') {
                 try {
                     return self::fromEpoch($timestamp);
-                } catch (Exception $exception) {
+                } catch (Exception) {
                     return self::fromISO8601($timestamp);
                 }
             } else if (\Aws\is_valid_epoch($timestamp)) {
                 return self::fromEpoch($timestamp);
             }
             return self::fromISO8601($timestamp);
-        } catch (Exception $exception) {
+        } catch (Exception) {
             throw new ParserException('Invalid timestamp value passed to DateTimeResult::fromTimestamp');
         }
     }
 
     /**
      * Serialize the DateTimeResult as an ISO 8601 date string.
-     *
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->format('c');
     }

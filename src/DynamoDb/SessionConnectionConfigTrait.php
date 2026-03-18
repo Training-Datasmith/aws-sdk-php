@@ -42,23 +42,18 @@ trait SessionConnectionConfigTrait
     /**
      * It initialize the Config class and
      * it sets values in case of valid configurations.
-     * 
+     *
      * It transforms parameters underscore separated in camelcase "this_is_a_test" => ThisIsATest
      * and it uses it in order to set the values.
-     * 
-     * @param array $config
      */
-    public function initConfig( array $config = [] )
+    public function initConfig( array $config = [] ): void
     {
-        if (!empty($config))
+        foreach ($config as $key => $value)
         {
-            foreach ($config as $key => $value)
+            $method = 'set' . str_replace('_', '', ucwords((string) $key, '_'));
+            if(method_exists($this,$method))
             {
-                $method = 'set' . str_replace('_', '', ucwords($key, '_'));
-                if(method_exists($this,$method))
-                {
-                    call_user_func_array(array($this, $method), array($value));
-                }
+                call_user_func_array([$this, $method], [$value]);
             }
         }
 
@@ -80,7 +75,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param string $tableName
      */
-    public function setTableName($tableName)
+    public function setTableName($tableName): void
     {
         $this->tableName = $tableName;
     }
@@ -96,7 +91,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param string $hashKey
      */
-    public function setHashKey($hashKey)
+    public function setHashKey($hashKey): void
     {
         $this->hashKey = $hashKey;
     }
@@ -112,7 +107,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param string $dataAttribute
      */
-    public function setDataAttribute($dataAttribute)
+    public function setDataAttribute($dataAttribute): void
     {
         $this->dataAttribute = $dataAttribute;
     }
@@ -128,7 +123,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param string $dataAttributeType
      */
-    public function setDataAttributeType($dataAttributeType)
+    public function setDataAttributeType($dataAttributeType): void
     {
         $this->dataAttributeType = $dataAttributeType;
     }
@@ -144,7 +139,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param number $sessionLifetime
      */
-    public function setSessionLifetime($sessionLifetime)
+    public function setSessionLifetime($sessionLifetime): void
     {
         $this->sessionLifetime = $sessionLifetime;
     }
@@ -160,7 +155,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param string $sessionLifetimeAttribute
      */
-    public function setSessionLifetimeAttribute($sessionLifetimeAttribute)
+    public function setSessionLifetimeAttribute($sessionLifetimeAttribute): void
     {
         $this->sessionLifetimeAttribute = $sessionLifetimeAttribute;
     }
@@ -176,7 +171,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param boolean $consistentRead
      */
-    public function setConsistentRead($consistentRead)
+    public function setConsistentRead($consistentRead): void
     {
         $this->consistentRead = $consistentRead;
     }
@@ -192,7 +187,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param mixed $batchConfig
      */
-    public function setBatchConfig($batchConfig)
+    public function setBatchConfig($batchConfig): void
     {
         $this->batchConfig = $batchConfig;
     }
@@ -207,7 +202,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param boolean $locking
      */
-    public function setLocking($locking)
+    public function setLocking($locking): void
     {
         $this->locking = $locking;
     }
@@ -223,7 +218,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param number $maxLockWaitTime
      */
-    public function setMaxLockWaitTime($maxLockWaitTime)
+    public function setMaxLockWaitTime($maxLockWaitTime): void
     {
         $this->maxLockWaitTime = $maxLockWaitTime;
     }
@@ -239,7 +234,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param number $minLockRetryMicrotime
      */
-    public function setMinLockRetryMicrotime($minLockRetryMicrotime)
+    public function setMinLockRetryMicrotime($minLockRetryMicrotime): void
     {
         $this->minLockRetryMicrotime = $minLockRetryMicrotime;
     }
@@ -255,7 +250,7 @@ trait SessionConnectionConfigTrait
     /**
      * @param number $maxLockRetryMicrotime
      */
-    public function setMaxLockRetryMicrotime($maxLockRetryMicrotime)
+    public function setMaxLockRetryMicrotime($maxLockRetryMicrotime): void
     {
         $this->maxLockRetryMicrotime = $maxLockRetryMicrotime;
     }

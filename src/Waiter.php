@@ -22,23 +22,14 @@ use GuzzleHttp\Promise\RejectedPromise;
  */
 class Waiter implements PromisorInterface
 {
-    /** @var AwsClientInterface Client used to execute each attempt. */
-    private $client;
-
-    /** @var string Name of the waiter. */
-    private $name;
-
-    /** @var array Params to use with each attempt operation. */
-    private $args;
-
     /** @var array Waiter configuration. */
-    private $config;
+    private array $config;
 
     /** @var array Default configuration options. */
-    private static $defaults = ['initDelay' => 0, 'before' => null];
+    private static array $defaults = ['initDelay' => 0, 'before' => null];
 
     /** @var array Required configuration options. */
-    private static $required = [
+    private static array $required = [
         'acceptors',
         'delay',
         'maxAttempts',
@@ -62,15 +53,11 @@ class Waiter implements PromisorInterface
      * @throws \InvalidArgumentException if the configuration is incomplete.
      */
     public function __construct(
-        AwsClientInterface $client,
-        $name,
-        array $args = [],
+        private readonly AwsClientInterface $client,
+        private $name,
+        private readonly array $args = [],
         array $config = []
     ) {
-        $this->client = $client;
-        $this->name = $name;
-        $this->args = $args;
-
         // Prepare and validate config.
         $this->config = $config + self::$defaults;
         foreach (self::$required as $key) {
@@ -140,7 +127,7 @@ class Waiter implements PromisorInterface
      *
      * @return mixed integer
      */
-    private function getArgsForAttempt($attempt)
+    private function getArgsForAttempt(int $attempt)
     {
         $args = $this->args;
 
@@ -173,7 +160,7 @@ class Waiter implements PromisorInterface
     private function determineState($result)
     {
         foreach ($this->config['acceptors'] as $acceptor) {
-            $matcher = 'matches' . ucfirst($acceptor['matcher']);
+            $matcher = 'matches' . ucfirst((string) $acceptor['matcher']);
             if ($this->{$matcher}($result, $acceptor)) {
                 return $acceptor['state'];
             }
@@ -185,10 +172,8 @@ class Waiter implements PromisorInterface
     /**
      * @param Result $result   Result or exception.
      * @param array  $acceptor Acceptor configuration being checked.
-     *
-     * @return bool
      */
-    private function matchesPath($result, array $acceptor)
+    private function matchesPath($result, array $acceptor): bool
     {
         return $result instanceof ResultInterface
             && $acceptor['expected'] === $result->search($acceptor['argument']);
@@ -197,10 +182,8 @@ class Waiter implements PromisorInterface
     /**
      * @param Result $result   Result or exception.
      * @param array  $acceptor Acceptor configuration being checked.
-     *
-     * @return bool
      */
-    private function matchesPathAll($result, array $acceptor)
+    private function matchesPathAll($result, array $acceptor): bool
     {
         if (!($result instanceof ResultInterface)) {
             return false;
@@ -276,8 +259,10 @@ class Waiter implements PromisorInterface
         }
 
         if ($result instanceof AwsException) {
-            return $result->isConnectionError()
-                || $result->getAwsErrorCode() == $acceptor['expected'];
+            if ($result->isConnectionError()) {
+                return true;
+            }
+            return $result->getAwsErrorCode() == $acceptor['expected'];
         }
 
         return false;

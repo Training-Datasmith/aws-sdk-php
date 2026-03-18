@@ -19,39 +19,27 @@ class RateLimiter
 
     // Pre-set state variables
     private $currentCapacity = 0;
-    private $enabled = false;
+    private bool $enabled = false;
     private $lastMaxRate = 0;
     private $measuredTxRate = 0;
-    private $requestCount = 0;
+    private int $requestCount = 0;
 
     // Other state variables
     private $fillRate;
     private $lastThrottleTime;
     private $lastTimestamp;
-    private $lastTxRateBucket;
+    private float $lastTxRateBucket;
     private $maxCapacity;
-    private $timeWindow;
+    private float|int|null $timeWindow = null;
 
-    public function __construct($options = [])
+    public function __construct(array $options = [])
     {
-        $this->beta = isset($options['beta'])
-            ? $options['beta']
-            : 0.7;
-        $this->minCapacity = isset($options['min_capacity'])
-            ? $options['min_capacity']
-            : 1;
-        $this->minFillRate = isset($options['min_fill_rate'])
-            ? $options['min_fill_rate']
-            : 0.5;
-        $this->scaleConstant = isset($options['scale_constant'])
-            ? $options['scale_constant']
-            : 0.4;
-        $this->smooth = isset($options['smooth'])
-            ? $options['smooth']
-            : 0.8;
-        $this->timeProvider = isset($options['time_provider'])
-            ? $options['time_provider']
-            : null;
+        $this->beta = $options['beta'] ?? 0.7;
+        $this->minCapacity = $options['min_capacity'] ?? 1;
+        $this->minFillRate = $options['min_fill_rate'] ?? 0.5;
+        $this->scaleConstant = $options['scale_constant'] ?? 0.4;
+        $this->smooth = $options['smooth'] ?? 0.8;
+        $this->timeProvider = $options['time_provider'] ?? null;
 
         $this->lastTxRateBucket = floor($this->time());
         $this->lastThrottleTime = $this->time();
@@ -62,7 +50,7 @@ class RateLimiter
         return $this->enabled;
     }
 
-    public function getSendToken()
+    public function getSendToken(): void
     {
         $this->acquireToken(1);
     }
@@ -92,7 +80,7 @@ class RateLimiter
         return $newRate;
     }
 
-    private function acquireToken($amount)
+    private function acquireToken(int $amount): bool
     {
         if (!$this->enabled) {
             return true;
@@ -108,28 +96,28 @@ class RateLimiter
         return true;
     }
 
-    private function calculateTimeWindow()
+    private function calculateTimeWindow(): void
     {
-        $this->timeWindow = pow(($this->lastMaxRate * (1 - $this->beta) / $this->scaleConstant), 0.333);
+        $this->timeWindow = ($this->lastMaxRate * (1 - $this->beta) / $this->scaleConstant) ** 0.333;
     }
 
-    private function cubicSuccess($timestamp)
+    private function cubicSuccess($timestamp): float|int|array
     {
         $dt = $timestamp - $this->lastThrottleTime;
-        return $this->scaleConstant * pow($dt - $this->timeWindow, 3) + $this->lastMaxRate;
+        return $this->scaleConstant * ($dt - $this->timeWindow) ** 3 + $this->lastMaxRate;
     }
 
-    private function cubicThrottle($rateToUse)
+    private function cubicThrottle($rateToUse): int|float
     {
         return $rateToUse * $this->beta;
     }
 
-    private function enableTokenBucket()
+    private function enableTokenBucket(): void
     {
         $this->enabled = true;
     }
 
-    private function refillTokenBucket()
+    private function refillTokenBucket(): void
     {
         $timestamp = $this->time();
         if (!isset($this->lastTimestamp)) {
@@ -152,13 +140,12 @@ class RateLimiter
     {
         if (is_callable($this->timeProvider)) {
             $provider = $this->timeProvider;
-            $time = $provider();
-            return $time;
+            return $provider();
         }
         return microtime(true);
     }
 
-    private function updateMeasuredRate()
+    private function updateMeasuredRate(): void
     {
         $timestamp = $this->time();
         $timeBucket = floor(round($timestamp, 3) * 2) / 2;
@@ -172,7 +159,7 @@ class RateLimiter
         }
     }
 
-    private function updateTokenBucketRate($newRps)
+    private function updateTokenBucketRate($newRps): void
     {
         $this->refillTokenBucket();
         $this->fillRate = max($newRps, $this->minFillRate);

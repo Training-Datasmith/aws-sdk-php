@@ -3,10 +3,9 @@ namespace Aws\ClientSideMonitoring;
 
 class Configuration implements ConfigurationInterface
 {
-    private $clientId;
-    private $enabled;
-    private $host;
-    private $port;
+    private readonly string $clientId;
+    private readonly bool $enabled;
+    private readonly int|bool $port;
 
     /**
      * Constructs a new Configuration object with the specified CSM options set.
@@ -16,9 +15,8 @@ class Configuration implements ConfigurationInterface
      * @param string|int $port
      * @param string $clientId
      */
-    public function __construct($enabled, $host, $port, $clientId = '')
+    public function __construct($enabled, private $host, $port, $clientId = '')
     {
-        $this->host = $host;
         $this->port = filter_var($port, FILTER_VALIDATE_INT);
         if ($this->port === false) {
             throw new \InvalidArgumentException(
@@ -65,7 +63,7 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritdoc}
      */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'client_id' => $this->getClientId(),

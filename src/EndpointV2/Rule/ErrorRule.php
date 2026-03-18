@@ -10,7 +10,7 @@ class ErrorRule extends AbstractRule
     /** @var array */
     private $error;
 
-    public function __construct($definition)
+    public function __construct(array $definition)
     {
         parent::__construct($definition);
         $this->error = $definition['error'];
@@ -28,13 +28,12 @@ class ErrorRule extends AbstractRule
      * If an error rule's conditions are met, raise an
      * UnresolvedEndpointError containing the fully resolved error string.
      *
-     * @return null
      * @throws UnresolvedEndpointException
      */
     public function evaluate(
         array $inputParameters,
         RulesetStandardLibrary $standardLibrary
-    )
+    ): bool
     {
         if ($this->evaluateConditions($inputParameters, $standardLibrary)) {
             $message = $standardLibrary->resolveValue($this->error, $inputParameters);

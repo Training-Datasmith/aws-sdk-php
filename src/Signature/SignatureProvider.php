@@ -41,7 +41,7 @@ use Aws\Token\BearerTokenAuthorization;
  */
 class SignatureProvider
 {
-    private static $s3v4SignedServices = [
+    private static array $s3v4SignedServices = [
         's3' => true,
         's3control' => true,
         's3-outposts' => true,
@@ -60,7 +60,7 @@ class SignatureProvider
      * @return SignatureInterface
      * @throws UnresolvedSignatureException
      */
-    public static function resolve(callable $provider, $version, $service, $region)
+    public static function resolve(callable $provider, $version, $service, $region): \Aws\Signature\SignatureInterface|\Aws\Token\BearerTokenAuthorization|\Aws\Signature\DpopSignature
     {
         $result = $provider($version, $service, $region);
         if ($result instanceof SignatureInterface
@@ -119,32 +119,21 @@ class SignatureProvider
      */
     public static function version()
     {
-        return function ($version, $service, $region) {
-            switch ($version) {
-                case 'v4-s3express':
-                    return new S3ExpressSignature($service, $region);
-                case 's3v4':
-                case 'v4':
-                    return !empty(self::$s3v4SignedServices[$service])
-                        ? new S3SignatureV4($service, $region)
-                        : new SignatureV4($service, $region);
-                case 'v4a':
-                    return !empty(self::$s3v4SignedServices[$service])
-                        ? new S3SignatureV4($service, $region, ['use_v4a' => true])
-                        : new SignatureV4($service, $region, ['use_v4a' => true]);
-                case 'v4-unsigned-body':
-                    return !empty(self::$s3v4SignedServices[$service])
-                    ? new S3SignatureV4($service, $region, ['unsigned-body' => 'true'])
-                    : new SignatureV4($service, $region, ['unsigned-body' => 'true']);
-                case 'bearer':
-                    return new BearerTokenAuthorization();
-                case 'anonymous':
-                    return new AnonymousSignature();
-                case 'dpop':
-                    return new DpopSignature($service);
-                default:
-                    return null;
-            }
+        return fn($version, $service, $region): \Aws\Signature\S3ExpressSignature|\Aws\Signature\S3SignatureV4|\Aws\Signature\SignatureV4|\Aws\Token\BearerTokenAuthorization|\Aws\Signature\AnonymousSignature|\Aws\Signature\DpopSignature|null => match ($version) {
+            'v4-s3express' => new S3ExpressSignature($service, $region),
+            's3v4', 'v4' => !empty(self::$s3v4SignedServices[$service])
+                ? new S3SignatureV4($service, $region)
+                : new SignatureV4($service, $region),
+            'v4a' => !empty(self::$s3v4SignedServices[$service])
+                ? new S3SignatureV4($service, $region, ['use_v4a' => true])
+                : new SignatureV4($service, $region, ['use_v4a' => true]),
+            'v4-unsigned-body' => !empty(self::$s3v4SignedServices[$service])
+            ? new S3SignatureV4($service, $region, ['unsigned-body' => 'true'])
+            : new SignatureV4($service, $region, ['unsigned-body' => 'true']),
+            'bearer' => new BearerTokenAuthorization(),
+            'anonymous' => new AnonymousSignature(),
+            'dpop' => new DpopSignature($service),
+            default => null,
         };
     }
 }

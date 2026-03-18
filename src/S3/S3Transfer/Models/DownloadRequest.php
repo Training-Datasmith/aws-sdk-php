@@ -19,20 +19,12 @@ final class DownloadRequest extends AbstractTransferRequest
         'target_part_size_bytes' => 'int',
     ];
 
-    /** @var string|array|null */
-    private string|array|null $source;
-
-    /** @var array */
-    private array $downloadRequestArgs;
-
-    /** @var AbstractDownloadHandler|null */
-    private ?AbstractDownloadHandler $downloadHandler;
+    private readonly ?AbstractDownloadHandler $downloadHandler;
 
     /**
      * @param string|array|null $source The object to be downloaded from S3.
      * It can be either a string with a S3 URI or an array with a Bucket and Key
      * properties set.
-     * @param array $downloadRequestArgs
      * @param array $config The configuration to be used for this operation:
      *  - multipart_download_type: (string, optional)
      *    Overrides the resolved value from the transfer manager config.
@@ -47,14 +39,11 @@ final class DownloadRequest extends AbstractTransferRequest
      *    in a range multipart download. If this parameter is not provided
      *    then it fallbacks to the transfer manager `target_part_size_bytes`
      *    config value.
-     * @param AbstractDownloadHandler|null $downloadHandler
      * @param AbstractTransferListener[]|null $listeners
-     * @param AbstractTransferListener|null $progressTracker
-     * @param S3ClientInterface|null $s3Client
      */
     public function __construct(
-        string|array|null $source,
-        array $downloadRequestArgs = [],
+        private readonly string|array|null $source,
+        private array $downloadRequestArgs = [],
         array $config = [],
         ?AbstractDownloadHandler $downloadHandler = null,
         array $listeners = [],
@@ -62,8 +51,6 @@ final class DownloadRequest extends AbstractTransferRequest
         ?S3ClientInterface $s3Client = null
     ) {
         parent::__construct($listeners, $progressTracker, $config, $s3Client);
-        $this->source = $source;
-        $this->downloadRequestArgs = $downloadRequestArgs;
         $this->config = $config;
         if ($downloadHandler === null) {
             $downloadHandler = new StreamDownloadHandler();
@@ -71,12 +58,6 @@ final class DownloadRequest extends AbstractTransferRequest
         $this->downloadHandler = $downloadHandler;
     }
 
-    /**
-     * @param DownloadRequest $downloadRequest
-     * @param FileDownloadHandler $downloadHandler
-     *
-     * @return self
-     */
     public static function fromDownloadRequestAndDownloadHandler(
         DownloadRequest $downloadRequest,
         FileDownloadHandler $downloadHandler
@@ -92,25 +73,16 @@ final class DownloadRequest extends AbstractTransferRequest
         );
     }
 
-    /**
-     * @return array|string|null
-     */
     public function getSource(): array|string|null
     {
         return $this->source;
     }
 
-    /**
-     * @return array
-     */
     public function getObjectRequestArgs(): array
     {
         return $this->downloadRequestArgs;
     }
 
-    /**
-     * @return AbstractDownloadHandler
-     */
     public function getDownloadHandler(): AbstractDownloadHandler
     {
         return $this->downloadHandler;
@@ -120,8 +92,6 @@ final class DownloadRequest extends AbstractTransferRequest
      * Helper method to normalize the source as an array with:
      *  - Bucket
      *  - Key
-     *
-     * @return array
      */
     public function normalizeSourceAsArray(): array
     {

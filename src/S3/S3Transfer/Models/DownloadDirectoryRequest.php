@@ -21,21 +21,13 @@ final class DownloadDirectoryRequest extends AbstractTransferRequest
     ];
     public const DEFAULT_MAX_CONCURRENCY = 100;
 
-    /** @var string */
-    private string $sourceBucket;
-
-    /** @var string */
-    private string $destinationDirectory;
-
-    /** @var array  */
-    private readonly array $downloadRequestArgs;
+    private readonly string $sourceBucket;
 
     /**
      * @param string $sourceBucket The bucket from where the files are going to be
      * downloaded from.
      * @param string $destinationDirectory The destination path where the downloaded
      * files will be placed in.
-     * @param array $downloadRequestArgs
      * @param array $config The config options for this download directory operation.
      *  - s3_prefix: (string, optional) This parameter will be considered just if
      *    not provided as part of the list_objects_v2_args config option.
@@ -76,8 +68,8 @@ final class DownloadDirectoryRequest extends AbstractTransferRequest
      */
     public function __construct(
         string $sourceBucket,
-        string $destinationDirectory,
-        array $downloadRequestArgs = [],
+        private readonly string $destinationDirectory,
+        private readonly array $downloadRequestArgs = [],
         array $config = [],
         array $listeners = [],
         ?AbstractTransferListener $progressTracker = null
@@ -88,29 +80,18 @@ final class DownloadDirectoryRequest extends AbstractTransferRequest
         }
 
         $this->sourceBucket = $sourceBucket;
-        $this->destinationDirectory = $destinationDirectory;
-        $this->downloadRequestArgs = $downloadRequestArgs;
     }
 
-    /**
-     * @return string
-     */
     public function getSourceBucket(): string
     {
         return $this->sourceBucket;
     }
 
-    /**
-     * @return string
-     */
     public function getDestinationDirectory(): string
     {
         return $this->destinationDirectory;
     }
 
-    /**
-     * @return array
-     */
     public function getDownloadRequestArgs(): array
     {
         return $this->downloadRequestArgs;
@@ -118,8 +99,6 @@ final class DownloadDirectoryRequest extends AbstractTransferRequest
 
     /**
      * Helper method to validate the destination directory exists.
-     *
-     * @return void
      */
     public function validateDestinationDirectory(): void
     {

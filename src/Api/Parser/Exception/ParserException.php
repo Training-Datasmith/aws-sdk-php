@@ -18,9 +18,9 @@ class ParserException extends \RuntimeException implements
 
     public function __construct($message = '', $code = 0, $previous = null, array $context = [])
     {
-        $this->errorCode = isset($context['error_code']) ? $context['error_code'] : null;
-        $this->requestId = isset($context['request_id']) ? $context['request_id'] : null;
-        $this->response = isset($context['response']) ? $context['response'] : null;
+        $this->errorCode = $context['error_code'] ?? null;
+        $this->requestId = $context['request_id'] ?? null;
+        $this->response = $context['response'] ?? null;
         parent::__construct($message, $code, $previous);
     }
 

@@ -74,7 +74,7 @@ class StreamWrapper
     private $params = [];
 
     /** @var string Mode in which the stream was opened */
-    private $mode;
+    private ?string $mode = null;
 
     /** @var \Iterator Iterator used with opendir() related calls */
     private $objectIterator;
@@ -83,7 +83,7 @@ class StreamWrapper
     private $openedBucket;
 
     /** @var string The prefix of the bucket that was opened with opendir() */
-    private $openedBucketPrefix;
+    private int|float|array|string|bool|null $openedBucketPrefix = null;
 
     /** @var string Opened bucket path */
     private $openedPath;
@@ -92,10 +92,10 @@ class StreamWrapper
     private $cache;
 
     /** @var string The opened protocol (e.g., "s3") */
-    private $protocol = 's3';
+    private string $protocol = 's3';
 
     /** @var bool Keeps track of whether stream has been flushed since opening */
-    private $isFlushed = false;
+    private bool $isFlushed = false;
 
     /** @var bool Whether or not to use V2 bucket and object existence methods */
     private static $useV2Existence = false;
@@ -112,14 +112,14 @@ class StreamWrapper
         $protocol = 's3',
         ?CacheInterface $cache = null,
         $v2Existence = false
-    ) {
+    ): void {
         self::$useV2Existence = $v2Existence;
         if (in_array($protocol, stream_get_wrappers())) {
             stream_wrapper_unregister($protocol);
         }
 
         // Set the client passed in as the default stream context client
-        stream_wrapper_register($protocol, get_called_class(), STREAM_IS_URL);
+        stream_wrapper_register($protocol, static::class, STREAM_IS_URL);
         $default = stream_context_get_options(stream_context_get_default());
         $default[$protocol]['client'] = $client;
 
@@ -133,7 +133,7 @@ class StreamWrapper
         stream_context_set_default($default);
     }
 
-    public function stream_close()
+    public function stream_close(): void
     {
         if (!$this->isFlushed
             && empty($this->body->getSize())
@@ -149,18 +149,16 @@ class StreamWrapper
         $this->initProtocol($path);
         $this->isFlushed = false;
         $this->params = $this->getBucketKey($path);
-        $this->mode = rtrim($mode, 'bt');
+        $this->mode = rtrim((string) $mode, 'bt');
 
         if ($errors = $this->validate($path, $this->mode)) {
             return $this->triggerError($errors);
         }
 
-        return $this->boolCall(function() {
-            switch ($this->mode) {
-                case 'r': return $this->openReadStream();
-                case 'a': return $this->openAppendStream();
-                default: return $this->openWriteStream();
-            }
+        return $this->boolCall(fn() => match ($this->mode) {
+            'r' => $this->openReadStream(),
+            'a' => $this->openAppendStream(),
+            default => $this->openWriteStream(),
         });
     }
 
@@ -199,9 +197,7 @@ class StreamWrapper
         }
 
         $this->clearCacheKey("{$this->protocol}://{$params['Bucket']}/{$params['Key']}");
-        return $this->boolCall(function () use ($params) {
-            return (bool) $this->getClient()->putObject($params);
-        });
+        return $this->boolCall(fn() => (bool) $this->getClient()->putObject($params));
     }
 
     public function stream_read($count)
@@ -213,7 +209,7 @@ class StreamWrapper
     {
         return !$this->body->isSeekable()
             ? false
-            : $this->boolCall(function () use ($offset, $whence) {
+            : $this->boolCall(function () use ($offset, $whence): bool {
                 $this->body->seek($offset, $whence);
                 return true;
             });
@@ -221,7 +217,7 @@ class StreamWrapper
 
     public function stream_tell()
     {
-        return $this->boolCall(function() { return $this->body->tell(); });
+        return $this->boolCall(fn() => $this->body->tell());
     }
 
     public function stream_write($data)
@@ -233,7 +229,7 @@ class StreamWrapper
     {
         $this->initProtocol($path);
 
-        return $this->boolCall(function () use ($path) {
+        return $this->boolCall(function () use ($path): bool {
             $this->clearCacheKey($path);
             $this->getClient()->deleteObject($this->withPath($path));
             return true;
@@ -259,7 +255,7 @@ class StreamWrapper
         $this->initProtocol($path);
 
         // Some paths come through as S3:// for some reason.
-        $split = explode('://', $path, 2);
+        $split = explode('://', (string) $path, 2);
         $path = strtolower($split[0]) . '://' . $split[1];
 
         // Check if this path is in the url_stat cache
@@ -281,13 +277,13 @@ class StreamWrapper
      *
      * @param $path
      */
-    private function initProtocol($path)
+    private function initProtocol($path): void
     {
-        $parts = explode('://', $path, 2);
+        $parts = explode('://', (string) $path, 2);
         $this->protocol = $parts[0] ?: 's3';
     }
 
-    private function createStat($path, $flags)
+    private function createStat(string $path, $flags)
     {
         $this->initProtocol($path);
         $parts = $this->withPath($path);
@@ -299,7 +295,7 @@ class StreamWrapper
         return $this->boolCall(function () use ($parts, $path) {
             try {
                 $result = $this->getClient()->headObject($parts);
-                if (substr($parts['Key'], -1, 1) == '/' &&
+                if (str_ends_with((string) $parts['Key'], '/') &&
                     $result['ContentLength'] == 0
                 ) {
                     // Return as if it is a bucket to account for console
@@ -309,12 +305,12 @@ class StreamWrapper
 
                 // Attempt to stat and cache regular object
                 return $this->formatUrlStat($result->toArray());
-            } catch (S3Exception $e) {
+            } catch (S3Exception) {
                 // Maybe this isn't an actual key, but a prefix. Do a prefix
                 // listing of objects to determine.
                 $result = $this->getClient()->listObjects([
                     'Bucket'  => $parts['Bucket'],
-                    'Prefix'  => rtrim($parts['Key'], '/') . '/',
+                    'Prefix'  => rtrim((string) $parts['Key'], '/') . '/',
                     'MaxKeys' => 1
                 ]);
                 if (!$result['Contents'] && !$result['CommonPrefixes']) {
@@ -325,7 +321,7 @@ class StreamWrapper
         }, $flags);
     }
 
-    private function statDirectory($parts, $path, $flags)
+    private function statDirectory(array $parts, string $path, $flags)
     {
         // Stat "directories": buckets, or "s3://"
         $method = self::$useV2Existence ? 'doesBucketExistV2' : 'doesBucketExist';
@@ -406,7 +402,7 @@ class StreamWrapper
      * @return bool true on success
      * @see http://www.php.net/manual/en/function.opendir.php
      */
-    public function dir_opendir($path, $options)
+    public function dir_opendir($path, $options): bool
     {
         $this->initProtocol($path);
         $this->openedPath = $path;
@@ -426,7 +422,7 @@ class StreamWrapper
         }
 
         if ($params['Key']) {
-            $params['Key'] = rtrim($params['Key'], $delimiter) . $delimiter;
+            $params['Key'] = rtrim((string) $params['Key'], $delimiter) . $delimiter;
             $op['Prefix'] = $params['Key'];
         }
 
@@ -436,15 +432,13 @@ class StreamWrapper
         // that if a filter function is provided that it passes the filter.
         $this->objectIterator = \Aws\flatmap(
             $this->getClient()->getPaginator('ListObjects', $op),
-            function (Result $result) use ($filterFn) {
+            function (Result $result) use ($filterFn): array {
                 $contentsAndPrefixes = $result->search('[Contents[], CommonPrefixes[]][]');
                 // Filter out dir place holder keys and use the filter fn.
                 return array_filter(
                     $contentsAndPrefixes,
-                    function ($key) use ($filterFn) {
-                        return (!$filterFn || call_user_func($filterFn, $key))
-                            && (!isset($key['Key']) || substr($key['Key'], -1, 1) !== '/');
-                    }
+                    fn(array $key) => (!$filterFn || call_user_func($filterFn, $key))
+                        && (!isset($key['Key']) || !str_ends_with((string) $key['Key'], '/'))
                 );
             }
         );
@@ -457,7 +451,7 @@ class StreamWrapper
      *
      * @return bool true on success
      */
-    public function dir_closedir()
+    public function dir_closedir(): bool
     {
         $this->objectIterator = null;
         gc_collect_cycles();
@@ -472,7 +466,7 @@ class StreamWrapper
      */
     public function dir_rewinddir()
     {
-        return $this->boolCall(function() {
+        return $this->boolCall(function(): bool {
             $this->objectIterator = null;
             $this->dir_opendir($this->openedPath, null);
             return true;
@@ -520,11 +514,11 @@ class StreamWrapper
 
         // Remove the prefix from the result to emulate other stream wrappers.
         return $this->openedBucketPrefix
-            ? substr($result, strlen($this->openedBucketPrefix))
+            ? substr((string) $result, strlen($this->openedBucketPrefix))
             : $result;
     }
 
-    private function formatKey($key)
+    private function formatKey($key): string
     {
         $protocol = explode('://', $this->openedPath)[0];
         return "{$protocol}://{$this->openedBucket}/{$key}";
@@ -555,7 +549,7 @@ class StreamWrapper
                 . 'supports copying objects');
         }
 
-        return $this->boolCall(function () use ($partsFrom, $partsTo) {
+        return $this->boolCall(function () use ($partsFrom, $partsTo): bool {
             $options = $this->getOptions(true);
             // Copy the object and allow overriding default parameters if
             // desired, but by default copy metadata
@@ -564,7 +558,7 @@ class StreamWrapper
                 $partsFrom['Key'],
                 $partsTo['Bucket'],
                 $partsTo['Key'],
-                isset($options['acl']) ? $options['acl'] : 'private',
+                $options['acl'] ?? 'private',
                 $options
             );
             // Delete the original object
@@ -576,22 +570,22 @@ class StreamWrapper
         });
     }
 
-    public function stream_cast($cast_as)
+    public function stream_cast($cast_as): bool
     {
         return false;
     }
 
-    public function stream_set_option($option, $arg1, $arg2)
+    public function stream_set_option($option, $arg1, $arg2): bool
     {
         return false;
     }
 
-    public function stream_metadata($path, $option, $value)
+    public function stream_metadata($path, $option, $value): bool
     {
         return false;
     }
 
-    public function stream_lock($operation)
+    public function stream_lock($operation): bool
     {
         trigger_error(
             'stream_lock() is not supported by the Amazon S3 stream wrapper',
@@ -600,7 +594,7 @@ class StreamWrapper
         return false;
     }
 
-    public function stream_truncate($new_size)
+    public function stream_truncate($new_size): bool
     {
         return false;
     }
@@ -608,8 +602,9 @@ class StreamWrapper
     /**
      * Validates the provided stream arguments for fopen and returns an array
      * of errors.
+     * @return array{}|list{0: non-falsy-string, 1?: non-falsy-string, 2?: non-falsy-string}
      */
-    private function validate($path, $mode)
+    private function validate($path, string $mode): array
     {
         $errors = [];
 
@@ -646,22 +641,18 @@ class StreamWrapper
      *
      * @return array
      */
-    private function getOptions($removeContextData = false)
+    private function getOptions(bool $removeContextData = false): float|int|array
     {
         // Context is not set when doing things like stat
         if ($this->context === null) {
             $options = [];
         } else {
             $options = stream_context_get_options($this->context);
-            $options = isset($options[$this->protocol])
-                ? $options[$this->protocol]
-                : [];
+            $options = $options[$this->protocol] ?? [];
         }
 
         $default = stream_context_get_options(stream_context_get_default());
-        $default = isset($default[$this->protocol])
-            ? $default[$this->protocol]
-            : [];
+        $default = $default[$this->protocol] ?? [];
         $result = $this->params + $options + $default;
 
         if ($removeContextData) {
@@ -678,11 +669,11 @@ class StreamWrapper
      *
      * @return mixed|null
      */
-    private function getOption($name)
+    private function getOption(string $name)
     {
         $options = $this->getOptions();
 
-        return isset($options[$name]) ? $options[$name] : null;
+        return $options[$name] ?? null;
     }
 
     /**
@@ -700,16 +691,16 @@ class StreamWrapper
         return $client;
     }
 
-    private function getBucketKey($path)
+    private function getBucketKey($path): array
     {
         // Remove the protocol
-        $parts = explode('://', $path, 2);
+        $parts = explode('://', (string) $path, 2);
         // Get the bucket, key
         $parts = explode('/', $parts[1], 2);
 
         return [
             'Bucket' => $parts[0],
-            'Key'    => isset($parts[1]) ? $parts[1] : null
+            'Key'    => $parts[1] ?? null
         ];
     }
 
@@ -720,14 +711,14 @@ class StreamWrapper
      *
      * @return array Hash of 'Bucket', 'Key', and custom params from the context
      */
-    private function withPath($path)
+    private function withPath($path): float|int|array
     {
         $params = $this->getOptions(true);
 
         return $this->getBucketKey($path) + $params;
     }
 
-    private function openReadStream()
+    private function openReadStream(): bool
     {
         $client = $this->getClient();
         $command = $client->getCommand('GetObject', $this->getOptions(true));
@@ -744,7 +735,7 @@ class StreamWrapper
         return true;
     }
 
-    private function openWriteStream()
+    private function openWriteStream(): bool
     {
         $this->body = new Stream(fopen('php://temp', 'r+'));
         return true;
@@ -758,7 +749,7 @@ class StreamWrapper
             $this->body = $client->getObject($this->getOptions(true))['Body'];
             $this->body->seek(0, SEEK_END);
             return true;
-        } catch (S3Exception $e) {
+        } catch (S3Exception) {
             // The object does not exist, so use a simple write stream
             return $this->openWriteStream();
         }
@@ -842,7 +833,7 @@ class StreamWrapper
         }
 
         unset($params['ACL']);
-        return $this->boolCall(function () use ($params, $path) {
+        return $this->boolCall(function () use ($params, $path): bool {
             $this->getClient()->createBucket($params);
             $this->clearCacheKey($path);
             return true;
@@ -860,7 +851,7 @@ class StreamWrapper
     private function createSubfolder($path, array $params)
     {
         // Ensure the path ends in "/" and the body is empty.
-        $params['Key'] = rtrim($params['Key'], '/') . '/';
+        $params['Key'] = rtrim((string) $params['Key'], '/') . '/';
         $params['Body'] = '';
 
         // Fail if this pseudo directory key already exists
@@ -873,7 +864,7 @@ class StreamWrapper
             return $this->triggerError("Subfolder already exists: {$path}");
         }
 
-        return $this->boolCall(function () use ($params, $path) {
+        return $this->boolCall(function () use ($params, $path): bool {
             $this->getClient()->putObject($params);
             $this->clearCacheKey($path);
             return true;
@@ -888,10 +879,10 @@ class StreamWrapper
      *
      * @return bool
      */
-    private function deleteSubfolder($path, $params)
+    private function deleteSubfolder($path, array $params)
     {
         // Use a key that adds a trailing slash if needed.
-        $prefix = rtrim($params['Key'], '/') . '/';
+        $prefix = rtrim((string) $params['Key'], '/') . '/';
         $result = $this->getClient()->listObjects([
             'Bucket'  => $params['Bucket'],
             'Prefix'  => $prefix,
@@ -914,24 +905,20 @@ class StreamWrapper
      * Determine the most appropriate ACL based on a file mode.
      *
      * @param int $mode File mode
-     *
-     * @return string
      */
-    private function determineAcl($mode)
+    private function determineAcl($mode): string
     {
-        switch (substr(decoct($mode), 0, 1)) {
-            case '7': return 'public-read';
-            case '6': return 'authenticated-read';
-            default: return 'private';
-        }
+        return match (substr(decoct($mode), 0, 1)) {
+            '7' => 'public-read',
+            '6' => 'authenticated-read',
+            default => 'private',
+        };
     }
 
     /**
      * Gets a URL stat template with default values
-     *
-     * @return array
      */
-    private function getStatTemplate()
+    private function getStatTemplate(): array
     {
         return [
             0  => 0,  'dev'     => 0,
@@ -954,9 +941,7 @@ class StreamWrapper
      * Invokes a callable and triggers an error if an exception occurs while
      * calling the function.
      *
-     * @param callable $fn
      * @param int      $flags
-     *
      * @return bool
      */
     private function boolCall(callable $fn, $flags = null)
@@ -985,7 +970,7 @@ class StreamWrapper
      *
      * @param string $key S3 path (s3://bucket/key).
      */
-    private function clearCacheKey($key)
+    private function clearCacheKey($key): void
     {
         clearstatcache(true, $key);
         $this->getCacheStorage()->remove($key);

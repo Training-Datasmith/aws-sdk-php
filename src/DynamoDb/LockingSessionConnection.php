@@ -8,16 +8,11 @@ use Aws\DynamoDb\Exception\DynamoDbException;
  */
 class LockingSessionConnection extends StandardSessionConnection
 {
-    public function __construct(DynamoDbClient $client, array $config = [])
-    {
-        parent::__construct($client, $config);
-    }
-
     /**
      * {@inheritdoc}
      * Retries the request until the lock can be acquired
      */
-    public function read($id)
+    public function read($id): array
     {
         // Create the params for the UpdateItem operation so that a lock can be
         // set and item returned (via ReturnValues) in a one, atomic operation.
@@ -45,7 +40,7 @@ class LockingSessionConnection extends StandardSessionConnection
                 if ($e->getAwsErrorCode() === 'ConditionalCheckFailedException'
                     && time() < $timeout
                 ) {
-                    usleep(rand(
+                    usleep(random_int(
                         $this->getMinLockRetryMicrotime(),
                         $this->getMaxLockRetryMicrotime()
                     ));

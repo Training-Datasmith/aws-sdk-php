@@ -95,7 +95,7 @@ class MultipartCopy extends AbstractUploadManager
         return $this->upload();
     }
 
-    protected function loadUploadWorkflowInfo()
+    protected function loadUploadWorkflowInfo(): array
     {
         return [
             'command' => [
@@ -129,27 +129,30 @@ class MultipartCopy extends AbstractUploadManager
         }
     }
 
-    private function createPart($partNumber, $partsCount)
+    /**
+     * @return mixed[]
+     */
+    private function createPart(int $partNumber, float $partsCount): array
     {
         $data = [];
 
         // Apply custom params to UploadPartCopy data
         $config = $this->getConfig();
-        $params = isset($config['params']) ? $config['params'] : [];
+        $params = $config['params'] ?? [];
         foreach ($params as $k => $v) {
             $data[$k] = $v;
         }
         // The source parameter here is usually a string, but can be overloaded as an array
         // if the key contains a '?' character to specify where the query parameters start
         if (is_array($this->source)) {
-            $key = str_replace('%2F', '/', rawurlencode($this->source['source_key']));
+            $key = str_replace('%2F', '/', rawurlencode((string) $this->source['source_key']));
             $bucket = $this->source['source_bucket'];
         } else {
-            list($bucket, $key) = explode('/', ltrim($this->source, '/'), 2);
+            [$bucket, $key] = explode('/', ltrim($this->source, '/'), 2);
             $key = implode(
                 '/',
                 array_map(
-                    'urlencode',
+                    urlencode(...),
                     explode('/', rawurldecode($key))
                 )
             );
@@ -215,13 +218,13 @@ class MultipartCopy extends AbstractUploadManager
             }
         //otherwise, use the default source parsing behavior
         } else {
-            list($bucket, $key) = explode('/', ltrim($this->source, '/'), 2);
+            [$bucket, $key] = explode('/', ltrim($this->source, '/'), 2);
             $headParams = [
                 'Bucket' => $bucket,
                 'Key' => $key,
             ];
             if (strpos($key, '?')) {
-                list($key, $query) = explode('?', $key, 2);
+                [$key, $query] = explode('?', $key, 2);
                 $headParams['Key'] = $key;
                 $query = Psr7\Query::parse($query, false);
                 if (isset($query['versionId'])) {
@@ -240,10 +243,9 @@ class MultipartCopy extends AbstractUploadManager
      * @param string $inputSource The source that was passed to the constructor
      * @return string The source, starting with a slash if it's not an arn
      */
-    private function getInputSource($inputSource)
+    private function getInputSource($inputSource): string
     {
         $sourceBuilder = ArnParser::isArn($inputSource) ? '' : '/';
-        $sourceBuilder .= ltrim(rawurldecode($inputSource), '/');
-        return $sourceBuilder;
+        return $sourceBuilder . ltrim(rawurldecode($inputSource), '/');
     }
 }

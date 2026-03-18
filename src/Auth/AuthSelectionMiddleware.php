@@ -22,23 +22,10 @@ class AuthSelectionMiddleware
     /** @var callable */
     private $nextHandler;
 
-    /** @var AuthSchemeResolverInterface */
-    private $authResolver;
-
-    /** @var Service */
-    private $api;
-
-    /** @var array|null */
-    private ?array $configuredAuthSchemes;
-
     /**
      * Create a middleware wrapper function
      *
-     * @param AuthSchemeResolverInterface $authResolver
-     * @param Service $api
-     * @param array|null $configuredAuthSchemes
-     * 
-     * @return Closure
+     *
      */
     public static function wrap(
         AuthSchemeResolverInterface $authResolver,
@@ -46,37 +33,20 @@ class AuthSelectionMiddleware
         ?array $configuredAuthSchemes
     ): Closure
     {
-        return function (callable $handler) use (
-            $authResolver,
-            $api,
-            $configuredAuthSchemes
-        ) {
-            return new self($handler, $authResolver, $api, $configuredAuthSchemes);
-        };
+        return fn(callable $handler) => new self($handler, $authResolver, $api, $configuredAuthSchemes);
     }
 
-    /**
-     * @param callable $nextHandler
-     * @param AuthSchemeResolverInterface $authResolver
-     * @param Service $api
-     * @param array|null $configuredAuthSchemes
-     */
     public function __construct(
         callable $nextHandler,
-        AuthSchemeResolverInterface $authResolver,
-        Service $api,
-        ?array $configuredAuthSchemes = null
+        private readonly AuthSchemeResolverInterface $authResolver,
+        private readonly Service $api,
+        private readonly ?array $configuredAuthSchemes = null
     )
     {
         $this->nextHandler = $nextHandler;
-        $this->authResolver = $authResolver;
-        $this->api = $api;
-        $this->configuredAuthSchemes = $configuredAuthSchemes;
     }
 
     /**
-     * @param CommandInterface $command
-     *
      * @return Promise
      */
     public function __invoke(CommandInterface $command)
@@ -111,7 +81,7 @@ class AuthSelectionMiddleware
                 if (!empty($selectedAuthScheme)) {
                     $command['@context']['signature_version'] = $selectedAuthScheme;
                 }
-            } catch (UnresolvedAuthSchemeException $ignored) {
+            } catch (UnresolvedAuthSchemeException) {
                 // There was an error resolving auth
                 // The signature version will fall back to the modeled `signatureVersion`
                 // or auth schemes resolved during endpoint resolution

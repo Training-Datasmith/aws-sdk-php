@@ -20,8 +20,6 @@ trait EndpointV2SerializerTrait
      *
      * @param $endpoint
      * @param $headers
-     *
-     * @return void
      */
     private function setEndpointV2RequestOptions(
         RulesetEndpoint $endpoint,
@@ -41,7 +39,6 @@ trait EndpointV2SerializerTrait
      *
      * @param $endpoint
      * @param $headers
-     * @return void
      */
     private function applyHeaders(RulesetEndpoint $endpoint, array &$headers): void
     {
@@ -57,11 +54,10 @@ trait EndpointV2SerializerTrait
      * Applies custom HTTP schemes provided in client configuration.
      *
      * @param $resolvedUrl
-     * @return void
      */
     private function applyScheme(&$resolvedUrl): void
     {
-        $resolvedEndpointScheme = parse_url($resolvedUrl, PHP_URL_SCHEME);
+        $resolvedEndpointScheme = parse_url((string) $resolvedUrl, PHP_URL_SCHEME);
         $scheme = $this->endpoint instanceof Uri
             ? $this->endpoint->getScheme()
             : parse_url($this->endpoint, PHP_URL_SCHEME);

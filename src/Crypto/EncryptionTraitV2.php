@@ -70,7 +70,7 @@ trait EncryptionTraitV2
                 . ' specified in @CipherOptions["Cipher"].');
         }
 
-        $cipherOptions['Cipher'] = strtolower($cipherOptions['Cipher']);
+        $cipherOptions['Cipher'] = strtolower((string) $cipherOptions['Cipher']);
 
         if (!self::isSupportedCipher($cipherOptions['Cipher'])) {
             throw new \InvalidArgumentException('The cipher requested is not'
@@ -133,7 +133,7 @@ trait EncryptionTraitV2
             json_encode($materialsDescription);
         if (!empty($cipherOptions['Tag'])) {
             $envelope[MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER] =
-                (string) (strlen($cipherOptions['Tag']) * 8);
+                (string) (strlen((string) $cipherOptions['Tag']) * 8);
         }
 
         return $encryptingStream;
@@ -157,7 +157,7 @@ trait EncryptionTraitV2
     protected function getEncryptingStream(
         Stream $plaintext,
         $cek,
-        &$cipherOptions
+        array &$cipherOptions
     ) {
         switch ($cipherOptions['Cipher']) {
             // Only 'gcm' is supported for encryption currently
@@ -168,7 +168,7 @@ trait EncryptionTraitV2
                     $plaintext,
                     $cek,
                     $cipherOptions['Iv'],
-                    $cipherOptions['Aad'] = $cipherOptions['Aad'] ?? '',
+                    $cipherOptions['Aad'] ??= '',
                     $cipherOptions['TagLength'],
                     $cipherOptions['KeySize']
                 );

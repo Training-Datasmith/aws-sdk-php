@@ -38,8 +38,7 @@ class EcsCredentialProvider
     /** @var int */
     private $retries;
 
-    /** @var int */
-    private $attempts;
+    private ?int $attempts = null;
 
     /**
      *  The constructor accepts following options:
@@ -85,13 +84,13 @@ class EcsCredentialProvider
                             'proxy' => '',
                             'headers' => $headers,
                         ]
-                    )->then(function (ResponseInterface $response) {
+                    )->then(function (ResponseInterface $response): \Aws\Credentials\Credentials {
                         $result = $this->decodeResult((string)$response->getBody());
                         if (!isset($result['AccountId']) && isset($result['RoleArn'])) {
                             try {
                                 $parsedArn = new Arn($result['RoleArn']);
                                 $result['AccountId'] = $parsedArn->getAccountId();
-                            } catch (\Exception $e) {
+                            } catch (\Exception) {
                                 // AccountId will be null
                             }
                         }
@@ -100,16 +99,16 @@ class EcsCredentialProvider
                             $result['AccessKeyId'],
                             $result['SecretAccessKey'],
                             $result['Token'],
-                            strtotime($result['Expiration']),
+                            strtotime((string) $result['Expiration']),
                             $result['AccountId'] ?? null,
                             CredentialSources::ECS
                         );
-                    })->otherwise(function ($reason) {
+                    })->otherwise(function ($reason): void {
                         $reason = is_array($reason) ? $reason['exception'] : $reason;
 
                         $isRetryable = $reason instanceof ConnectException;
                         if ($isRetryable && ($this->attempts < $this->retries)) {
-                            sleep((int)pow(1.2, $this->attempts));
+                            sleep((int)1.2 ** $this->attempts);
                         } else {
                             $msg = $reason->getMessage();
                             throw new CredentialsException(
@@ -129,8 +128,6 @@ class EcsCredentialProvider
 
     /**
      * Returns the number of attempts that have been done.
-     *
-     * @return int
      */
     public function getAttempts(): int
     {
@@ -142,7 +139,7 @@ class EcsCredentialProvider
      *
      * @return array|false|string
      */
-    private function getEcsAuthToken()
+    private function getEcsAuthToken(): string|false
     {
         if (!empty($path = getenv(self::ENV_AUTH_TOKEN_FILE))) {
             $token =  @file_get_contents($path);
@@ -173,26 +170,25 @@ class EcsCredentialProvider
      *
      * @return array|array[]|string[]
      */
-    private function getHeadersForAuthToken()
+    private function getHeadersForAuthToken(): array
     {
         $authToken = self::getEcsAuthToken();
-        $headers = [];
 
         if (!empty($authToken))
-            $headers = ['Authorization' => $authToken];
+            return ['Authorization' => $authToken];
 
-        return $headers;
+        return [];
     }
 
-    /** @deprecated */
-    public function setHeaderForAuthToken()
+    /** @deprecated
+     * @return mixed[] */
+    public function setHeaderForAuthToken(): array
     {
         $authToken = self::getEcsAuthToken();
-        $headers = [];
         if (!empty($authToken))
-            $headers = ['Authorization' => $authToken];
+            return ['Authorization' => $authToken];
 
-        return $headers;
+        return [];
     }
 
     /**
@@ -221,7 +217,7 @@ class EcsCredentialProvider
         return self::SERVER_URI . $credsUri;
     }
 
-    private function decodeResult($response)
+    private function decodeResult(string $response)
     {
         $result = json_decode($response, true);
 
@@ -236,12 +232,10 @@ class EcsCredentialProvider
      * container credential request URI.
      *
      * @param $uri
-     *
-     * @return bool
      */
-    private function isCompatibleUri($uri)
+    private function isCompatibleUri($uri): bool
     {
-        $parsed = parse_url($uri);
+        $parsed = parse_url((string) $uri);
 
         if ($parsed['scheme'] !== 'https') {
             $host = trim($parsed['host'], '[]');

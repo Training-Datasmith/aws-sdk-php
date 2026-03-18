@@ -22,10 +22,6 @@ class ObjectLambdaAccessPointArn extends AccessPointArn
         return parent::parseResourceTypeAndId($data);
     }
 
-    /**
-     *
-     * @param array $data
-     */
     protected static function validate(array $data)
     {
         parent::validate($data);

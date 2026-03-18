@@ -28,9 +28,8 @@ class EndpointArnMiddleware
 
     /**
      * Commands which do not do ARN expansion for a specific given shape name
-     * @var array
      */
-    private static $selectiveNonArnableCmds = [
+    private static array $selectiveNonArnableCmds = [
         'AccessPointName' => [
             'CreateAccessPoint',
         ],
@@ -39,9 +38,8 @@ class EndpointArnMiddleware
 
     /**
      * Commands which do not do ARN expansion at all for relevant members
-     * @var array
      */
-    private static $nonArnableCmds = [
+    private static array $nonArnableCmds = [
         'CreateBucket',
         'ListRegionalBuckets',
     ];
@@ -49,9 +47,8 @@ class EndpointArnMiddleware
     /**
      * Commands which trigger endpoint and signer redirection based on presence
      * of OutpostId
-     * @var array
      */
-    private static $outpostIdRedirectCmds = [
+    private static array $outpostIdRedirectCmds = [
         'CreateBucket',
         'ListRegionalBuckets',
     ];
@@ -59,15 +56,10 @@ class EndpointArnMiddleware
     /** @var callable */
     private $nextHandler;
 
-    /** @var boolean */
-    private $isUseEndpointV2;
-
     /**
      * Create a middleware wrapper function.
      *
-     * @param Service $service
      * @param $region
-     * @param array $config
      * @return callable
      */
     public static function wrap(
@@ -77,17 +69,18 @@ class EndpointArnMiddleware
                 $isUseEndpointV2
     )
     {
-        return function (callable $handler) use ($service, $region, $config, $isUseEndpointV2) {
-            return new self($handler, $service, $region, $config, $isUseEndpointV2);
-        };
+        return fn(callable $handler) => new self($handler, $service, $region, $config, $isUseEndpointV2);
     }
 
+    /**
+     * @param bool $isUseEndpointV2
+     */
     public function __construct(
         callable $nextHandler,
         Service  $service,
                  $region,
         array    $config = [],
-        $isUseEndpointV2 = false
+        private $isUseEndpointV2 = false
     )
     {
         $this->partitionProvider = PartitionEndpointProvider::defaultProvider();
@@ -95,7 +88,6 @@ class EndpointArnMiddleware
         $this->service = $service;
         $this->config = $config;
         $this->nextHandler = $nextHandler;
-        $this->isUseEndpointV2 = $isUseEndpointV2;
     }
 
     public function __invoke(CommandInterface $cmd, RequestInterface $req)
@@ -147,7 +139,7 @@ class EndpointArnMiddleware
                 if (!empty($arn) && $arn instanceof OutpostsArnInterface) {
                     if (!$this->isUseEndpointV2) {
                         // Generate host based on ARN
-                        $host = $this->generateOutpostsArnHost($arn, $req);
+                        $host = $this->generateOutpostsArnHost($arn);
                         $req = $req->withHeader('x-amz-outpost-id', $arn->getOutpostId());
                     }
 
@@ -156,7 +148,7 @@ class EndpointArnMiddleware
                     if ($arn instanceof AccessPointArnInterface) {
                         // Replace ARN with access point name
                         $path = str_replace(
-                            urlencode($cmd[$accesspointNameMember]),
+                            urlencode((string) $cmd[$accesspointNameMember]),
                             $arn->getAccesspointName(),
                             $path
                         );
@@ -175,7 +167,7 @@ class EndpointArnMiddleware
 
                         // Replace ARN in the path
                         $path = str_replace(
-                            urlencode($cmd[$bucketNameMember]),
+                            urlencode((string) $cmd[$bucketNameMember]),
                             $arn->getBucketName(),
                             $path
                         );
@@ -230,9 +222,7 @@ class EndpointArnMiddleware
                     $cmd['@context']['signing_region'] = $endpointData['signingRegion'];
 
                     // Update signing service for Outposts ARNs
-                    if ($arn instanceof OutpostsArnInterface) {
-                        $cmd['@context']['signing_service'] = $arn->getService();
-                    }
+                    $cmd['@context']['signing_service'] = $arn->getService();
 
 
                 }
@@ -258,9 +248,8 @@ class EndpointArnMiddleware
     }
 
     private function generateOutpostsArnHost(
-        OutpostsArnInterface $arn,
-        RequestInterface $req
-    ) {
+        OutpostsArnInterface $arn
+    ): string {
         if (!empty($this->config['use_arn_region']->isUseArnRegion())) {
             $region = $arn->getRegion();
         } else {
@@ -273,7 +262,7 @@ class EndpointArnMiddleware
         return "s3-outposts{$fipsString}.{$region}.{$suffix}";
     }
 
-    private function generateOutpostIdHost()
+    private function generateOutpostIdHost(): string
     {
         $partition = $this->partitionProvider->getPartition(
             $this->region,

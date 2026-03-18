@@ -6,13 +6,6 @@ namespace Aws\Token;
  */
 class SsoToken extends Token
 {
-    private $refreshToken;
-    private $clientId;
-    private $clientSecret;
-    private $registrationExpiresAt;
-    private $region;
-    private $startUrl;
-
     /**
      * Constructs a new SSO token object, with the specified AWS
      * token
@@ -29,20 +22,14 @@ class SsoToken extends Token
     public function __construct(
         $token,
         $expires,
-        $refreshToken = null,
-        $clientId = null,
-        $clientSecret = null,
-        $registrationExpiresAt = null,
-        $region = null,
-        $startUrl = null
+        private $refreshToken = null,
+        private $clientId = null,
+        private $clientSecret = null,
+        private $registrationExpiresAt = null,
+        private $region = null,
+        private $startUrl = null
     ) {
         parent::__construct($token, $expires);
-        $this->refreshToken = $refreshToken;
-        $this->clientId = $clientId;
-        $this->clientSecret = $clientSecret;
-        $this->registrationExpiresAt = $registrationExpiresAt;
-        $this->region = $region;
-        $this->startUrl = $startUrl;
     }
 
     /**
@@ -110,20 +97,18 @@ class SsoToken extends Token
      * Creates an instance of SsoToken from a token data.
      *
      * @param $tokenData
-     *
-     * @return SsoToken
      */
-    public static function fromTokenData($tokenData): SsoToken
+    public static function fromTokenData(array $tokenData): SsoToken
     {
         return new SsoToken(
             $tokenData['accessToken'],
-            \strtotime($tokenData['expiresAt']),
-            isset($tokenData['refreshToken']) ? $tokenData['refreshToken'] : null,
-            isset($tokenData['clientId']) ? $tokenData['clientId'] : null,
-            isset($tokenData['clientSecret']) ? $tokenData['clientSecret'] : null,
-            isset($tokenData['registrationExpiresAt']) ? $tokenData['registrationExpiresAt'] : null,
-            isset($tokenData['region']) ? $tokenData['region'] : null,
-            isset($tokenData['startUrl']) ? $tokenData['startUrl'] : null
+            \strtotime((string) $tokenData['expiresAt']),
+            $tokenData['refreshToken'] ?? null,
+            $tokenData['clientId'] ?? null,
+            $tokenData['clientSecret'] ?? null,
+            $tokenData['registrationExpiresAt'] ?? null,
+            $tokenData['region'] ?? null,
+            $tokenData['startUrl'] ?? null
         );
     }
 }

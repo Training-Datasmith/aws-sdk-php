@@ -15,20 +15,9 @@ class AesDecryptingStream implements AesStreamInterface
 
     use StreamDecoratorTrait;
 
-    /**
-     * @var string
-     */
-    private $buffer = '';
+    private string $buffer = '';
 
-    /**
-     * @var CipherMethod
-     */
-    private $cipherMethod;
-
-    /**
-     * @var string
-     */
-    private $key;
+    private \Aws\Crypto\Cipher\CipherMethod $cipherMethod;
 
     /**
      * @var StreamInterface
@@ -36,17 +25,14 @@ class AesDecryptingStream implements AesStreamInterface
     private $stream;
 
     /**
-     * @param StreamInterface $cipherText
      * @param string $key
-     * @param CipherMethod $cipherMethod
      */
     public function __construct(
         StreamInterface $cipherText,
-        $key,
+        private $key,
         CipherMethod $cipherMethod
     ) {
         $this->stream = $cipherText;
-        $this->key = $key;
         $this->cipherMethod = clone $cipherMethod;
     }
 
@@ -98,7 +84,7 @@ class AesDecryptingStream implements AesStreamInterface
         $data = substr($this->buffer, 0, $length);
         $this->buffer = substr($this->buffer, $length);
 
-        return $data ? $data : '';
+        return $data ?: '';
     }
 
     public function seek($offset, $whence = SEEK_SET): void
@@ -113,7 +99,7 @@ class AesDecryptingStream implements AesStreamInterface
         }
     }
 
-    private function decryptBlock($length)
+    private function decryptBlock(int $length): string|false
     {
         if ($this->stream->eof()) {
             return '';
@@ -121,7 +107,7 @@ class AesDecryptingStream implements AesStreamInterface
 
         $cipherText = '';
         do {
-            $cipherText .= $this->stream->read((int) ($length - strlen($cipherText)));
+            $cipherText .= $this->stream->read($length - strlen($cipherText));
         } while (strlen($cipherText) < $length && !$this->stream->eof());
 
         $options = OPENSSL_RAW_DATA;

@@ -17,7 +17,6 @@ interface MonitoringMiddlewareInterface
     /**
      * Data for event properties to be sent to the monitoring agent.
      *
-     * @param RequestInterface $request
      * @return array
      */
     public static function getRequestData(RequestInterface $request);

@@ -17,25 +17,17 @@ class QuotaManager
     private $retryCost;
     private $timeoutRetryCost;
 
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
-        $this->initialRetryTokens = isset($config['initial_retry_tokens'])
-            ? $config['initial_retry_tokens']
-            : 500;
-        $this->noRetryIncrement = isset($config['no_retry_increment'])
-            ? $config['no_retry_increment']
-            : 1;
-        $this->retryCost = isset($config['retry_cost'])
-            ? $config['retry_cost']
-            : 5;
-        $this->timeoutRetryCost = isset($config['timeout_retry_cost'])
-            ? $config['timeout_retry_cost']
-            : 10;
+        $this->initialRetryTokens = $config['initial_retry_tokens'] ?? 500;
+        $this->noRetryIncrement = $config['no_retry_increment'] ?? 1;
+        $this->retryCost = $config['retry_cost'] ?? 5;
+        $this->timeoutRetryCost = $config['timeout_retry_cost'] ?? 10;
         $this->maxCapacity = $this->initialRetryTokens;
         $this->availableCapacity = $this->initialRetryTokens;
     }
 
-    public function hasRetryQuota($result)
+    public function hasRetryQuota($result): bool
     {
         if ($result instanceof AwsException && $result->isConnectionError()) {
             $this->capacityAmount = $this->timeoutRetryCost;
@@ -76,7 +68,7 @@ class QuotaManager
             );
         }
 
-        return (isset($amount) ? $amount : 0);
+        return ($amount ?? 0);
     }
 
     public function getAvailableCapacity()

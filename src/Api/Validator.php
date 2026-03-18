@@ -10,10 +10,10 @@ use stdClass;
 class Validator
 {
     private $path = [];
-    private $errors = [];
+    private array $errors = [];
     private $constraints = [];
 
-    private static $defaultConstraints = [
+    private static array $defaultConstraints = [
         'required' => true,
         'min'      => true,
         'max'      => false,
@@ -48,7 +48,7 @@ class Validator
      *
      * @throws \InvalidArgumentException if the input is invalid.
      */
-    public function validate($name, Shape $shape, array $input)
+    public function validate($name, Shape $shape, array $input): void
     {
         $this->dispatch($shape, $input);
 
@@ -67,7 +67,7 @@ class Validator
         }
     }
 
-    private function dispatch(Shape $shape, $value)
+    private function dispatch(Shape $shape, $value): void
     {
         static $methods = [
             'structure' => 'check_structure',
@@ -89,7 +89,7 @@ class Validator
         }
     }
 
-    private function check_structure(StructureShape $shape, $value)
+    private function check_structure(StructureShape $shape, array $value): void
     {
         $isDocument = (isset($shape['document']) && $shape['document']);
         $isUnion = (isset($shape['union']) && $shape['union']);
@@ -122,7 +122,7 @@ class Validator
                     $this->path[] = $name;
                     $this->dispatch(
                         $shape->getMember($name),
-                        isset($value[$name]) ? $value[$name] : null
+                        $value[$name] ?? null
                     );
                     array_pop($this->path);
                 }
@@ -130,7 +130,7 @@ class Validator
         }
     }
 
-    private function check_list(ListShape $shape, $value)
+    private function check_list(ListShape $shape, $value): void
     {
         if (!is_array($value)) {
             $this->addError('must be an array. Found '
@@ -148,7 +148,7 @@ class Validator
         }
     }
 
-    private function check_map(MapShape $shape, $value)
+    private function check_map(MapShape $shape, $value): void
     {
         if (!$this->checkAssociativeArray($value)) {
             return;
@@ -162,7 +162,7 @@ class Validator
         }
     }
 
-    private function check_blob(Shape $shape, $value)
+    private function check_blob($value): void
     {
         static $valid = [
             'string' => true,
@@ -182,7 +182,7 @@ class Validator
         }
     }
 
-    private function check_numeric(Shape $shape, $value)
+    private function check_numeric(Shape $shape, $value): void
     {
         if (!is_numeric($value)) {
             $this->addError('must be numeric. Found '
@@ -193,7 +193,7 @@ class Validator
         $this->validateRange($shape, $value, "numeric value");
     }
 
-    private function check_boolean(Shape $shape, $value)
+    private function check_boolean($value): void
     {
         if (!is_bool($value)) {
             $this->addError('must be a boolean. Found '
@@ -201,7 +201,7 @@ class Validator
         }
     }
 
-    private function check_string(Shape $shape, $value)
+    private function check_string(Shape $shape, $value): void
     {
         if ($shape['jsonvalue']) {
             if (!self::canJsonEncode($value)) {
@@ -217,7 +217,7 @@ class Validator
             return;
         }
 
-        $value = isset($value) ? $value : '';
+        $value ??= '';
         $this->validateRange($shape, strlen($value), "string length");
 
         if ($this->constraints['pattern']) {
@@ -228,7 +228,7 @@ class Validator
         }
     }
 
-    private function validateRange(Shape $shape, $length, $descriptor)
+    private function validateRange(Shape $shape, $length, string $descriptor): void
     {
         if ($this->constraints['min']) {
             $min = $shape['min'];
@@ -247,12 +247,12 @@ class Validator
         }
     }
 
-    private function checkArray($arr)
+    private function checkArray(array $arr): bool
     {
         return array_is_list($arr) || Aws\is_associative($arr);
     }
 
-    private function checkCanString($value)
+    private function checkCanString($value): bool
     {
         static $valid = [
             'string'  => true,
@@ -267,7 +267,7 @@ class Validator
             ($type == 'object' && method_exists($value, '__toString'));
     }
 
-    private function checkAssociativeArray($value)
+    private function checkAssociativeArray($value): bool
     {
         $isAssociative = false;
 
@@ -314,12 +314,12 @@ class Validator
             || is_bool($value);
     }
 
-    private function checkUnion($value)
+    private function checkUnion(array $value): bool
     {
         if (is_array($value)) {
             $nonNullCount = 0;
             foreach ($value as $key => $val) {
-                if (!is_null($val) && !(strpos($key, "@") === 0)) {
+                if (!is_null($val) && !(str_starts_with((string) $key, "@"))) {
                     $nonNullCount++;
                 }
             }
@@ -328,15 +328,15 @@ class Validator
         return !is_null($value);
     }
 
-    private function addError($message)
+    private function addError(string $message): void
     {
         $this->errors[] =
-            implode('', array_map(function ($s) { return "[{$s}]"; }, $this->path))
+            implode('', array_map(fn($s) => "[{$s}]", $this->path))
             . ' '
             . $message;
     }
 
-    private function canJsonEncode($data)
+    private function canJsonEncode($data): bool
     {
         return !is_resource($data);
     }

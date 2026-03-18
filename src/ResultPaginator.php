@@ -8,18 +8,6 @@ use GuzzleHttp\Promise;
  */
 class ResultPaginator implements \Iterator
 {
-    /** @var AwsClientInterface Client performing operations. */
-    private $client;
-
-    /** @var string Name of the operation being paginated. */
-    private $operation;
-
-    /** @var array Args for the operation. */
-    private $args;
-
-    /** @var array Configuration for the paginator. */
-    private $config;
-
     /** @var Result Most recent result from the client. */
     private $result;
 
@@ -27,24 +15,17 @@ class ResultPaginator implements \Iterator
     private $nextToken;
 
     /** @var int Number of operations/requests performed. */
-    private $requestCount = 0;
+    private int $requestCount = 0;
 
     /**
-     * @param AwsClientInterface $client
      * @param string             $operation
-     * @param array              $args
-     * @param array              $config
      */
     public function __construct(
-        AwsClientInterface $client,
-        $operation,
-        array $args,
-        array $config
+        private readonly AwsClientInterface $client,
+        private $operation,
+        private readonly array $args,
+        private array $config
     ) {
-        $this->client = $client;
-        $this->operation = $operation;
-        $this->args = $args;
-        $this->config = $config;
         MetricsBuilder::appendMetricsCaptureMiddleware(
             $this->client->getHandlerList(),
             MetricsBuilder::PAGINATOR
@@ -97,9 +78,7 @@ class ResultPaginator implements \Iterator
     public function search($expression)
     {
         // Apply JMESPath expression on each result, but as a flat sequence.
-        return flatmap($this, function (Result $result) use ($expression) {
-            return (array) $result->search($expression);
-        });
+        return flatmap($this, fn(Result $result) => (array) $result->search($expression));
     }
 
     /**
@@ -120,11 +99,8 @@ class ResultPaginator implements \Iterator
         return $this->valid() ? $this->requestCount - 1 : null;
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         $this->result = null;
     }
@@ -167,11 +143,8 @@ class ResultPaginator implements \Iterator
         return false;
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         $this->requestCount = 0;
         $this->nextToken = null;
@@ -183,7 +156,7 @@ class ResultPaginator implements \Iterator
         return $this->client->getCommand($this->operation, array_merge($args, ($nextToken ?: [])));
     }
 
-    private function determineNextToken(Result $result)
+    private function determineNextToken(Result $result): ?array
     {
         if (!$this->config['output_token']) {
             return null;
@@ -199,8 +172,6 @@ class ResultPaginator implements \Iterator
             ? [$this->config['input_token'] => $this->config['output_token']]
             : array_combine($this->config['input_token'], $this->config['output_token']);
 
-        return array_filter(array_map(function ($outputToken) use ($result) {
-            return $result->search($outputToken);
-        }, $nextToken));
+        return array_filter(array_map(fn($outputToken) => $result->search($outputToken), $nextToken));
     }
 }

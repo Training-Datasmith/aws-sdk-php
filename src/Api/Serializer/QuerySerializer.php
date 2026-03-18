@@ -18,15 +18,13 @@ class QuerySerializer
     use EndpointV2SerializerTrait;
 
     private $endpoint;
-    private $api;
     private $paramBuilder;
 
     public function __construct(
-        Service $api,
+        private Service $api,
         $endpoint,
         ?callable $paramBuilder = null
     ) {
-        $this->api = $api;
         $this->endpoint = $endpoint;
         $this->paramBuilder = $paramBuilder ?: new QueryParamBuilder();
     }
@@ -69,7 +67,7 @@ class QuerySerializer
         if ($endpoint instanceof RulesetEndpoint) {
             $this->setEndpointV2RequestOptions($endpoint, $headers);
         }
-        $absoluteUri = str_ends_with($this->endpoint, '/')
+        $absoluteUri = str_ends_with((string) $this->endpoint, '/')
             ? $this->endpoint : $this->endpoint . $requestUri;
 
         return new Request(

@@ -7,15 +7,11 @@ interface MaterialsProviderInterfaceV3
      * Returns if the requested size is supported by AES.
      *
      * @param int $keySize Size of the requested key in bits.
-     *
-     * @return bool
      */
     public static function isSupportedKeySize(int $keySize): bool;
 
     /**
      * Returns the wrap algorithm name for this Provider.
-     *
-     * @return string
      */
     public function getWrapAlgorithmName(): string;
 
@@ -28,8 +24,6 @@ interface MaterialsProviderInterfaceV3
      * @param array $materialDescription Material Description for use in
      *                                    decrypting the CEK.
      * @param AlgorithmSuite $algorithmSuite AlgorithmSuite for use in decrypting the CEK.
-     *
-     * @return string
      */
     public function decryptCek(
         string $encryptedCek,
@@ -42,8 +36,6 @@ interface MaterialsProviderInterfaceV3
      *                        random content encryption key (CEK).
      * @param array $context Context map needed for key encryption
      * @param array $options Additional options to be used in CEK generation
-     *
-     * @return array
      */
     public function generateCek(
         string $keySize,
@@ -54,8 +46,6 @@ interface MaterialsProviderInterfaceV3
     /**
      * @param string $openSslName Cipher OpenSSL name to use for generating
      *                            an initialization vector.
-     *
-     * @return string
      */
     public function generateIv(string $openSslName): string;
 }

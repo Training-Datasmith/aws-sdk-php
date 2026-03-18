@@ -16,11 +16,8 @@ use Aws\Api\TimestampShape as TimestampShape;
 class PostObjectV4
 {
     use SignatureTrait;
-
-    private $client;
-    private $bucket;
-    private $formAttributes;
-    private $formInputs;
+    private array $formAttributes;
+    private array $formInputs;
 
     /**
      * Constructs the PostObject.
@@ -37,15 +34,12 @@ class PostObjectV4
      *                                      default: 1 hour valid period.
      */
     public function __construct(
-        S3ClientInterface $client,
-        $bucket,
+        private S3ClientInterface $client,
+        private $bucket,
         array $formInputs,
         array $options = [],
         $expiration = '+1 hours'
     ) {
-        $this->client = $client;
-        $this->bucket = $bucket;
-
         // setup form attributes
         $this->formAttributes = [
             'action'  => $this->generateUri(),
@@ -113,7 +107,7 @@ class PostObjectV4
      * @param string $attribute Form attribute to set.
      * @param string $value     Value to set.
      */
-    public function setFormAttribute($attribute, $value)
+    public function setFormAttribute($attribute, $value): void
     {
         $this->formAttributes[$attribute] = $value;
     }
@@ -134,24 +128,24 @@ class PostObjectV4
      * @param string $field Field name to set
      * @param string $value Value to set.
      */
-    public function setFormInput($field, $value)
+    public function setFormInput($field, $value): void
     {
         $this->formInputs[$field] = $value;
     }
 
-    private function generateUri()
+    private function generateUri(): string
     {
         $uri = new Uri($this->client->getEndpoint());
 
         if ($this->client->getConfig('use_path_style_endpoint') === true
             || ($uri->getScheme() === 'https'
-            && strpos($this->bucket, '.') !== false)
+            && str_contains($this->bucket, '.'))
         ) {
             // Use path-style URLs
             $uri = $uri->withPath("/{$this->bucket}");
         } else {
             // Use virtual-style URLs if haven't been set up already
-            if (strpos($uri->getHost(), $this->bucket . '.') !== 0) {
+            if (!str_starts_with($uri->getHost(), $this->bucket . '.')) {
                 $uri = $uri->withHost($this->bucket . '.' . $uri->getHost());
             }
         }
@@ -162,7 +156,7 @@ class PostObjectV4
     protected function getPolicyAndSignature(
         CredentialsInterface $credentials,
         array $policy
-    ){
+    ): array{
         $ldt = gmdate(SignatureV4::ISO8601_BASIC);
         $sdt = substr($ldt, 0, 8);
         $policy['conditions'][] = ['X-Amz-Date' => $ldt];
@@ -188,7 +182,7 @@ class PostObjectV4
             'X-Amz-Date' => $ldt,
             'Policy'           => $jsonPolicy64,
             'X-Amz-Signature'  => bin2hex(
-                hash_hmac('sha256', $jsonPolicy64, $key, true)
+                hash_hmac('sha256', $jsonPolicy64, (string) $key, true)
             ),
         ];
     }

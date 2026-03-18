@@ -23,9 +23,7 @@ class ExpiresParsingMiddleware
      */
     public static function wrap()
     {
-        return function (callable $handler) {
-            return new self($handler);
-        };
+        return fn(callable $handler) => new self($handler);
     }
 
     /**
@@ -40,7 +38,7 @@ class ExpiresParsingMiddleware
     {
         $next = $this->nextHandler;
         return $next($command, $request)->then(
-            function (ResultInterface $result) {
+            function (ResultInterface $result): \Aws\ResultInterface {
                 if (empty($result['Expires']) && !empty($result['ExpiresString'])) {
                     trigger_error(
                         "Failed to parse the `expires` header as a timestamp due to "

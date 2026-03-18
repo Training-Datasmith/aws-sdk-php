@@ -187,7 +187,7 @@ enum AlgorithmSuite: int
         array $cipherOptions,
         string $keyCommitmentPolicy
     ): self {
-        $cipherOptions['Cipher'] = strtolower($cipherOptions['Cipher']);
+        $cipherOptions['Cipher'] = strtolower((string) $cipherOptions['Cipher']);
         //= ../specification/s3-encryption/client.md#encryption-algorithm
         //# The S3EC MUST validate that the configured encryption algorithm is not legacy.
         if (!S3EncryptionClientV3::isSupportedCipher($cipherOptions['Cipher'])) {
@@ -215,13 +215,11 @@ enum AlgorithmSuite: int
         //# When the commitment policy is FORBID_ENCRYPT_ALLOW_DECRYPT, the S3EC MUST NOT encrypt using an algorithm suite which supports key commitment.
         if ($keyCommitmentPolicy === 'FORBID_ENCRYPT_ALLOW_DECRYPT') {
             return self::ALG_AES_256_GCM_IV12_TAG16_NO_KDF;
-        } else {
-            //= ../specification/s3-encryption/key-commitment.md#commitment-policy
-            //# When the commitment policy is REQUIRE_ENCRYPT_ALLOW_DECRYPT, the S3EC MUST only encrypt using an algorithm suite which supports key commitment.
-
-            //= ../specification/s3-encryption/key-commitment.md#commitment-policy
-            //# When the commitment policy is REQUIRE_ENCRYPT_REQUIRE_DECRYPT, the S3EC MUST only encrypt using an algorithm suite which supports key commitment.
-            return self::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY;
         }
+        //= ../specification/s3-encryption/key-commitment.md#commitment-policy
+        //# When the commitment policy is REQUIRE_ENCRYPT_ALLOW_DECRYPT, the S3EC MUST only encrypt using an algorithm suite which supports key commitment.
+        //= ../specification/s3-encryption/key-commitment.md#commitment-policy
+        //# When the commitment policy is REQUIRE_ENCRYPT_REQUIRE_DECRYPT, the S3EC MUST only encrypt using an algorithm suite which supports key commitment.
+        return self::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY;
     }
 }

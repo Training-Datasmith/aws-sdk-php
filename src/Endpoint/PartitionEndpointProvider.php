@@ -6,11 +6,7 @@ use JmesPath\Env;
 class PartitionEndpointProvider
 {
     /** @var Partition[] */
-    private $partitions;
-    /** @var string */
-    private $defaultPartition;
-    /** @var array  */
-    private $options;
+    private readonly array $partitions;
 
     /**
      * The 'options' parameter accepts the following arguments:
@@ -22,27 +18,22 @@ class PartitionEndpointProvider
      *   to use the regional endpoint, 'legacy' to use the legacy global endpoint.
      *   Defaults to 'legacy'.
      *
-     * @param array $partitions
      * @param string $defaultPartition
      * @param array $options
      */
     public function __construct(
         array $partitions,
-        $defaultPartition = 'aws',
-        $options = []
+        private $defaultPartition = 'aws',
+        private $options = []
     ) {
-        $this->partitions = array_map(function (array $definition) {
-            return new Partition($definition);
-        }, array_values($partitions));
-        $this->defaultPartition = $defaultPartition;
-        $this->options = $options;
+        $this->partitions = array_map(fn(array $definition) => new Partition($definition), array_values($partitions));
     }
 
     public function __invoke(array $args = [])
     {
         $partition = $this->getPartition(
-            isset($args['region']) ? $args['region'] : '',
-            isset($args['service']) ? $args['service'] : ''
+            $args['region'] ?? '',
+            $args['service'] ?? ''
         );
         $args['options'] = $this->options;
 
@@ -90,9 +81,8 @@ class PartitionEndpointProvider
      * Creates and returns the default SDK partition provider.
      *
      * @param array $options
-     * @return PartitionEndpointProvider
      */
-    public static function defaultProvider($options = [])
+    public static function defaultProvider($options = []): self
     {
         $data = \Aws\load_compiled_json(__DIR__ . '/../data/endpoints.json');
         $prefixData = \Aws\load_compiled_json(__DIR__ . '/../data/endpoints_prefix_history.json');
@@ -106,9 +96,8 @@ class PartitionEndpointProvider
      *
      * @param $data
      * @param $prefixData
-     * @return array
      */
-    public static function mergePrefixData($data, $prefixData)
+    public static function mergePrefixData(array $data, array $prefixData): array
     {
         $prefixGroups = $prefixData['prefix-groups'];
 

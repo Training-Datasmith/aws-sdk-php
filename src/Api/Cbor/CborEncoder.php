@@ -53,8 +53,6 @@ final class CborEncoder
      * Encode a PHP value to CBOR binary string
      *
      * @param mixed $value The value to encode
-     *
-     * @return string
      */
     public function encode(mixed $value): string
     {
@@ -158,7 +156,7 @@ final class CborEncoder
                 return "\xF6";
 
             case 'object':
-                throw new CborException("Cannot encode object of type: " . get_class($value));
+                throw new CborException("Cannot encode object of type: " . $value::class);
 
             default:
                 throw new CborException("Cannot encode value of type: " . gettype($value));
@@ -167,9 +165,6 @@ final class CborEncoder
 
     /**
      * Encode an integer (major type 0 or 1)
-     *
-     * @param int $value
-     * @return string
      */
     private function encodeInteger(int $value): string
     {
@@ -204,30 +199,11 @@ final class CborEncoder
 
         // Major type 1: negative integer (-1 - n)
         $value = -1 - $value;
-        if ($value < 24) {
-            return chr(0x20 | $value);
-        }
-
-        if ($value < 0x100) {
-            return "\x38" . chr($value);
-        }
-
-        if ($value < 0x10000) {
-            return "\x39" . pack('n', $value);
-        }
-
-        if ($value < 0x100000000) {
-            return "\x3A" . pack('N', $value);
-        }
-
-        return "\x3B" . pack('J', $value);
+        return chr(0x20 | $value);
     }
 
     /**
      * Encode a text string (major type 3)
-     *
-     * @param string $value
-     * @return string
      */
     private function encodeTextString(string $value): string
     {
@@ -254,9 +230,6 @@ final class CborEncoder
 
     /**
      * Encode an array (major type 4)
-     *
-     * @param array $value
-     * @return string
      */
     private function encodeArray(array $value): string
     {
@@ -283,9 +256,6 @@ final class CborEncoder
 
     /**
      * Encode a map (major type 5)
-     *
-     * @param array $value
-     * @return string
      */
     private function encodeMap(array $value): string
     {
@@ -325,8 +295,6 @@ final class CborEncoder
 
     /**
      * Create an empty map (major type 5 with 0 elements)
-     *
-     * @return string
      */
     public function encodeEmptyMap(): string
     {
@@ -335,8 +303,6 @@ final class CborEncoder
 
     /**
      * Create an empty indefinite map (major type 5 indefinite length)
-     *
-     * @return string
      */
     public function encodeEmptyIndefiniteMap(): string
     {

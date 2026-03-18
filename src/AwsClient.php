@@ -34,7 +34,7 @@ class AwsClient implements AwsClientInterface
     private $signingRegionSet;
 
     /** @var string */
-    private $endpoint;
+    private \GuzzleHttp\Psr7\Uri $endpoint;
 
     /** @var Service */
     private $api;
@@ -51,8 +51,7 @@ class AwsClient implements AwsClientInterface
     /** @var callable */
     private $tokenProvider;
 
-    /** @var HandlerList */
-    private $handlerList;
+    private \Aws\HandlerList $handlerList;
 
     /** @var array*/
     private $defaultRequestOptions;
@@ -237,7 +236,7 @@ class AwsClient implements AwsClientInterface
      */
     public function __construct(array $args)
     {
-        list($service, $exceptionClass) = $this->parseClass();
+        [$service, $exceptionClass] = $this->parseClass();
         if (!isset($args['service'])) {
             $args['service'] = manifest($service)['endpoint'];
         }
@@ -326,7 +325,7 @@ class AwsClient implements AwsClientInterface
         return $this->api;
     }
 
-    public function getCommand($name, array $args = [])
+    public function getCommand($name, array $args = []): \Aws\Command
     {
         // Fail fast if the command cannot be found in the description.
         if (!isset($this->getApi()['operations'][$name])) {
@@ -391,14 +390,12 @@ class AwsClient implements AwsClientInterface
     /**
      * Parse the class name and setup the custom exception class of the client
      * and return the "service" name of the client and "exception_class".
-     *
-     * @return array
      */
-    private function parseClass()
+    private function parseClass(): array
     {
-        $klass = get_class($this);
+        $klass = static::class;
 
-        if ($klass === __CLASS__) {
+        if ($klass === self::class) {
             return ['', AwsException::class];
         }
 
@@ -410,7 +407,7 @@ class AwsClient implements AwsClientInterface
         ];
     }
 
-    private function addEndpointParameterMiddleware($args)
+    private function addEndpointParameterMiddleware(array $args): void
     {
         if (empty($args['disable_host_prefix_injection'])) {
             $list = $this->getHandlerList();
@@ -423,7 +420,7 @@ class AwsClient implements AwsClientInterface
         }
     }
 
-    private function addEndpointDiscoveryMiddleware($config, $args)
+    private function addEndpointDiscoveryMiddleware(array $config, array $args): void
     {
         $list = $this->getHandlerList();
 
@@ -439,7 +436,7 @@ class AwsClient implements AwsClientInterface
         }
     }
 
-    private function addSignatureMiddleware(array $args)
+    private function addSignatureMiddleware(array $args): void
     {
         $api = $this->getApi();
         $provider = $this->signatureProvider;
@@ -520,7 +517,7 @@ class AwsClient implements AwsClientInterface
         );
     }
 
-    private function addRequestCompressionMiddleware($config)
+    private function addRequestCompressionMiddleware(array $config): void
     {
         if (empty($config['disable_request_compression'])) {
             $list = $this->getHandlerList();
@@ -531,7 +528,7 @@ class AwsClient implements AwsClientInterface
         }
     }
 
-    private function addQueryCompatibleInputMiddleware(Service $api)
+    private function addQueryCompatibleInputMiddleware(Service $api): void
     {
             $list = $this->getHandlerList();
             $list->appendValidate(
@@ -544,23 +541,21 @@ class AwsClient implements AwsClientInterface
     {
         $list = $this->getHandlerList();
         $list->appendBuild(
-            Middleware::mapRequest(function (RequestInterface $r) {
-                return $r->withHeader(
-                    'x-amzn-query-mode',
-                    "true"
-                );
-            }),
+            Middleware::mapRequest(fn(RequestInterface $r) => $r->withHeader(
+                'x-amzn-query-mode',
+                "true"
+            )),
             'x-amzn-query-mode-header'
         );
     }
 
-    private function addInvocationId()
+    private function addInvocationId(): void
     {
         // Add invocation id to each request
         $this->handlerList->prependSign(Middleware::invocationId(), 'invocation-id');
     }
 
-    private function loadAliases($file = null)
+    private function loadAliases($file = null): void
     {
         if (!isset($this->aliases)) {
             if (is_null($file)) {
@@ -581,7 +576,7 @@ class AwsClient implements AwsClientInterface
         }
     }
 
-    private function addStreamRequestPayload()
+    private function addStreamRequestPayload(): void
     {
         $streamRequestPayloadMiddleware = StreamRequestPayloadMiddleware::wrap(
             $this->api
@@ -593,7 +588,7 @@ class AwsClient implements AwsClientInterface
         );
     }
 
-    private function addRecursionDetection()
+    private function addRecursionDetection(): void
     {
         // Add recursion detection header to requests
         // originating in supported Lambda runtimes
@@ -602,7 +597,7 @@ class AwsClient implements AwsClientInterface
         );
     }
 
-    private function addAuthSelectionMiddleware(array $args)
+    private function addAuthSelectionMiddleware(array $args): void
     {
         $list = $this->getHandlerList();
 
@@ -616,7 +611,7 @@ class AwsClient implements AwsClientInterface
         );
     }
 
-    private function addEndpointV2Middleware()
+    private function addEndpointV2Middleware(): void
     {
         $list = $this->getHandlerList();
         $endpointArgs = $this->getEndpointProviderArgs();
@@ -640,9 +635,8 @@ class AwsClient implements AwsClientInterface
      * captured.
      *
      * @param $args
-     * @return void
      */
-    private function addUserAgentMiddleware($args)
+    private function addUserAgentMiddleware(array $args): void
     {
         $this->getHandlerList()->appendSign(
             UserAgentMiddleware::wrap($args),
@@ -652,26 +646,22 @@ class AwsClient implements AwsClientInterface
 
     /**
      * Enables streaming the response by using the stream flag.
-     *
-     * @return void
      */
     private function addEventStreamHttpFlagMiddleware(): void
     {
         $this->getHandlerList()
             -> appendInit(
-                function (callable $handler) {
-                    return function (CommandInterface $command, $request = null) use ($handler) {
-                        $operation = $this->getApi()->getOperation($command->getName());
-                        $output = $operation->getOutput();
-                        foreach ($output->getMembers() as $memberProps) {
-                            if (!empty($memberProps['eventstream'])) {
-                                $command['@http']['stream'] = true;
-                                break;
-                            }
+                fn(callable $handler) => function (CommandInterface $command, $request = null) use ($handler) {
+                    $operation = $this->getApi()->getOperation($command->getName());
+                    $output = $operation->getOutput();
+                    foreach ($output->getMembers() as $memberProps) {
+                        if (!empty($memberProps['eventstream'])) {
+                            $command['@http']['stream'] = true;
+                            break;
                         }
+                    }
 
-                        return $handler($command, $request);
-                    };
+                    return $handler($command, $request);
                 },
                 'event-streaming-flag-middleware'
             );
@@ -681,10 +671,8 @@ class AwsClient implements AwsClientInterface
      * Retrieves client context param definition from service model,
      * creates mapping of client context param names with client-provided
      * values.
-     *
-     * @return array
      */
-    private function setClientContextParams($args)
+    private function setClientContextParams(array $args): array
     {
         $api = $this->getApi();
         $resolvedParams = [];
@@ -701,7 +689,7 @@ class AwsClient implements AwsClientInterface
     /**
      * Retrieves and sets default values used for endpoint resolution.
      */
-    private function setClientBuiltIns($args, $resolvedConfig)
+    private function setClientBuiltIns(array $args, array $resolvedConfig): void
     {
         $builtIns = [];
         $config = $resolvedConfig['config'];
@@ -744,15 +732,13 @@ class AwsClient implements AwsClientInterface
      * Combines built-in and client context parameter values in
      * order of specificity.  Client context parameter values supersede
      * built-in values.
-     *
-     * @return array
      */
-    private function normalizeEndpointProviderArgs()
+    private function normalizeEndpointProviderArgs(): array
     {
         $normalizedBuiltIns = [];
 
         foreach($this->clientBuiltIns as $name => $value) {
-            $normalizedName = explode('::', $name);
+            $normalizedName = explode('::', (string) $name);
             $normalizedName = $normalizedName[count($normalizedName) - 1];
             $normalizedBuiltIns[$normalizedName] = $value;
         }
@@ -760,7 +746,7 @@ class AwsClient implements AwsClientInterface
         return array_merge($normalizedBuiltIns, $this->getClientContextParams());
     }
 
-    protected function isUseEndpointV2()
+    protected function isUseEndpointV2(): bool
     {
         return $this->endpointProvider instanceof EndpointProviderV2;
     }
@@ -778,7 +764,7 @@ class AwsClient implements AwsClientInterface
      * @internal This should only used to document the service API.
      * @codeCoverageIgnore
      */
-    public static function applyDocFilters(array $api, array $docs)
+    public static function applyDocFilters(array $api, array $docs): array
     {
         $aliases = \Aws\load_compiled_json(__DIR__ . '/data/aliases.json');
         $serviceId = $api['metadata']['serviceId'] ?? '';
@@ -802,9 +788,8 @@ class AwsClient implements AwsClientInterface
 
     /**
      * @deprecated
-     * @return static
      */
-    public static function factory(array $config = [])
+    public static function factory(array $config = []): static
     {
         return new static($config);
     }

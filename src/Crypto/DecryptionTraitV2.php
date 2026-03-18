@@ -74,17 +74,17 @@ trait DecryptionTraitV2
                 );
             }
             $algorithmSuite = AlgorithmSuite::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY;
-            $options['@CipherOptions'] = $options['@CipherOptions'] ?? [];
+            $options['@CipherOptions'] ??= [];
             $options['@CipherOptions']['Iv'] = str_repeat("\1", 12);
             $options['@CipherOptions']['TagLength'] = $algorithmSuite->getCipherTagLengthInBytes();
             $materialDescription = json_decode(
-                $envelope[MetadataEnvelope::ENCRYPTION_CONTEXT_V3],
+                (string) $envelope[MetadataEnvelope::ENCRYPTION_CONTEXT_V3],
                 true
             );
 
 
             $cek = $provider->decryptCek(
-                base64_decode($envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_V3]),
+                base64_decode((string) $envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_V3]),
                 $materialDescription,
                 $options
             );
@@ -95,8 +95,8 @@ trait DecryptionTraitV2
             );
             $this->validateOptionsAndEnvelope($options, $envelope);
 
-            $messageId = base64_decode($envelope[MetadataEnvelope::MESSAGE_ID_V3]);
-            $commitmentKey = base64_decode($envelope[MetadataEnvelope::KEY_COMMITMENT_V3]);
+            $messageId = base64_decode((string) $envelope[MetadataEnvelope::MESSAGE_ID_V3]);
+            $commitmentKey = base64_decode((string) $envelope[MetadataEnvelope::KEY_COMMITMENT_V3]);
 
             if (strlen($messageId) !== ($algorithmSuite->getKeyCommitmentSaltLengthBits()) / 8) {
                 throw new CryptoException("Invalid MessageId length found in object envelope.");
@@ -117,73 +117,63 @@ trait DecryptionTraitV2
             unset($cek);
 
             return $decryptionStream;
-        } else {
-            $options['@CipherOptions'] = $options['@CipherOptions'] ?? [];
-            $options['@CipherOptions']['Iv'] = base64_decode(
-                $envelope[MetadataEnvelope::IV_HEADER]
-            );
-
-            $options['@CipherOptions']['TagLength'] =
-                $envelope[MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER] / 8;
-
-            $cek = $provider->decryptCek(
-                base64_decode(
-                    $envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER]
-                ),
-                json_decode(
-                    $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
-                    true
-                ),
-                $options
-            );
-            $options['@CipherOptions']['KeySize'] = strlen($cek) * 8;
-            $options['@CipherOptions']['Cipher'] = $this->getCipherFromAesName(
-                $envelope[MetadataEnvelope::CONTENT_CRYPTO_SCHEME_HEADER]
-            );
-
-            $this->validateOptionsAndEnvelope($options, $envelope);
-
-            $decryptionStream = $this->getDecryptingStream(
-                $cipherText,
-                $cek,
-                $options['@CipherOptions']
-            );
-            unset($cek);
-
-            return $decryptionStream;
         }
+        $options['@CipherOptions'] ??= [];
+        $options['@CipherOptions']['Iv'] = base64_decode(
+            (string) $envelope[MetadataEnvelope::IV_HEADER]
+        );
+        $options['@CipherOptions']['TagLength'] =
+            $envelope[MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER] / 8;
+        $cek = $provider->decryptCek(
+            base64_decode(
+                (string) $envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER]
+            ),
+            json_decode(
+                (string) $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
+                true
+            ),
+            $options
+        );
+        $options['@CipherOptions']['KeySize'] = strlen($cek) * 8;
+        $options['@CipherOptions']['Cipher'] = $this->getCipherFromAesName(
+            $envelope[MetadataEnvelope::CONTENT_CRYPTO_SCHEME_HEADER]
+        );
+        $this->validateOptionsAndEnvelope($options, $envelope);
+        $decryptionStream = $this->getDecryptingStream(
+            $cipherText,
+            $cek,
+            $options['@CipherOptions']
+        );
+        unset($cek);
+        return $decryptionStream;
     }
 
     private function buildMaterialDescription(
         MetadataEnvelope $envelope
     ): array 
     {
-        switch ($envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3]) {
-            case 12:
-                return ['aws:x-amz-cek-alg' => '115'];
-            default:
-                throw new CryptoException(
-                    "Unknown Encrypted Data Key "
-                    . "wrapping algorithm found: "
-                    . "{$envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3]}"
-                );
-        }
+        return match ($envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3]) {
+            12 => ['aws:x-amz-cek-alg' => '115'],
+            default => throw new CryptoException(
+                "Unknown Encrypted Data Key "
+                . "wrapping algorithm found: "
+                . "{$envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3]}"
+            ),
+        };
     }
 
     private function numericalContenCipherToAesName(
         MetadataEnvelope $envelope
     ): string
     {
-        switch ($envelope[MetadataEnvelope::CONTENT_CIPHER_V3]) {
-            case 115:
-                return 'AES/GCM/NoPadding';
-            default:
-                throw new CryptoException(
-                    "Unknown Encrypted Data Key "
-                    . "wrapping algorithm found: "
-                    . "{$envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3]}"
-                );
-        }
+        return match ($envelope[MetadataEnvelope::CONTENT_CIPHER_V3]) {
+            115 => 'AES/GCM/NoPadding',
+            default => throw new CryptoException(
+                "Unknown Encrypted Data Key "
+                . "wrapping algorithm found: "
+                . "{$envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3]}"
+            ),
+        };
 
     }
 
@@ -221,7 +211,7 @@ trait DecryptionTraitV2
         );
     }
 
-    private function validateOptionsAndEnvelope($options, $envelope): void
+    private function validateOptionsAndEnvelope(array $options, array $envelope): void
     {
         $allowedCiphers = AbstractCryptoClientV2::$supportedCiphers;
         $allowedKeywraps = AbstractCryptoClientV2::$supportedKeyWraps;
@@ -271,7 +261,7 @@ trait DecryptionTraitV2
                     . " profile.");
             }
             $matdesc = json_decode(
-                $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
+                (string) $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
                 true
             );
             if (isset($matdesc['aws:x-amz-cek-alg'])
@@ -304,8 +294,8 @@ trait DecryptionTraitV2
     protected function getDecryptingStream(
         $cipherText,
         $cek,
-        $cipherOptions
-    ) 
+        array $cipherOptions
+    ): \Aws\Crypto\AesGcmDecryptingStream|\Aws\Crypto\AesDecryptingStream 
     {
         $cipherTextStream = Psr7\Utils::streamFor($cipherText);
         switch ($cipherOptions['Cipher']) {
@@ -323,7 +313,7 @@ trait DecryptionTraitV2
                     $cek,
                     $cipherOptions['Iv'],
                     $cipherOptions['Tag'],
-                    $cipherOptions['Aad'] = $cipherOptions['Aad'] ?? '',
+                    $cipherOptions['Aad'] ??= '',
                     $cipherOptions['TagLength'] ?: null,
                     $cipherOptions['KeySize']
                 );
@@ -357,7 +347,6 @@ trait DecryptionTraitV2
      * @param string $commitmentKey a string value to compare with the calculated commitment
      *                              key value, if the values don't match an exception is raised.
      *
-     * @return AesStreamInterface | CryptoException
      *
      * @internal
      */

@@ -46,7 +46,7 @@ class S3EncryptionMultipartUploaderV3 extends MultipartUploader
      *
      * @return bool If the cipher passed is in our supported list.
      */
-    public static function isSupportedCipher($cipherName)
+    public static function isSupportedCipher($cipherName): bool
     {
         return in_array($cipherName, AbstractCryptoClientV3::$supportedCiphers);
     }
@@ -183,25 +183,25 @@ class S3EncryptionMultipartUploaderV3 extends MultipartUploader
         }
     }
 
-    private static function getDefaultStrategy()
+    private static function getDefaultStrategy(): \Aws\S3\Crypto\HeadersMetadataStrategy
     {
         return new HeadersMetadataStrategy();
     }
 
     private function getEncryptingDataPreparer()
     {
-        return function() {
+        return function(): void {
             // Defer encryption work until promise is executed
             $envelope = new MetadataEnvelope();
 
-            list($this->source, $params) = Promise\Create::promiseFor($this->encrypt(
+            [$this->source, $params] = Promise\Create::promiseFor($this->encrypt(
                 $this->source,
                 $this->algorithmSuite,
                 $this->config ?: [],
                 $this->provider,
                 $envelope
             ))->then(
-                function ($bodyStream) use ($envelope) {
+                function ($bodyStream) use ($envelope): array {
                     $params = $this->strategy->save(
                         $envelope,
                         $this->config['params']

@@ -8,66 +8,35 @@ final class ConsoleProgressBar implements ProgressBarInterface
     public const DEFAULT_PROGRESS_BAR_WIDTH = 50;
     public const MAX_PROGRESS_BAR_WIDTH = 50;
 
-    /** @var string */
-    private string $progressBarChar;
+    private readonly int $progressBarWidth;
 
-    /** @var int */
-    private int $progressBarWidth;
-
-    /** @var int */
-    private int $percentCompleted;
-
-    /** @var AbstractProgressBarFormat */
-    private AbstractProgressBarFormat $progressBarFormat;
-
-    /**
-     * @param string $progressBarChar
-     * @param int $progressBarWidth
-     * @param int $percentCompleted
-     * @param AbstractProgressBarFormat $progressBarFormat
-     */
     public function __construct(
-        string                    $progressBarChar = self::DEFAULT_PROGRESS_BAR_CHAR,
+        private readonly string                    $progressBarChar = self::DEFAULT_PROGRESS_BAR_CHAR,
         int                       $progressBarWidth = self::DEFAULT_PROGRESS_BAR_WIDTH,
-        int                       $percentCompleted = 0,
-        AbstractProgressBarFormat $progressBarFormat = new ColoredTransferProgressBarFormat(),
+        private int                       $percentCompleted = 0,
+        private readonly AbstractProgressBarFormat $progressBarFormat = new ColoredTransferProgressBarFormat(),
     ) {
-        $this->progressBarChar = $progressBarChar;
         $this->progressBarWidth = min(
             $progressBarWidth,
             self::MAX_PROGRESS_BAR_WIDTH
         );
-        $this->percentCompleted = $percentCompleted;
-        $this->progressBarFormat = $progressBarFormat;
     }
 
-    /**
-     * @return string
-     */
     public function getProgressBarChar(): string
     {
         return $this->progressBarChar;
     }
 
-    /**
-     * @return int
-     */
     public function getProgressBarWidth(): int
     {
         return $this->progressBarWidth;
     }
 
-    /**
-     * @return int
-     */
     public function getPercentCompleted(): int
     {
         return $this->percentCompleted;
     }
 
-    /**
-     * @return AbstractProgressBarFormat
-     */
     public function getProgressBarFormat(): AbstractProgressBarFormat
     {
         return $this->progressBarFormat;
@@ -76,9 +45,7 @@ final class ConsoleProgressBar implements ProgressBarInterface
     /**
      * Set current progress percent.
      *
-     * @param int $percent
      *
-     * @return void
      */
     public function setPercentCompleted(int $percent): void
     {

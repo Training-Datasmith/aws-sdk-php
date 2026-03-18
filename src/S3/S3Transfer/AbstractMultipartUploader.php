@@ -26,93 +26,38 @@ abstract class AbstractMultipartUploader implements PromisorInterface
     public const PART_MAX_SIZE = 5 * 1024 * 1024 * 1024; // 5 GiB
     public const PART_MAX_NUM = 10000;
 
-    /** @var S3ClientInterface */
-    protected readonly S3ClientInterface $s3Client;
-
-    /** @var array */
-    protected readonly array $requestArgs;
-
-    /** @var array */
     protected readonly array $config;
 
-    /** @var string|null */
-    protected string|null $uploadId;
-
-    /** @var array */
-    protected array $parts;
-
-    /** @var array */
     protected array $onCompletionCallbacks = [];
 
-    /** @var TransferListenerNotifier|null */
-    protected ?TransferListenerNotifier $listenerNotifier;
-
-    /** Tracking Members */
-    /** @var TransferProgressSnapshot|null */
-    protected ?TransferProgressSnapshot $currentSnapshot;
-
     /**
-     * @param S3ClientInterface $s3Client
-     * @param array $requestArgs
      * @param array $config
      * - target_part_size_bytes: (int, optional)
      * - concurrency: (int, optional)
-     * @param string|null $uploadId
-     * @param array $parts
-     * @param TransferProgressSnapshot|null $currentSnapshot
-     * @param TransferListenerNotifier|null $listenerNotifier
      */
     public function __construct(
-        S3ClientInterface $s3Client,
-        array $requestArgs,
+        protected readonly S3ClientInterface $s3Client,
+        protected readonly array $requestArgs,
         array $config = [],
-        ?string $uploadId = null,
-        array $parts = [],
-        ?TransferProgressSnapshot $currentSnapshot = null,
-        ?TransferListenerNotifier $listenerNotifier = null,
+        protected string|null $uploadId = null,
+        protected array $parts = [],
+        protected ?TransferProgressSnapshot $currentSnapshot = null,
+        protected ?TransferListenerNotifier $listenerNotifier = null,
     ) {
-        $this->s3Client = $s3Client;
-        $this->requestArgs = $requestArgs;
         $this->validateConfig($config);
         $this->config = $config;
-        $this->uploadId = $uploadId;
-        $this->parts = $parts;
-        $this->currentSnapshot = $currentSnapshot;
-        $this->listenerNotifier = $listenerNotifier;
     }
 
-    /**
-     * @return PromiseInterface
-     */
     abstract protected function createMultipartOperation(): PromiseInterface;
 
-    /**
-     * @return PromiseInterface
-     */
     abstract protected function completeMultipartOperation(): PromiseInterface;
 
-    /**
-     * @return PromiseInterface
-     */
     abstract protected function processMultipartOperation(): PromiseInterface;
 
-    /**
-     * @return int
-     */
     abstract protected function getTotalSize(): int;
 
-    /**
-     * @param ResultInterface $result
-     *
-     * @return mixed
-     */
     abstract protected function createResponse(ResultInterface $result): mixed;
 
-    /**
-     * @param array $config
-     *
-     * @return void
-     */
     protected function validateConfig(array &$config): void
     {
         if (!isset($config['target_part_size_bytes'])) {
@@ -133,17 +78,11 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         }
     }
 
-    /**
-     * @return string|null
-     */
     public function getUploadId(): ?string
     {
         return $this->uploadId;
     }
 
-    /**
-     * @return array
-     */
     public function getParts(): array
     {
         return $this->parts;
@@ -151,16 +90,12 @@ abstract class AbstractMultipartUploader implements PromisorInterface
 
     /**
      * Get the current progress snapshot.
-     * @return TransferProgressSnapshot|null
      */
     public function getCurrentSnapshot(): ?TransferProgressSnapshot
     {
         return $this->currentSnapshot;
     }
 
-    /**
-     * @return PromiseInterface
-     */
     public function promise(): PromiseInterface
     {
         return Coroutine::of(function () {
@@ -171,18 +106,13 @@ abstract class AbstractMultipartUploader implements PromisorInterface
             } finally {
                 $this->callOnCompletionCallbacks();
             }
-        })->then(function (ResultInterface $result) {
-            return $this->createResponse($result);
-        })->otherwise(function (Throwable $e) {
+        })->then(fn(ResultInterface $result) => $this->createResponse($result))->otherwise(function (Throwable $e): void {
             $this->operationFailed($e);
 
             throw $e;
         });
     }
 
-    /**
-     * @return PromiseInterface
-     */
     protected function abortMultipartOperation(): PromiseInterface
     {
         $abortMultipartUploadArgs = $this->requestArgs;
@@ -195,21 +125,11 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         return $this->s3Client->executeAsync($command);
     }
 
-    /**
-     * @return void
-     */
     protected function sortParts(): void
     {
-        usort($this->parts, function ($partOne, $partTwo) {
-            return $partOne['PartNumber'] <=> $partTwo['PartNumber'];
-        });
+        usort($this->parts, fn(array $partOne, array $partTwo) => $partOne['PartNumber'] <=> $partTwo['PartNumber']);
     }
 
-    /**
-     * @param ResultInterface $result
-     * @param CommandInterface $command
-     * @return void
-     */
     protected function collectPart(
         ResultInterface $result,
         CommandInterface $command
@@ -227,19 +147,13 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         ];
 
         if (isset($command['ChecksumAlgorithm'])) {
-            $checksumMemberName = 'Checksum' . strtoupper($command['ChecksumAlgorithm']);
+            $checksumMemberName = 'Checksum' . strtoupper((string) $command['ChecksumAlgorithm']);
             $partData[$checksumMemberName] = $checksumResult[$checksumMemberName] ?? null;
         }
 
         $this->parts[] = $partData;
     }
 
-    /**
-     * @param \Iterator $commands
-     * @param callable $fulfilledCallback
-     * @param callable $rejectedCallback
-     * @return PromiseInterface
-     */
     protected function createCommandPool(
         \Iterator $commands,
         callable $fulfilledCallback,
@@ -257,10 +171,6 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         ))->promise();
     }
 
-    /**
-     * @param array $requestArgs
-     * @return void
-     */
     protected function operationInitiated(array $requestArgs): void
     {
         if ($this->currentSnapshot === null) {
@@ -277,10 +187,6 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         ]);
     }
 
-    /**
-     * @param ResultInterface $result
-     * @return void
-     */
     protected function operationCompleted(ResultInterface $result): void
     {
         $newSnapshot = new TransferProgressSnapshot(
@@ -300,11 +206,6 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         ]);
     }
 
-    /**
-     * @param Throwable $reason
-     * @return void
-     *
-     */
     protected function operationFailed(Throwable $reason): void
     {
         // Event already propagated
@@ -343,11 +244,6 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         ]);
     }
 
-    /**
-     * @param int $partSize
-     * @param array $requestArgs
-     * @return void
-     */
     protected function partCompleted(
         int $partSize,
         array $requestArgs
@@ -369,9 +265,6 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         ]);
     }
 
-    /**
-     * @return void
-     */
     protected function callOnCompletionCallbacks(): void
     {
         foreach ($this->onCompletionCallbacks as $fn) {
@@ -383,18 +276,11 @@ abstract class AbstractMultipartUploader implements PromisorInterface
         $this->onCompletionCallbacks = [];
     }
 
-    /**
-     * @param Throwable $reason
-     * @return void
-     */
     protected function partFailed(Throwable $reason): void
     {
         $this->operationFailed($reason);
     }
 
-    /**
-     * @return int
-     */
     protected function calculatePartSize(): int
     {
         return max(

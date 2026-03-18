@@ -20,29 +20,10 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
 
     public const DEFAULT_VALIDATION_MODE = 'when_supported';
 
-    /** @var Service $api */
-    private $api;
-
-    /** @var array $api */
-    private $config;
-
-    /**
-     * @param Service $api
-     * @param array $config
-     */
-    public function __construct(Service $api, array $config = [])
+    public function __construct(private Service $api, private array $config = [])
     {
-        $this->api = $api;
-        $this->config = $config;
     }
 
-    /**
-     * @param ResultInterface $result
-     * @param CommandInterface|null $command
-     * @param ResponseInterface|null $response
-     *
-     * @return ResultInterface
-     */
     public function __invoke(
         ResultInterface $result,
         ?CommandInterface $command = null,
@@ -73,7 +54,7 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
 
         $checksumPriority = $this->getChecksumPriority();
         $checksumsToCheck = array_intersect($responseAlgorithms, array_map(
-            'strtoupper',
+            strtoupper(...),
             array_keys($checksumPriority))
         );
         $checksumValidationInfo = $this->validateChecksum($checksumsToCheck, $response);
@@ -95,12 +76,10 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
 
     /**
      * @param $checksumPriority
-     * @param ResponseInterface $response
      *
-     * @return array
      */
     private function validateChecksum(
-        $checksumPriority,
+        array $checksumPriority,
         ResponseInterface $response
     ): array
     {
@@ -133,7 +112,6 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
 
     /**
      * @param $checksumPriority
-     * @param ResponseInterface $response
      *
      * @return string
      */
@@ -152,13 +130,6 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
         return null;
     }
 
-    /**
-     * @param string $mode
-     * @param string $checksumModeEnabled
-     * @param array $responseAlgorithms
-     *
-     * @return bool
-     */
     private function shouldSkipValidation(
         string $mode,
         string $checksumModeEnabled,
@@ -179,12 +150,6 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
             : array_slice(self::$supportedAlgorithms, 1);
     }
 
-    /**
-     * @param CommandInterface $command
-     * @param array $checksumValidationInfo
-     *
-     * @return bool
-     */
     private function isMultipartGetObject(
         CommandInterface $command,
         array $checksumValidationInfo
@@ -197,8 +162,8 @@ final class ValidateResponseChecksumResultMutator implements S3ResultMutator
         }
 
         $headerValue = $checksumValidationInfo['checksumHeaderValue'];
-        $lastDashPos = strrpos($headerValue, '-');
-        $endOfChecksum = substr($headerValue, $lastDashPos + 1);
+        $lastDashPos = strrpos((string) $headerValue, '-');
+        $endOfChecksum = substr((string) $headerValue, $lastDashPos + 1);
 
         return is_numeric($endOfChecksum)
             && (int) $endOfChecksum > 1

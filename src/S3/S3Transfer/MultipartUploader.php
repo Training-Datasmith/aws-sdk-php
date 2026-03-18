@@ -36,41 +36,27 @@ final class MultipartUploader extends AbstractMultipartUploader
     public const DEFAULT_CHECKSUM_CALCULATION_ALGORITHM = 'crc32';
     private const CHECKSUM_TYPE_FULL_OBJECT = 'FULL_OBJECT';
 
-    /** @var int */
     protected int $calculatedObjectSize;
 
-    /** @var StreamInterface */
-    private StreamInterface $body;
+    private readonly StreamInterface $body;
 
     /**
      * For custom or default checksum.
-     *
-     * @var string|null
      */
-    protected ?string $requestChecksum;
+    protected ?string $requestChecksum = null;
 
     /**
      * This will be used for custom or default checksum.
-     *
-     * @var string|null
      */
-    protected ?string $requestChecksumAlgorithm;
+    protected ?string $requestChecksumAlgorithm = null;
 
-    /** @var bool */
     private bool $isFullObjectChecksum;
 
     /**
-     * @param S3ClientInterface $s3Client
-     * @param array $requestArgs
-     * @param string|StreamInterface $source
      * @param array $config
      *  - target_part_size_bytes: (int, optional)
      *  - request_checksum_calculation: (string, optional)
      *  - concurrency: (int, optional)
-     * @param string|null $uploadId
-     * @param array $parts
-     * @param TransferProgressSnapshot|null $currentSnapshot
-     * @param TransferListenerNotifier|null $listenerNotifier
      */
     public function __construct(
         S3ClientInterface $s3Client,
@@ -102,8 +88,6 @@ final class MultipartUploader extends AbstractMultipartUploader
 
     /**
      * @inheritDoc
-     *
-     * @return PromiseInterface
      */
     protected function createMultipartOperation(): PromiseInterface
     {
@@ -120,7 +104,7 @@ final class MultipartUploader extends AbstractMultipartUploader
 
         // Make sure algorithm with full object is a supported one
         if (($createMultipartUploadArgs['ChecksumType'] ?? '') === self::CHECKSUM_TYPE_FULL_OBJECT) {
-            if (stripos($this->requestChecksumAlgorithm, 'crc') !== 0) {
+            if (stripos((string) $this->requestChecksumAlgorithm, 'crc') !== 0) {
                 return Create::rejectionFor(
                     new S3TransferException(
                         "Full object checksum algorithm must be `CRC` family base."
@@ -136,7 +120,7 @@ final class MultipartUploader extends AbstractMultipartUploader
         );
 
         return $this->s3Client->executeAsync($command)
-            ->then(function (ResultInterface $result) {
+            ->then(function (ResultInterface $result): \Aws\ResultInterface {
                 $this->uploadId = $result['UploadId'];
                 return $result;
             });
@@ -144,8 +128,6 @@ final class MultipartUploader extends AbstractMultipartUploader
 
     /**
      * @inheritDoc
-     *
-     * @return PromiseInterface
      */
     protected function completeMultipartOperation(): PromiseInterface
     {
@@ -160,7 +142,7 @@ final class MultipartUploader extends AbstractMultipartUploader
         if ($this->isFullObjectChecksum && $this->requestChecksum !== null) {
             $completeMultipartUploadArgs['ChecksumType'] = self::CHECKSUM_TYPE_FULL_OBJECT;
             $completeMultipartUploadArgs[
-            'Checksum' . strtoupper($this->requestChecksumAlgorithm)
+            'Checksum' . strtoupper((string) $this->requestChecksumAlgorithm)
             ] = $this->requestChecksum;
         }
 
@@ -170,7 +152,7 @@ final class MultipartUploader extends AbstractMultipartUploader
         );
 
         return $this->s3Client->executeAsync($command)
-            ->then(function (ResultInterface $result) {
+            ->then(function (ResultInterface $result): \Aws\ResultInterface {
                 $this->operationCompleted($result);
                 return $result;
             });
@@ -178,8 +160,6 @@ final class MultipartUploader extends AbstractMultipartUploader
 
     /**
      * Sync upload method.
-     *
-     * @return UploadResult
      */
     public function upload(): UploadResult
     {
@@ -190,9 +170,7 @@ final class MultipartUploader extends AbstractMultipartUploader
      * Parses the source into an instance of
      * StreamInterface to be read.
      *
-     * @param string|StreamInterface $source
      *
-     * @return StreamInterface
      */
     private function parseBody(
         string|StreamInterface $source
@@ -208,7 +186,7 @@ final class MultipartUploader extends AbstractMultipartUploader
             }
             $body = new LazyOpenStream($source, 'r');
             // To make sure the resource is closed.
-            $this->onCompletionCallbacks[] = function () use ($body) {
+            $this->onCompletionCallbacks[] = function () use ($body): void {
                 $body->close();
             };
         } elseif ($source instanceof StreamInterface) {
@@ -226,8 +204,6 @@ final class MultipartUploader extends AbstractMultipartUploader
      * Evaluates if custom checksum has been provided,
      * and if so then, the values are placed in the
      * respective properties.
-     *
-     * @return void
      */
     private function evaluateCustomChecksum(): void
     {
@@ -251,8 +227,6 @@ final class MultipartUploader extends AbstractMultipartUploader
 
     /**
      * Process a multipart upload operation.
-     *
-     * @return PromiseInterface
      */
     protected function processMultipartOperation(): PromiseInterface
     {
@@ -265,7 +239,7 @@ final class MultipartUploader extends AbstractMultipartUploader
         if ($this->requestChecksum !== null) {
             // To avoid default calculation for individual parts
             $uploadPartCommandArgs['@context']['request_checksum_calculation'] = 'when_required';
-            unset($uploadPartCommandArgs['Checksum'. strtoupper($this->requestChecksumAlgorithm)]);
+            unset($uploadPartCommandArgs['Checksum'. strtoupper((string) $this->requestChecksumAlgorithm)]);
         } elseif ($this->requestChecksumAlgorithm !== null) {
             $uploadPartCommandArgs['ChecksumAlgorithm'] = $this->requestChecksumAlgorithm;
         }
@@ -279,13 +253,6 @@ final class MultipartUploader extends AbstractMultipartUploader
         return Each::ofLimitAll($promises, $this->config['concurrency']);
     }
 
-    /**
-     * @param array $uploadPartCommandArgs
-     * @param int $partSize
-     * @param int $partsCount
-     *
-     * @return \Generator
-     */
     private function createUploadPartPromises(
         array $uploadPartCommandArgs,
         int $partSize,
@@ -362,7 +329,7 @@ final class MultipartUploader extends AbstractMultipartUploader
 
             yield $this->s3Client->executeAsync($command)
                 ->then(function (ResultInterface $result)
-                    use ($command, $partBody) {
+                    use ($command, $partBody): void {
                     $partBody->close();
                     // To make sure we don't continue when a failure occurred
                     if ($this->currentSnapshot->getReason() !== null) {
@@ -378,7 +345,7 @@ final class MultipartUploader extends AbstractMultipartUploader
                         $command['ContentLength'],
                         $command->toArray()
                     );
-                })->otherwise(function (Throwable $e) use ($partBody) {
+                })->otherwise(function (Throwable $e) use ($partBody): never {
                     $partBody->close();
                     $this->partFailed($e);
 
@@ -387,9 +354,6 @@ final class MultipartUploader extends AbstractMultipartUploader
         }
     }
 
-    /**
-     * @return int
-     */
     protected function getTotalSize(): int
     {
         if ($this->calculatedObjectSize > 0) {
@@ -399,11 +363,6 @@ final class MultipartUploader extends AbstractMultipartUploader
         return $this->body->getSize();
     }
 
-    /**
-     * @param ResultInterface $result
-     *
-     * @return UploadResult
-     */
     protected function createResponse(ResultInterface $result): UploadResult
     {
         return new UploadResult(
@@ -411,12 +370,6 @@ final class MultipartUploader extends AbstractMultipartUploader
         );
     }
 
-    /**
-     * @param StreamInterface $stream
-     * @param array $data
-     *
-     * @return StreamInterface
-     */
     private function decorateWithHashes(
         StreamInterface $stream,
         array &$data
@@ -424,7 +377,7 @@ final class MultipartUploader extends AbstractMultipartUploader
     {
         // Decorate source with a hashing stream
         $hash = new PhpHash('sha256');
-        return new HashingStream($stream, $hash, function ($result) use (&$data) {
+        return new HashingStream($stream, $hash, function ($result) use (&$data): void {
             $data['ContentSHA256'] = bin2hex($result);
         });
     }
@@ -432,9 +385,7 @@ final class MultipartUploader extends AbstractMultipartUploader
     /**
      * Filters a provided checksum if one was provided.
      *
-     * @param array $requestArgs
      *
-     * @return string|null
      */
     private static function filterChecksum(array $requestArgs):? string
     {

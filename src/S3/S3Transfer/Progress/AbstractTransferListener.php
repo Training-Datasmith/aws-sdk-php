@@ -13,8 +13,6 @@ abstract class AbstractTransferListener
      * - request_args: (array) The request arguments that will be provided
      *   as part of the request initialization.
      * - progress_snapshot: (TransferProgressSnapshot) The transfer snapshot holder.
-     *
-     * @return void
      */
     public function transferInitiated(array $context): void {}
 
@@ -23,8 +21,6 @@ abstract class AbstractTransferListener
      * - request_args: (array) The request arguments that will be provided
      *   as part of the operation that originated the bytes transferred event.
      * - progress_snapshot: (TransferProgressSnapshot) The transfer snapshot holder.
-     *
-     * @return bool
      */
     public function bytesTransferred(array $context): bool {
         return true;
@@ -35,8 +31,6 @@ abstract class AbstractTransferListener
      * - request_args: (array) The request arguments that will be provided
      *   as part of the operation that originated the bytes transferred event.
      * - progress_snapshot: (TransferProgressSnapshot) The transfer snapshot holder.
-     *
-     * @return void
      */
     public function transferComplete(array $context): void {}
 
@@ -46,8 +40,6 @@ abstract class AbstractTransferListener
      *    as part of the operation that originated the bytes transferred event.
      * - progress_snapshot: (TransferProgressSnapshot) The transfer snapshot holder.
      * - reason: (Throwable) The exception originated by the transfer failure.
-     *
-     * @return void
      */
     public function transferFail(array $context): void {}
 }

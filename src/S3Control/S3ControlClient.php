@@ -231,13 +231,13 @@ class S3ControlClient extends AwsClient
                 ],
                 'doc'     => 'Set to true to allow passed in ARNs to override'
                     . ' client region. Accepts...',
-                'fn' => [__CLASS__, '_apply_use_arn_region'],
-                'default' => [UseArnRegionConfigurationProvider::class, 'defaultProvider'],
+                'fn' => [self::class, '_apply_use_arn_region'],
+                'default' => UseArnRegionConfigurationProvider::defaultProvider(...),
             ],
         ];
     }
 
-    public static function _apply_use_arn_region($value, array &$args, HandlerList $list)
+    public static function _apply_use_arn_region($value, array &$args, HandlerList $list): void
     {
         if ($value instanceof CacheInterface) {
             $value = UseArnRegionConfigurationProvider::defaultProvider($args);
@@ -268,8 +268,6 @@ class S3ControlClient extends AwsClient
      *   Can be enabled or disabled on individual operations by setting
      *   '@use_dual_stack_endpoint\' to true or false. Note:
      *   you cannot use it together with an accelerate endpoint.
-     *
-     * @param array $args
      */
     public function __construct(array $args)
     {
@@ -287,9 +285,7 @@ class S3ControlClient extends AwsClient
                         'use_arn_region' => $this->getConfig('use_arn_region'),
                         'dual_stack' =>
                             $this->getConfig('use_dual_stack_endpoint')->isUseDualStackEndpoint(),
-                        'endpoint' => isset($args['endpoint'])
-                            ? $args['endpoint']
-                            : null,
+                        'endpoint' => $args['endpoint'] ?? null,
                         'use_fips_endpoint' => $this->getConfig('use_fips_endpoint'),
                     ],
                     $this->isUseEndpointV2()
@@ -303,11 +299,10 @@ class S3ControlClient extends AwsClient
      * Modifies API definition to remove `AccountId`
      * host prefix.  This is now handled by the endpoint ruleset.
      *
-     * @return void
      *
      * @internal
      */
-    private function processEndpointV2Model()
+    private function processEndpointV2Model(): void
     {
         $definition = $this->getApi()->getDefinition();
         $this->removeHostPrefix($definition);
@@ -315,7 +310,7 @@ class S3ControlClient extends AwsClient
         $this->getApi()->setDefinition($definition);
     }
 
-    private function removeHostPrefix(&$definition)
+    private function removeHostPrefix(array &$definition): void
     {
         foreach($definition['operations'] as &$operation) {
             if (isset($operation['endpoint']['hostPrefix'])
@@ -330,7 +325,7 @@ class S3ControlClient extends AwsClient
         }
     }
 
-    private function removeRequiredMember(&$definition)
+    private function removeRequiredMember(array &$definition): void
     {
         foreach($definition['shapes'] as &$shape) {
             if (isset($shape['required'])

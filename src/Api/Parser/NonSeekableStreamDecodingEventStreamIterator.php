@@ -11,13 +11,10 @@ use Aws\Api\Parser\Exception\ParserException;
  */
 class NonSeekableStreamDecodingEventStreamIterator extends DecodingEventStreamIterator
 {
-    /** @var array $tempBuffer */
-    private $tempBuffer;
+    private array $tempBuffer;
 
     /**
      * NonSeekableStreamDecodingEventStreamIterator constructor.
-     *
-     * @param StreamInterface $stream
      */
     public function __construct(StreamInterface $stream)
     {
@@ -31,18 +28,13 @@ class NonSeekableStreamDecodingEventStreamIterator extends DecodingEventStreamIt
 
     /**
      * @inheritDoc
-     *
-     * @return array
      */
     protected function parseEvent(): array
     {
         $event = [];
         $this->hashContext = hash_init('crc32b');
         $prelude = $this->parsePrelude()[0];
-        list(
-            $event[self::HEADERS],
-            $numBytes
-        ) = $this->parseHeaders($prelude[self::LENGTH_HEADERS]);
+        [$event[self::HEADERS], $numBytes] = $this->parseHeaders($prelude[self::LENGTH_HEADERS]);
         $event[self::PAYLOAD] = Psr7\Utils::streamFor(
             $this->readAndHashBytes(
                 $prelude[self::LENGTH_TOTAL] - self::BYTES_PRELUDE
@@ -70,7 +62,7 @@ class NonSeekableStreamDecodingEventStreamIterator extends DecodingEventStreamIt
         // Loop until we've read the expected number of bytes
         while ($num > 0 && !$this->stream->eof()) {
             $chunk = $this->stream->read($num);
-            $chunkLen = strlen($chunk);
+            $chunkLen = strlen((string) $chunk);
             $bytes .= $chunk;
             $num -= $chunkLen;
 
@@ -87,12 +79,12 @@ class NonSeekableStreamDecodingEventStreamIterator extends DecodingEventStreamIt
     // Iterator Functionality
 
     #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         $this->currentEvent = $this->parseEvent();
     }
 
-    public function next()
+    public function next(): void
     {
         $this->tempBuffer[] = $this->stream->read(1);
         if ($this->valid()) {
@@ -101,11 +93,8 @@ class NonSeekableStreamDecodingEventStreamIterator extends DecodingEventStreamIt
         }
     }
 
-    /**
-     * @return bool
-     */
     #[\ReturnTypeWillChange]
-    public function valid()
+    public function valid(): bool
     {
         return !$this->stream->eof();
     }

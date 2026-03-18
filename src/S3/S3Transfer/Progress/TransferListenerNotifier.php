@@ -7,9 +7,6 @@ final class TransferListenerNotifier extends AbstractTransferListener
     /** @var AbstractTransferListener[] */
     private array $listeners;
 
-    /**
-     * @param array $listeners
-     */
     public function __construct(array $listeners = [])
     {
         foreach ($listeners as $listener) {
@@ -22,11 +19,6 @@ final class TransferListenerNotifier extends AbstractTransferListener
         $this->listeners = $listeners;
     }
 
-    /**
-     * @param AbstractTransferListener $listener
-     *
-     * @return void
-     */
     public function addListener(AbstractTransferListener $listener): void
     {
         $this->listeners[] = $listener;
@@ -34,8 +26,6 @@ final class TransferListenerNotifier extends AbstractTransferListener
 
     /**
      * @inheritDoc
-     *
-     * @return void
      */
     public function transferInitiated(array $context): void
     {
@@ -58,8 +48,6 @@ final class TransferListenerNotifier extends AbstractTransferListener
 
     /**
      * @inheritDoc
-     *
-     * @return void
      */
     public function transferComplete(array $context): void
     {
@@ -70,8 +58,6 @@ final class TransferListenerNotifier extends AbstractTransferListener
 
     /**
      * @inheritDoc
-     *
-     * @return void
      */
     public function transferFail(array $context): void
     {

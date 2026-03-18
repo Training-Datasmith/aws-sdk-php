@@ -14,11 +14,9 @@ use Aws\LruArrayCache;
  */
 class EndpointProviderV2
 {
-    /** @var Ruleset */
-    private $ruleset;
+    private readonly \Aws\EndpointV2\Ruleset\Ruleset $ruleset;
 
-    /** @var LruArrayCache */
-    private $cache;
+    private readonly \Aws\LruArrayCache $cache;
 
     public function __construct(array $ruleset, array $partitions)
     {
@@ -62,7 +60,7 @@ class EndpointProviderV2
         return $endpoint;
     }
 
-    private function hashInputParameters($inputParameters)
+    private function hashInputParameters(array $inputParameters): string
     {
         return md5(serialize($inputParameters));
     }

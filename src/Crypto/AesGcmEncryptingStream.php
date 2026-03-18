@@ -12,19 +12,9 @@ class AesGcmEncryptingStream implements AesStreamInterface, AesStreamInterfaceV2
 {
     use StreamDecoratorTrait;
 
-    private $aad;
-
-    private $initializationVector;
-
-    private $key;
-
-    private $keySize;
-
     private $plaintext;
 
-    private $tag = '';
-
-    private $tagLength;
+    private string $tag = '';
 
     /**
      * @var StreamInterface
@@ -34,16 +24,13 @@ class AesGcmEncryptingStream implements AesStreamInterface, AesStreamInterfaceV2
     /**
      * Same as non-static 'getAesName' method, allowing calls in a static
      * context.
-     *
-     * @return string
      */
-    public static function getStaticAesName()
+    public static function getStaticAesName(): string
     {
         return 'AES/GCM/NoPadding';
     }
 
     /**
-     * @param StreamInterface $plaintext
      * @param string $key
      * @param string $initializationVector
      * @param string $aad
@@ -52,25 +39,20 @@ class AesGcmEncryptingStream implements AesStreamInterface, AesStreamInterfaceV2
      */
     public function __construct(
         StreamInterface $plaintext,
-        $key,
-        $initializationVector,
-        $aad = '',
-        $tagLength = 16,
-        $keySize = 256
+        private $key,
+        private $initializationVector,
+        private $aad = '',
+        private $tagLength = 16,
+        private $keySize = 256
     ) {
 
         $this->plaintext = $plaintext;
-        $this->key = $key;
-        $this->initializationVector = $initializationVector;
-        $this->aad = $aad;
-        $this->tagLength = $tagLength;
-        $this->keySize = $keySize;
         // unsetting the property forces the first access to go through
         // __get().
         unset($this->stream);
     }
 
-    public function getOpenSslName()
+    public function getOpenSslName(): string
     {
         return "aes-{$this->keySize}-gcm";
     }

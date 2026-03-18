@@ -8,20 +8,13 @@ namespace Aws\EndpointV2\Ruleset;
  */
 class RulesetEndpoint
 {
-    /** @var string */
-    private $url;
-
-    /** @var array */
-    private $properties;
-
-    /** @var array */
-    private $headers;
-
-    public function __construct($url, $properties = null, $headers = null)
+    /**
+     * @param string $url
+     * @param mixed[] $properties
+     * @param mixed[] $headers
+     */
+    public function __construct(private $url, private $properties = null, private $headers = null)
     {
-        $this->url = $url;
-        $this->properties = $properties;
-        $this->headers = $headers;
     }
 
     /**
@@ -38,11 +31,7 @@ class RulesetEndpoint
      */
     public function getProperty($property)
     {
-        if (isset($this->properties[$property])) {
-            return $this->properties[$property];
-        }
-
-        return null;
+        return $this->properties[$property] ?? null;
     }
 
     /**

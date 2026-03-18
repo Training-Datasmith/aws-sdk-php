@@ -6,14 +6,9 @@ namespace Aws\Exception;
  */
 class EventStreamDataException extends \RuntimeException
 {
-    private $errorCode;
-    private $errorMessage;
-
-    public function __construct($code, $message)
+    public function __construct(private $errorCode, private $errorMessage)
     {
-        $this->errorCode = $code;
-        $this->errorMessage = $message;
-        parent::__construct($message);
+        parent::__construct($this->errorMessage);
     }
 
     /**

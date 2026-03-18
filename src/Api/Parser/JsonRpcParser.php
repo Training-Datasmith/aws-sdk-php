@@ -41,10 +41,8 @@ class JsonRpcParser extends AbstractParser
      * @param ResponseInterface $response the response to parse.
      * @param Operation $operation the operation which holds information for
      *        parsing the response.
-     *
-     * @return Result
      */
-    private function parseResponse(ResponseInterface $response, Operation $operation)
+    private function parseResponse(ResponseInterface $response, Operation $operation): \Aws\Result
     {
         if (null === $operation['output']) {
             return new Result([]);

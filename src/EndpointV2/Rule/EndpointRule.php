@@ -40,13 +40,11 @@ class EndpointRule extends AbstractRule
 
     /**
      * Given input parameters, resolve an endpoint in its entirety.
-     *
-     * @return RulesetEndpoint
      */
     private function resolve(
         array $inputParameters,
         RulesetStandardLibrary $standardLibrary
-    )
+    ): \Aws\EndpointV2\Ruleset\RulesetEndpoint
     {
         $uri = $standardLibrary->resolveValue($this->endpoint['url'], $inputParameters);
         $properties = isset($this->endpoint['properties'])
@@ -70,12 +68,13 @@ class EndpointRule extends AbstractRule
     )
     {
         if (is_array($properties)) {
-           $propertiesArr = [];
-           foreach($properties as $key => $val) {
-               $propertiesArr[$key] = $this->resolveProperties($val, $inputParameters, $standardLibrary);
-           }
-           return $propertiesArr;
-        } elseif ($standardLibrary->isTemplate($properties)) {
+            $propertiesArr = [];
+            foreach($properties as $key => $val) {
+                $propertiesArr[$key] = $this->resolveProperties($val, $inputParameters, $standardLibrary);
+            }
+            return $propertiesArr;
+        }
+        if ($standardLibrary->isTemplate($properties)) {
             return $standardLibrary->resolveTemplateString($properties, $inputParameters);
         }
         return $properties;
@@ -90,9 +89,9 @@ class EndpointRule extends AbstractRule
     private function resolveHeaders(
         array $inputParameters,
         RulesetStandardLibrary $standardLibrary
-    )
+    ): ?array
     {
-        $headers = isset($this->endpoint['headers']) ? $this->endpoint['headers'] : null;
+        $headers = $this->endpoint['headers'] ?? null;
         if (is_null($headers)) {
             return null;
         }
@@ -101,7 +100,7 @@ class EndpointRule extends AbstractRule
         foreach($headers as $headerName => $headerValues) {
             $resolvedValues = [];
             foreach($headerValues as $value) {
-                $resolvedValue = $standardLibrary->resolveValue($value, $inputParameters, $standardLibrary);
+                $resolvedValue = $standardLibrary->resolveValue($value, $inputParameters);
                 $resolvedValues[] = $resolvedValue;
             }
             $resolvedHeaders[$headerName] = $resolvedValues;

@@ -6,8 +6,8 @@ use Aws\Retry\Exception\ConfigurationException;
 class Configuration implements ConfigurationInterface
 {
     private $mode;
-    private $maxAttempts;
-    private $validModes = [
+    private readonly int $maxAttempts;
+    private array $validModes = [
         'legacy',
         'standard',
         'adaptive'
@@ -15,7 +15,7 @@ class Configuration implements ConfigurationInterface
 
     public function __construct($mode = 'legacy', $maxAttempts = 3)
     {
-        $mode = strtolower($mode);
+        $mode = strtolower((string) $mode);
         if (!in_array($mode, $this->validModes)) {
             throw new ConfigurationException("'{$mode}' is not a valid mode."
                 . " The mode has to be 'legacy', 'standard', or 'adaptive'.");
@@ -51,7 +51,7 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritdoc}
      */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'mode' => $this->getMode(),

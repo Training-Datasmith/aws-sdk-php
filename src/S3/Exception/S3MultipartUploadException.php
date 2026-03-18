@@ -66,10 +66,8 @@ class S3MultipartUploadException extends \Aws\Exception\MultipartUploadException
 
     /**
      * Collect file path information when accessible. (Bucket, Key)
-     *
-     * @param CommandInterface $cmd
      */
-    private function collectPathInfo(CommandInterface $cmd)
+    private function collectPathInfo(CommandInterface $cmd): void
     {
         if (empty($this->bucket) && isset($cmd['Bucket'])) {
             $this->bucket = $cmd['Bucket'];

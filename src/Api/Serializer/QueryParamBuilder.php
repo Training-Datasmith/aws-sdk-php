@@ -12,7 +12,7 @@ use Aws\Api\TimestampShape;
  */
 class QueryParamBuilder
 {
-    private $methods;
+    private ?array $methods = null;
 
     protected function queryName(Shape $shape, $default = null)
     {
@@ -31,7 +31,7 @@ class QueryParamBuilder
         return $default;
     }
 
-    protected function isFlat(Shape $shape)
+    protected function isFlat(Shape $shape): bool
     {
         return $shape['flattened'] === true;
     }
@@ -62,7 +62,7 @@ class QueryParamBuilder
         StructureShape $shape,
         array $value,
         $prefix,
-        &$query
+        array &$query
     ) {
         if ($prefix) {
             $prefix .= '.';
@@ -85,7 +85,7 @@ class QueryParamBuilder
         ListShape $shape,
         array $value,
         $prefix,
-        &$query
+        array &$query
     ) {
         // Handle empty list serialization
         if (!$value) {
@@ -100,7 +100,7 @@ class QueryParamBuilder
             $prefix .= ".$locationName";
             // flattened lists can also model a `locationName`
         } elseif ($name = $shape['locationName'] ?? $this->queryName($items)) {
-            $parts = explode('.', $prefix);
+            $parts = explode('.', (string) $prefix);
             $parts[count($parts) - 1] = $name;
             $prefix = implode('.', $parts);
         }
@@ -113,7 +113,7 @@ class QueryParamBuilder
     protected function format_map(
         MapShape $shape,
         array $value,
-        $prefix,
+        string $prefix,
         array &$query
     ) {
         $vals = $shape->getValue();
@@ -136,7 +136,7 @@ class QueryParamBuilder
 
     protected function format_blob(Shape $shape, $value, $prefix, array &$query)
     {
-        $query[$prefix] = base64_encode($value);
+        $query[$prefix] = base64_encode((string) $value);
     }
 
     protected function format_timestamp(

@@ -12,10 +12,10 @@ use Psr\Http\Message\UriInterface;
  */
 class S3UriParser
 {
-    private $pattern = '/^(.+\\.)?s3[.-]([A-Za-z0-9-]+)\\./';
-    private $streamWrapperScheme = 's3';
+    private string $pattern = '/^(.+\\.)?s3[.-]([A-Za-z0-9-]+)\\./';
+    private string $streamWrapperScheme = 's3';
 
-    private static $defaultResult = [
+    private static array $defaultResult = [
         'path_style' => true,
         'bucket'     => null,
         'key'        => null,
@@ -63,7 +63,7 @@ class S3UriParser
                 . $uri);
         }
 
-        if (!preg_match($this->pattern, $url->getHost(), $matches)) {
+        if (!preg_match($this->pattern, (string) $url->getHost(), $matches)) {
             return $this->parseCustomEndpoint($url);
         }
 
@@ -78,9 +78,9 @@ class S3UriParser
         return $result;
     }
 
-    private function parseS3UrlComponents($uri)
+    private function parseS3UrlComponents($uri): array
     {
-        preg_match("/^([a-zA-Z0-9]*):\/\/([a-zA-Z0-9:-]*)\/(.*)/", $uri, $components);
+        preg_match("/^([a-zA-Z0-9]*):\/\/([a-zA-Z0-9:-]*)\/(.*)/", (string) $uri, $components);
         if (empty($components)) {
             return [];
         }
@@ -153,7 +153,7 @@ class S3UriParser
         $result = self::$defaultResult;
         $result['path_style'] = false;
         // Remove trailing "." from the prefix to get the bucket
-        $result['bucket'] = substr($matches[1], 0, -1);
+        $result['bucket'] = substr((string) $matches[1], 0, -1);
         $path = $url->getPath();
         // Check if a key was present, and if so, removing the leading "/"
         $result['key'] = !$path || $path == '/' ? null : substr($path, 1);

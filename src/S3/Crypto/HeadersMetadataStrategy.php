@@ -17,7 +17,7 @@ class HeadersMetadataStrategy implements MetadataStrategyInterface
      *
      * @return array Updated arguments for PutObject.
      */
-    public function save(MetadataEnvelope $envelope, array $args)
+    public function save(MetadataEnvelope $envelope, array $args): array
     {
         foreach ($envelope as $header=>$value) {
             $args['Metadata'][$header] = $value;
@@ -33,10 +33,8 @@ class HeadersMetadataStrategy implements MetadataStrategyInterface
      * @param array $args Arguments from Command and Result that contains
      *                    S3 Object information, relevant headers, and command
      *                    configuration.
-     *
-     * @return MetadataEnvelope
      */
-    public function load(array $args)
+    public function load(array $args): \Aws\Crypto\MetadataEnvelope
     {
         $envelope = new MetadataEnvelope();
         $constantValues = MetadataEnvelope::getConstantValues();

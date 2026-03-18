@@ -19,30 +19,15 @@ use Aws\S3\S3Client;
  */
 class LogRecordIterator implements \OuterIterator
 {
-    /** @var LogFileReader */
-    private $logFileReader;
+    private array $records;
 
-    /** @var \Iterator */
-    private $logFileIterator;
+    private int $recordIndex;
 
-    /** @var array */
-    private $records;
-
-    /** @var int */
-    private $recordIndex;
-
-    /**
-     * @param S3Client         $s3Client
-     * @param CloudTrailClient $cloudTrailClient
-     * @param array            $options
-     *
-     * @return LogRecordIterator
-     */
     public static function forTrail(
         S3Client $s3Client,
         CloudTrailClient $cloudTrailClient,
         array $options = []
-    ) {
+    ): self {
         $logFileIterator = LogFileIterator::forTrail(
             $s3Client,
             $cloudTrailClient,
@@ -53,17 +38,14 @@ class LogRecordIterator implements \OuterIterator
     }
 
     /**
-     * @param S3Client $s3Client
      * @param string   $s3BucketName
-     * @param array    $options
      *
-     * @return LogRecordIterator
      */
     public static function forBucket(
         S3Client $s3Client,
         $s3BucketName,
         array $options = []
-    ) {
+    ): self {
         $logFileReader = new LogFileReader($s3Client);
         $iter = new LogFileIterator($s3Client, $s3BucketName, $options);
 
@@ -71,17 +53,15 @@ class LogRecordIterator implements \OuterIterator
     }
 
     /**
-     * @param S3Client $s3Client
      * @param string   $s3BucketName
      * @param string   $s3ObjectKey
      *
-     * @return LogRecordIterator
      */
     public static function forFile(
         S3Client $s3Client,
         $s3BucketName,
         $s3ObjectKey
-    ) {
+    ): self {
         $logFileReader = new LogFileReader($s3Client);
         $logFileIterator = new \ArrayIterator([[
             'Bucket' => $s3BucketName,
@@ -91,17 +71,11 @@ class LogRecordIterator implements \OuterIterator
         return new self($logFileReader, $logFileIterator);
     }
 
-    /**
-     * @param LogFileReader $logFileReader
-     * @param \Iterator     $logFileIterator
-     */
     public function __construct(
-        LogFileReader $logFileReader,
-        \Iterator $logFileIterator
+        private readonly LogFileReader $logFileReader,
+        private readonly \Iterator $logFileIterator
     ) {
-        $this->logFileReader = $logFileReader;
-        $this->logFileIterator = $logFileIterator;
-        $this->records = array();
+        $this->records = [];
         $this->recordIndex = 0;
     }
 
@@ -117,7 +91,7 @@ class LogRecordIterator implements \OuterIterator
     }
 
     #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         $this->recordIndex++;
 
@@ -150,7 +124,7 @@ class LogRecordIterator implements \OuterIterator
     }
 
     #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         $this->logFileIterator->rewind();
         $this->loadRecordsFromCurrentLogFile();
@@ -175,10 +149,10 @@ class LogRecordIterator implements \OuterIterator
      * @return bool Returns `true` if records were loaded and `false` if no
      *     records were found
      */
-    private function loadRecordsFromCurrentLogFile()
+    private function loadRecordsFromCurrentLogFile(): bool
     {
         $this->recordIndex = 0;
-        $this->records = array();
+        $this->records = [];
 
         $logFile = $this->logFileIterator->current();
         if ($logFile && isset($logFile['Bucket']) && isset($logFile['Key'])) {

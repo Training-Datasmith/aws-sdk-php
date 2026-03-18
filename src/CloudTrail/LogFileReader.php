@@ -14,15 +14,11 @@ use Aws\S3\S3Client;
  */
 class LogFileReader
 {
-    /** @var S3Client S3 client used to perform GetObject operations */
-    private $s3Client;
-
     /**
      * @param S3Client $s3Client S3 client used to retrieve objects
      */
-    public function __construct(S3Client $s3Client)
+    public function __construct(private readonly S3Client $s3Client)
     {
-        $this->s3Client = $s3Client;
     }
 
     /**
@@ -48,8 +44,8 @@ class LogFileReader
 
         // Get the JSON response data and extract the log records
         $result = $this->s3Client->execute($command);
-        $logData = json_decode($result['Body'], true);
+        $logData = json_decode((string) $result['Body'], true);
 
-        return isset($logData['Records']) ? $logData['Records'] : [];
+        return $logData['Records'] ?? [];
     }
 }

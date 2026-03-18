@@ -9,8 +9,6 @@ final class CredentialsUtils
      * is a loopback address.
      *
      * @param $host
-     *
-     * @return bool
      */
     public static function isLoopBackAddress($host): bool
     {

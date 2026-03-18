@@ -53,8 +53,6 @@ class StsClient extends AwsClient
      *   `regional`, or an associative array with the following keys:
      *   endpoint_types (string)  Set to `legacy` or `regional`, defaults to
      *   `legacy`
-     *
-     * @param array $args
      */
     public function __construct(array $args)
     {
@@ -73,10 +71,9 @@ class StsClient extends AwsClient
      *
      * @param Result $result Result of an STS operation
      *
-     * @return Credentials
      * @throws \InvalidArgumentException if the result contains no credentials
      */
-    public function createCredentials(Result $result, $source=null)
+    public function createCredentials(Result $result, $source=null): \Aws\Credentials\Credentials
     {
         if (!$result->hasKey('Credentials')) {
             throw new \InvalidArgumentException('Result contains no credentials');
@@ -99,7 +96,7 @@ class StsClient extends AwsClient
         return new Credentials(
             $credentials['AccessKeyId'],
             $credentials['SecretAccessKey'],
-            isset($credentials['SessionToken']) ? $credentials['SessionToken'] : null,
+            $credentials['SessionToken'] ?? null,
             $expiration,
             $accountId,
             $source
@@ -108,10 +105,8 @@ class StsClient extends AwsClient
 
     /**
      * Adds service-specific client built-in value
-     *
-     * @return void
      */
-    private function addBuiltIns($args)
+    private function addBuiltIns(array $args): void
     {
         $key = 'AWS::STS::UseGlobalEndpoint';
         $result = $args['sts_regional_endpoints'] instanceof \Closure ?

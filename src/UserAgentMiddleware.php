@@ -31,44 +31,29 @@ class UserAgentMiddleware
     /** @var callable  */
     private $nextHandler;
 
-    /** @var array */
-    private $args;
-
-    /** @var MetricsBuilder */
-    private $metricsBuilder;
+    private ?\Aws\MetricsBuilder $metricsBuilder = null;
 
     /**
      * Returns a middleware wrapper function.
      *
-     * @param array $args
      *
-     * @return Closure
      */
     public static function wrap(
         array $args
     ) : Closure
     {
-        return function (callable $handler) use ($args) {
-            return new self($handler, $args);
-        };
+        return fn(callable $handler) => new self($handler, $args);
     }
 
-    /**
-     * @param callable $nextHandler
-     * @param array $args
-     */
-    public function __construct(callable $nextHandler, array $args=[])
+    public function __construct(callable $nextHandler, private array $args=[])
     {
         $this->nextHandler = $nextHandler;
-        $this->args = $args;
     }
 
     /**
      * When invoked, its injects the user agent header into the
      * request headers.
      *
-     * @param CommandInterface $command
-     * @param RequestInterface $request
      *
      * @return mixed
      */
@@ -85,9 +70,7 @@ class UserAgentMiddleware
      * Builds the user agent header value, and injects it into the request
      * headers. Then, it returns the mutated request.
      *
-     * @param RequestInterface $request
      *
-     * @return RequestInterface
      */
     private function requestWithUserAgentHeader(RequestInterface $request): RequestInterface
     {
@@ -110,8 +93,6 @@ class UserAgentMiddleware
 
     /**
      * Builds the different user agent values.
-     *
-     * @return array
      */
     private function buildUserAgentValue(): array
     {
@@ -128,8 +109,6 @@ class UserAgentMiddleware
 
     /**
      * Returns the user agent value for SDK version.
-     *
-     * @return string
      */
     private function getSdkVersion(): string
     {
@@ -138,8 +117,6 @@ class UserAgentMiddleware
 
     /**
      * Returns the user agent value for the agent version.
-     *
-     * @return string
      */
     private function getUserAgentVersion(): string
     {
@@ -149,8 +126,6 @@ class UserAgentMiddleware
     /**
      * Returns the user agent value for the hhvm version, but just
      * when it is defined.
-     *
-     * @return string
      */
     private function getHhvmVersion(): string
     {
@@ -163,8 +138,6 @@ class UserAgentMiddleware
 
     /**
      * Returns the user agent value for the os version.
-     *
-     * @return string
      */
     private function getOsName(): string
     {
@@ -175,11 +148,7 @@ class UserAgentMiddleware
             // Replace spaces with underscores to prevent breaking the user agent format
             $os = str_replace(' ', '_', php_uname('s'));
             $release = php_uname('r');
-            $osName = "OS/{$os}#{$release}";
-
-            if (!empty($osName)) {
-                return $osName;
-            }
+            return "OS/{$os}#{$release}";
         }
 
         return "";
@@ -187,8 +156,6 @@ class UserAgentMiddleware
 
     /**
      * Returns the user agent value for the php language used.
-     *
-     * @return string
      */
     private function getLangVersion(): string
     {
@@ -197,8 +164,6 @@ class UserAgentMiddleware
 
     /**
      * Returns the user agent value for the execution env.
-     *
-     * @return string
      */
     private function getExecEnv(): string
     {
@@ -212,23 +177,21 @@ class UserAgentMiddleware
     /**
      * Returns the user agent value for endpoint discovery as cfg.
      * This feature is deprecated.
-     *
-     * @return string
      */
     private function getEndpointDiscovery(): string
     {
         $args = $this->args;
-        if (isset($args['endpoint_discovery'])) {
-            if (($args['endpoint_discovery'] instanceof Configuration
-                && $args['endpoint_discovery']->isEnabled())
-            ) {
-                return 'cfg/endpoint-discovery';
-            } elseif (is_array($args['endpoint_discovery'])
-                && isset($args['endpoint_discovery']['enabled'])
-                && $args['endpoint_discovery']['enabled']
-            ) {
-                return 'cfg/endpoint-discovery';
-            }
+        if (!isset($args['endpoint_discovery'])) {
+            return "";
+        }
+        if ($args['endpoint_discovery'] instanceof Configuration
+            && $args['endpoint_discovery']->isEnabled()) {
+            return 'cfg/endpoint-discovery';
+        }
+        if (is_array($args['endpoint_discovery'])
+            && isset($args['endpoint_discovery']['enabled'])
+            && $args['endpoint_discovery']['enabled']) {
+            return 'cfg/endpoint-discovery';
         }
 
         return "";
@@ -237,8 +200,6 @@ class UserAgentMiddleware
     /**
      * Returns the user agent value for app id, but just when an
      * app id was provided as a client argument.
-     *
-     * @return string
      */
     private function getAppId(): string
     {
@@ -251,8 +212,6 @@ class UserAgentMiddleware
 
     /**
      * Returns the user agent value for metrics.
-     *
-     * @return string
      */
     private function getMetrics(): string
     {

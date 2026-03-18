@@ -20,28 +20,18 @@ class QueryCompatibleInputMiddleware
     /** @var callable */
     private $nextHandler;
 
-    /** @var Service */
-    private $service;
-
-    /** @var CommandInterface */
-    private $command;
+    private ?\Aws\CommandInterface $command = null;
 
     /**
      * Create a middleware wrapper function.
-     *
-     * @param Service $service
-     * @return Closure
      */
     public static function wrap(Service $service) : Closure
     {
-        return static function (callable $handler) use ($service) {
-            return new self($handler, $service);
-        };
+        return static fn(callable $handler) => new self($handler, $service);
     }
 
-    public function __construct(callable $nextHandler, Service $service)
+    public function __construct(callable $nextHandler, private readonly Service $service)
     {
-        $this->service = $service;
         $this->nextHandler = $nextHandler;
     }
 
@@ -69,34 +59,18 @@ class QueryCompatibleInputMiddleware
      *
      * @param $input
      * @param $shape
-     * @param array $path
      *
-     * @return void
      */
-    private function processInput($input, $shape, array $path) : void
+    private function processInput($input, \Aws\Api\StructureShape|\Aws\Api\ListShape|\Aws\Api\MapShape|\Aws\Api\Shape $shape, array $path) : void
     {
-        switch ($shape->getType()) {
-            case 'structure':
-                $this->processStructure($input, $shape, $path);
-                break;
-            case 'list':
-                $this->processList($input, $shape, $path);
-                break;
-            case 'map':
-                $this->processMap($input, $shape, $path);
-                break;
-            default:
-                $this->processScalar($input, $shape, $path);
-        }
+        match ($shape->getType()) {
+            'structure' => $this->processStructure($input, $shape, $path),
+            'list' => $this->processList($input, $shape, $path),
+            'map' => $this->processMap($input, $shape, $path),
+            default => $this->processScalar($input, $shape, $path),
+        };
     }
 
-    /**
-     * @param array $input
-     * @param StructureShape $shape
-     * @param array $path
-     *
-     * @return void
-     */
     private function processStructure(
         array $input,
         StructureShape $shape,
@@ -111,13 +85,6 @@ class QueryCompatibleInputMiddleware
         }
     }
 
-    /**
-     * @param array $input
-     * @param ListShape $shape
-     * @param array $path
-     *
-     * @return void
-     */
     private function processList(
         array $input,
         ListShape $shape,
@@ -130,13 +97,6 @@ class QueryCompatibleInputMiddleware
         }
     }
 
-    /**
-     * @param array $input
-     * @param MapShape $shape
-     * @param array $path
-     *
-     * @return void
-     */
     private function processMap(array $input, MapShape $shape, array $path) : void
     {
         foreach ($input as $param => $value) {
@@ -147,10 +107,7 @@ class QueryCompatibleInputMiddleware
 
     /**
      * @param $input
-     * @param Shape $shape
-     * @param array $path
      *
-     * @return void
      */
     private function processScalar($input, Shape $shape, array $path) : void
     {
@@ -171,10 +128,8 @@ class QueryCompatibleInputMiddleware
     /**
      * Modifies command in place
      *
-     * @param array $path
      * @param $newValue
      *
-     * @return void
      */
     private function changeValueAtPath(array $path, $newValue) : void
     {
@@ -192,22 +147,15 @@ class QueryCompatibleInputMiddleware
     /**
      * @param $value
      * @param $type
-     *
-     * @return bool
      */
     private function isModeledType($value, $type) : bool
     {
-        switch ($type) {
-            case 'string':
-                return is_string($value);
-            case 'integer':
-            case 'long':
-                return is_int($value);
-            case 'float':
-                return is_float($value);
-            default:
-                return true;
-        }
+        return match ($type) {
+            'string' => is_string($value),
+            'integer', 'long' => is_int($value),
+            'float' => is_float($value),
+            default => true,
+        };
     }
 
     /**
@@ -218,17 +166,12 @@ class QueryCompatibleInputMiddleware
      */
     private function castValue($value, $type)
     {
-        switch ($type) {
-            case 'integer':
-                return (int) $value;
-            case 'long' :
-                return $value + 0;
-            case 'float':
-                return (float) $value;
-            case 'string':
-                return (string) $value;
-            default:
-                return $value;
-        }
+        return match ($type) {
+            'integer' => (int) $value,
+            'long' => $value + 0,
+            'float' => (float) $value,
+            'string' => (string) $value,
+            default => $value,
+        };
     }
 }

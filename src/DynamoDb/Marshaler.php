@@ -9,14 +9,14 @@ use Psr\Http\Message\StreamInterface;
 class Marshaler
 {
     /** @var array Default options to merge into provided options. */
-    private static $defaultOptions = [
+    private static array $defaultOptions = [
         'ignore_invalid'  => false,
         'nullify_invalid' => false,
         'wrap_numbers'    => false,
     ];
 
     /** @var array Marshaler options. */
-    private $options;
+    private array $options;
 
     /**
      * Instantiates a DynamoDB Marshaler.
@@ -44,10 +44,9 @@ class Marshaler
      *
      * @param mixed $value A binary value compatible with Guzzle streams.
      *
-     * @return BinaryValue
      * @see GuzzleHttp\Stream\Stream::factory
      */
-    public function binary($value)
+    public function binary($value): \Aws\DynamoDb\BinaryValue
     {
         return new BinaryValue($value);
     }
@@ -58,10 +57,8 @@ class Marshaler
      * This helps maintain the precision of large integer/float in PHP.
      *
      * @param string|int|float $value A number value.
-     *
-     * @return NumberValue
      */
-    public function number($value)
+    public function number($value): \Aws\DynamoDb\NumberValue
     {
         return new NumberValue($value);
     }
@@ -73,10 +70,9 @@ class Marshaler
      *
      * @param array $values The values of the set.
      *
-     * @return SetValue
      *
      */
-    public function set(array $values)
+    public function set(array $values): \Aws\DynamoDb\SetValue
     {
         return new SetValue($values);
     }
@@ -92,7 +88,7 @@ class Marshaler
      * @return array Item formatted for DynamoDB.
      * @throws \InvalidArgumentException if the JSON is invalid.
      */
-    public function marshalJson($json)
+    public function marshalJson($json): mixed
     {
         $data = json_decode($json);
         if (!($data instanceof \stdClass)) {
@@ -114,7 +110,7 @@ class Marshaler
      *
      * @return array Item formatted for DynamoDB.
      */
-    public function marshalItem($item)
+    public function marshalItem($item): mixed
     {
         return current($this->marshalValue($item));
     }
@@ -302,10 +298,8 @@ class Marshaler
      * Handle invalid value based on marshaler configuration.
      *
      * @param string $message Error message
-     *
-     * @return array|null
      */
-    private function handleInvalid($message)
+    private function handleInvalid(string $message): ?array
     {
         if ($this->options['ignore_invalid']) {
             return null;

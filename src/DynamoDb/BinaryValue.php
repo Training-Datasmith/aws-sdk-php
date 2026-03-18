@@ -6,10 +6,10 @@ use GuzzleHttp\Psr7;
 /**
  * Special object to represent a DynamoDB binary (B) value.
  */
-class BinaryValue implements \JsonSerializable
+class BinaryValue implements \JsonSerializable, \Stringable
 {
     /** @var string Binary value. */
-    private $value;
+    private readonly string $value;
 
     /**
      * @param mixed $value A binary value compatible with Guzzle streams.
@@ -30,7 +30,7 @@ class BinaryValue implements \JsonSerializable
         return $this->value;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->value;
     }

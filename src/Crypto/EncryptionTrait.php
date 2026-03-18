@@ -95,7 +95,7 @@ trait EncryptionTrait
 
         $cek = $provider->generateCek($cipherOptions['KeySize']);
 
-        list($encryptingStream, $aesName) = $this->getEncryptingStream(
+        [$encryptingStream, $aesName] = $this->getEncryptingStream(
             $plaintext,
             $cek,
             $cipherOptions
@@ -120,7 +120,7 @@ trait EncryptionTrait
             json_encode($materialsDescription);
         if (!empty($cipherOptions['Tag'])) {
             $envelope[MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER] =
-                strlen($cipherOptions['Tag']) * 8;
+                strlen((string) $cipherOptions['Tag']) * 8;
         }
 
         return $encryptingStream;
@@ -144,7 +144,7 @@ trait EncryptionTrait
     protected function getEncryptingStream(
         Stream $plaintext,
         $cek,
-        &$cipherOptions
+        array &$cipherOptions
     ) {
         switch ($cipherOptions['Cipher']) {
             case 'gcm':
@@ -154,9 +154,7 @@ trait EncryptionTrait
                     $plaintext,
                     $cek,
                     $cipherOptions['Iv'],
-                    $cipherOptions['Aad'] = isset($cipherOptions['Aad'])
-                        ? $cipherOptions['Aad']
-                        : '',
+                    $cipherOptions['Aad'] ??= '',
                     $cipherOptions['TagLength'],
                     $cipherOptions['KeySize']
                 );

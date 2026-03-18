@@ -13,21 +13,16 @@ use Psr\Http\Message\StreamInterface;
 class ObjectUploader implements PromisorInterface
 {
     const DEFAULT_MULTIPART_THRESHOLD = 16777216;
-
-    private $client;
-    private $bucket;
-    private $key;
     private $body;
-    private $acl;
-    private $options;
-    private static $defaults = [
+    private array $options;
+    private static array $defaults = [
         'before_upload' => null,
         'concurrency'   => 3,
         'mup_threshold' => self::DEFAULT_MULTIPART_THRESHOLD,
         'params'        => [],
         'part_size'     => null,
     ];
-    private $addContentMD5;
+    private readonly bool $addContentMD5;
 
     /**
      * @param S3ClientInterface $client         The S3 Client used to execute
@@ -47,27 +42,20 @@ class ObjectUploader implements PromisorInterface
      *                                          the sub command(s).
      */
     public function __construct(
-        S3ClientInterface $client,
-        $bucket,
-        $key,
+        private readonly S3ClientInterface $client,
+        private $bucket,
+        private $key,
         $body,
-        $acl = 'private',
+        private $acl = 'private',
         array $options = []
     ) {
-        $this->client = $client;
-        $this->bucket = $bucket;
-        $this->key = $key;
         $this->body = Psr7\Utils::streamFor($body);
-        $this->acl = $acl;
         $this->options = $options + self::$defaults;
         // Handle "add_content_md5" option.
         $this->addContentMD5 = isset($options['add_content_md5'])
             && $options['add_content_md5'] === true;
     }
 
-    /**
-     * @return PromiseInterface
-     */
     public function promise(): PromiseInterface
     {
         /** @var int $mup_threshold */

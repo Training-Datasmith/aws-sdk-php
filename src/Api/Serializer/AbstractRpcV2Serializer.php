@@ -34,16 +34,10 @@ abstract class AbstractRpcV2Serializer
     protected const HEADER_CONTENT_TYPE = 'Content-Type';
     protected const HEADER_ACCEPT = 'Accept';
 
-    /** @var array  */
     protected static array $defaultHeaders;
 
-    /** @var Service */
-    private Service $api;
-
-    /** @var string|Uri */
     private string|Uri $endpoint;
 
-    /** @var bool */
     private bool $isUseEndpointV2;
 
     use EndpointV2SerializerTrait;
@@ -52,9 +46,8 @@ abstract class AbstractRpcV2Serializer
      * @param Service $api Service API description
      * @param string $endpoint Endpoint to connect to
      */
-    public function __construct(Service $api, string|Uri $endpoint)
+    public function __construct(private Service $api, string|Uri $endpoint)
     {
-        $this->api = $api;
         $this->endpoint = Psr7\Utils::uriFor($endpoint);
     }
 
@@ -103,12 +96,6 @@ abstract class AbstractRpcV2Serializer
         );
     }
 
-    /**
-     * @param StructureShape $inputShape
-     * @param array $commandArgs
-     *
-     * @return string
-     */
     abstract public function serialize(
         StructureShape $inputShape,
         array $commandArgs
@@ -118,9 +105,7 @@ abstract class AbstractRpcV2Serializer
      * Resolves arguments for blob shapes present in the request arguments
      * into a protocol-specific format.
      *
-     * @param mixed $value
      *
-     * @return array
      */
     abstract protected function resolveBlob(mixed $value): array;
 
@@ -129,8 +114,6 @@ abstract class AbstractRpcV2Serializer
      * into a protocol-specific format.
      *
      * @param mixed $value
-     *
-     * @return array
      */
     abstract protected function resolveTimestamp(
         int|float|string|DateTimeInterface $value
@@ -139,10 +122,7 @@ abstract class AbstractRpcV2Serializer
     /**
      * Resolves input shape fields that are present in the request arguments
      *
-     * @param Shape $shape
-     * @param mixed $value
      *
-     * @return mixed
      */
     protected function resolveInputShape(Shape $shape, mixed $value): mixed
     {
@@ -200,10 +180,7 @@ abstract class AbstractRpcV2Serializer
     /**
      * Builds request URI absolute path
      *
-     * @param string $commandName
-     * @param string $requestUri
      *
-     * @return string
      */
     private function buildRequestTarget(
         string $commandName,

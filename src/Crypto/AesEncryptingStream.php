@@ -15,20 +15,9 @@ class AesEncryptingStream implements AesStreamInterface
 
     use StreamDecoratorTrait;
 
-    /**
-     * @var string
-     */
-    private $buffer = '';
+    private string $buffer = '';
 
-    /**
-     * @var CipherMethod
-     */
-    private $cipherMethod;
-
-    /**
-     * @var string
-     */
-    private $key;
+    private \Aws\Crypto\Cipher\CipherMethod $cipherMethod;
 
     /**
      * @var StreamInterface
@@ -36,17 +25,14 @@ class AesEncryptingStream implements AesStreamInterface
     private $stream;
 
     /**
-     * @param StreamInterface $plainText
      * @param string $key
-     * @param CipherMethod $cipherMethod
      */
     public function __construct(
         StreamInterface $plainText,
-        $key,
+        private $key,
         CipherMethod $cipherMethod
     ) {
         $this->stream = $plainText;
-        $this->key = $key;
         $this->cipherMethod = clone $cipherMethod;
     }
 
@@ -88,7 +74,6 @@ class AesEncryptingStream implements AesStreamInterface
     {
         if ($length > strlen($this->buffer)) {
             $this->buffer .= $this->encryptBlock(
-                (int)
                 self::BLOCK_SIZE * ceil(($length - strlen($this->buffer)) / self::BLOCK_SIZE)
             );
         }
@@ -96,7 +81,7 @@ class AesEncryptingStream implements AesStreamInterface
         $data = substr($this->buffer, 0, $length);
         $this->buffer = substr($this->buffer, $length);
 
-        return $data ? $data : '';
+        return $data ?: '';
     }
 
     public function seek($offset, $whence = SEEK_SET): void
@@ -118,7 +103,7 @@ class AesEncryptingStream implements AesStreamInterface
         }
     }
 
-    private function encryptBlock($length)
+    private function encryptBlock(float $length): string|false
     {
         if ($this->stream->eof()) {
             return '';

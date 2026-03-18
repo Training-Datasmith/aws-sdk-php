@@ -13,8 +13,8 @@ class DeleteMultipleObjectsException extends \Exception implements
 {
     use HasMonitoringEventsTrait;
 
-    private $deleted = [];
-    private $errors = [];
+    private array $deleted;
+    private array $errors;
 
     /**
      * @param array       $deleted Array of successfully deleted keys
@@ -33,14 +33,10 @@ class DeleteMultipleObjectsException extends \Exception implements
      * Create a single error message from multiple errors.
      *
      * @param array $errors Errors encountered
-     *
-     * @return string
      */
-    public static function createMessageFromErrors(array $errors)
+    public static function createMessageFromErrors(array $errors): string
     {
-        return "\n- " . implode("\n- ", array_map(function ($key) {
-            return json_encode($key);
-        }, $errors));
+        return "\n- " . implode("\n- ", array_map(fn($key) => json_encode($key), $errors));
     }
 
     /**

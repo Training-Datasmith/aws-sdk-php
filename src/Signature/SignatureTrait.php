@@ -12,12 +12,12 @@ trait SignatureTrait
     /** @var int Size of the hash cache */
     private $cacheSize = 0;
     
-    private function createScope($shortDate, $region, $service)
+    private function createScope($shortDate, $region, $service): string
     {
         return "$shortDate/$region/$service/aws4_request";
     }
 
-    private function getSigningKey($shortDate, $region, $service, $secretKey)
+    private function getSigningKey(string $shortDate, string $region, string $service, string $secretKey): string
     {
         $k = $shortDate . '_' . $region . '_' . $service . '_' . $secretKey;
 

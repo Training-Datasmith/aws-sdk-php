@@ -77,7 +77,7 @@ class TokenProvider
 
         return self::memoize(
             call_user_func_array(
-                [__CLASS__, 'chain'],
+                self::chain(...),
                 array_values($defaultChain)
             )
         );
@@ -86,7 +86,6 @@ class TokenProvider
     /**
      * Create a token provider function from a static token.
      *
-     * @param TokenInterface $token
      *
      * @return callable
      */
@@ -94,9 +93,7 @@ class TokenProvider
     {
         $promise = Promise\Create::promiseFor($token);
 
-        return static function () use ($promise) {
-            return $promise;
-        };
+        return static fn() => $promise;
     }
 
     /**
@@ -111,9 +108,7 @@ class TokenProvider
         $links = func_get_args();
         //Common use case for when aws_shared_config_files is false
         if (empty($links)) {
-            return static function () {
-                return Promise\Create::promiseFor(false);
-            };
+            return static fn() => Promise\Create::promiseFor(false);
         }
 
         return static function () use ($links) {
@@ -209,7 +204,7 @@ class TokenProvider
                 ->then(function (TokenInterface $token) use (
                     $cache,
                     $cacheKey
-                ) {
+                ): \Aws\Token\TokenInterface {
                     $cache->set(
                         $cacheKey,
                         ['token' => $token],
@@ -223,47 +218,19 @@ class TokenProvider
     }
 
     /**
-     * Gets profiles from the ~/.aws/config ini file
-     */
-    private static function loadDefaultProfiles()
-    {
-        $profiles = [];
-        $configFile = self::getHomeDir() . '/.aws/config';
-
-        if (file_exists($configFile)) {
-            $configProfileData = \Aws\parse_ini_file($configFile, true, INI_SCANNER_RAW);
-            foreach ($configProfileData as $name => $profile) {
-                // standardize config profile names
-                $name = str_replace('profile ', '', $name);
-                if (!isset($profiles[$name])) {
-                    $profiles[$name] = $profile;
-                }
-            }
-        }
-
-        return $profiles;
-    }
-
-    private static function reject($msg)
-    {
-        return new Promise\RejectedPromise(new TokenException($msg));
-    }
-
-    /**
      * Token provider that creates a token from cached sso credentials
      *
      * @param string $profileName the name of the ini profile name
      * @param string $filename the location of the ini file
      * @param array $config configuration options
      *
-     * @return SsoTokenProvider
      * @see Aws\Token\SsoTokenProvider for $config details.
      */
     public static function sso(
         $profileName,
         $filename,
-        $config = []
-    ){
+        array $config = []
+    ): \Aws\Token\SsoTokenProvider{
         $ssoClient = $config['ssoClient'] ?? null;
 
         return new SsoTokenProvider($profileName, $filename, $ssoClient);

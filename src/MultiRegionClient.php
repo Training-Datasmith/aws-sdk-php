@@ -11,7 +11,7 @@ class MultiRegionClient implements AwsClientInterface
     use AwsClientTrait;
 
     /** @var AwsClientInterface[] A pool of clients keyed by region. */
-    private $clientPool = [];
+    private array $clientPool = [];
 
     /** @var callable */
     private $factory;
@@ -19,14 +19,12 @@ class MultiRegionClient implements AwsClientInterface
     /** @var PartitionInterface */
     private $partition;
 
-    /** @var array */
-    private $args;
+    private array $args;
 
     /** @var array */
     private $config;
 
-    /** @var HandlerList */
-    private $handlerList;
+    private \Aws\HandlerList $handlerList;
 
     /** @var array */
     private $aliases;
@@ -53,12 +51,12 @@ class MultiRegionClient implements AwsClientInterface
                         . ' client.',
                     'required' => true,
                     'internal' => true,
-                    'default' => function (array $args) {
+                    'default' => function (array $args): \Closure {
                         $namespace = manifest($args['service'])['namespace'];
                         $klass = "Aws\\{$namespace}\\{$namespace}Client";
-                        $region = isset($args['region']) ? $args['region'] : null;
+                        $region = $args['region'] ?? null;
 
-                        return function (array $args) use ($klass, $region) {
+                        return function (array $args) use ($klass, $region): object {
                             if ($region && empty($args['region'])) {
                                 $args['region'] = $region;
                             }
@@ -74,11 +72,11 @@ class MultiRegionClient implements AwsClientInterface
                         . ' include "aws," "aws-cn," and "aws-us-gov." Used to'
                         . ' restrict the scope of the mapRegions method.',
                     'default' => function (array $args) {
-                        $region = isset($args['region']) ? $args['region'] : '';
+                        $region = $args['region'] ?? '';
                         return PartitionEndpointProvider::defaultProvider()
                             ->getPartition($region, $args['service']);
                     },
-                    'fn'      => function ($value, array &$args) {
+                    'fn'      => function ($value, array &$args): void {
                         if (is_string($value)) {
                             $value = PartitionEndpointProvider::defaultProvider()
                                 ->getPartitionByName($value);
@@ -93,7 +91,7 @@ class MultiRegionClient implements AwsClientInterface
                         }
                         $ruleset = EndpointDefinitionProvider::getEndpointRuleset(
                             $args['service'],
-                            isset($args['version']) ? $args['version'] : 'latest'
+                            $args['version'] ?? 'latest'
                         );
                         $partitions = EndpointDefinitionProvider::getPartitions();
                         $args['endpoint_provider'] = new EndpointProviderV2($ruleset, $partitions);
@@ -125,7 +123,7 @@ class MultiRegionClient implements AwsClientInterface
         $this->handlerList = new HandlerList(function (
             CommandInterface $command
         ) {
-            list($region, $args) = $this->getRegionFromArgs($command->toArray());
+            [$region, $args] = $this->getRegionFromArgs($command->toArray());
             $command = $this->getClientFromPool($region)
                 ->getCommand($command->getName(), $args);
 
@@ -174,7 +172,7 @@ class MultiRegionClient implements AwsClientInterface
      * @return CommandInterface
      * @throws \InvalidArgumentException if no command can be found by name
      */
-    public function getCommand($name, array $args = [])
+    public function getCommand($name, array $args = []): \Aws\Command
     {
         return new Command($name, $args, clone $this->getHandlerList());
     }
@@ -185,11 +183,7 @@ class MultiRegionClient implements AwsClientInterface
             return $this->config;
         }
 
-        if (isset($this->config[$option])) {
-            return $this->config[$option];
-        }
-
-        return $this->getClientFromPool()->getConfig($option);
+        return $this->config[$option] ?? $this->getClientFromPool()->getConfig($option);
     }
 
     public function getCredentials()
@@ -212,12 +206,12 @@ class MultiRegionClient implements AwsClientInterface
         return $this->getClientFromPool()->getEndpoint();
     }
 
-    public function useCustomHandler(callable $handler)
+    public function useCustomHandler(callable $handler): void
     {
         $this->customHandler = $handler;
     }
 
-    private function isUseCustomHandler()
+    private function isUseCustomHandler(): bool
     {
         return isset($this->customHandler);
     }
@@ -231,7 +225,7 @@ class MultiRegionClient implements AwsClientInterface
      */
     protected function getClientFromPool($region = '')
     {
-        $region = $region ?? '';
+        $region ??= '';
         if (empty($this->clientPool[$region])) {
             $factory = $this->factory;
             $this->clientPool[$region] = $factory(
@@ -244,25 +238,21 @@ class MultiRegionClient implements AwsClientInterface
 
     /**
      * Parse the class name and return the "service" name of the client.
-     *
-     * @return string
      */
-    private function parseClass()
+    private function parseClass(): string
     {
-        $klass = get_class($this);
+        $klass = static::class;
 
-        if ($klass === __CLASS__) {
+        if ($klass === self::class) {
             return '';
         }
 
         return strtolower(substr($klass, strrpos($klass, '\\') + 1, -17));
     }
 
-    private function getRegionFromArgs(array $args)
+    private function getRegionFromArgs(array $args): array
     {
-        $region = isset($args['@region'])
-            ? $args['@region']
-            : $this->getRegion();
+        $region = $args['@region'] ?? $this->getRegion();
         unset($args['@region']);
 
         return [$region, $args];

@@ -19,11 +19,10 @@ class ArnParser
 {
     /**
      * @param $string
-     * @return bool
      */
-    public static function isArn($string)
+    public static function isArn($string): bool
     {
-        return $string !== null && strpos($string, 'arn:') === 0;
+        return $string !== null && str_starts_with($string, 'arn:');
     }
 
     /**
@@ -34,7 +33,7 @@ class ArnParser
      * @param $string
      * @return ArnInterface
      */
-    public static function parse($string)
+    public static function parse($string): \Aws\Arn\ObjectLambdaAccessPointArn|\Aws\Arn\S3\OutpostsBucketArn|\Aws\Arn\S3\OutpostsAccessPointArn|\Aws\Arn\S3\MultiRegionAccessPointArn|\Aws\Arn\S3\AccessPointArn|\Aws\Arn\AccessPointArn|\Aws\Arn\Arn
     {
         $data = Arn::parse($string);
         if ($data['service'] === 's3-object-lambda') {
@@ -64,6 +63,6 @@ class ArnParser
 
     private static function explodeResourceComponent($resource)
     {
-        return preg_split("/[\/:]/", $resource);
+        return preg_split("/[\/:]/", (string) $resource);
     }
 }

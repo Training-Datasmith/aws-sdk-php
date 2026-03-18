@@ -15,7 +15,7 @@ class RestJsonErrorParser extends AbstractErrorParser
 {
     use JsonParserTrait;
 
-    private $parser;
+    private \Aws\Api\Parser\JsonParser $parser;
 
     public function __construct(?Service $api = null, ?JsonParser $parser = null)
     {
@@ -23,10 +23,13 @@ class RestJsonErrorParser extends AbstractErrorParser
         $this->parser = $parser ?: new JsonParser();
     }
 
+    /**
+     * @return mixed[]
+     */
     public function __invoke(
         ResponseInterface $response,
         ?CommandInterface $command = null
-    ) {
+    ): array {
         $response = AbstractParser::getResponseWithCachingStream($response);
         $data = $this->genericHandler($response);
 
@@ -37,7 +40,7 @@ class RestJsonErrorParser extends AbstractErrorParser
 
         // Correct error type from services like Amazon Glacier
         if (!empty($data['type'])) {
-            $data['type'] = strtolower($data['type']);
+            $data['type'] = strtolower((string) $data['type']);
         }
 
         // Retrieve error message directly

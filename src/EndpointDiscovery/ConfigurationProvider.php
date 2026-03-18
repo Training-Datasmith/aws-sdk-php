@@ -67,7 +67,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * This provider is automatically wrapped in a memoize function that caches
      * previously provided config options.
      *
-     * @param array $config
      *
      * @return callable
      */
@@ -83,7 +82,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         $configProviders[] = self::fallback($config);
 
         $memo = self::memoize(
-            call_user_func_array([ConfigurationProvider::class, 'chain'], $configProviders)
+            call_user_func_array(ConfigurationProvider::chain(...), $configProviders)
         );
 
         if (isset($config['endpoint_discovery'])
@@ -126,10 +125,9 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * endpoint discovery in that case. If no required operations found, will use
      * the class default values.
      *
-     * @param array $config
      * @return callable
      */
-    public static function fallback($config = [])
+    public static function fallback(array $config = [])
     {
         $enabled = self::DEFAULT_ENABLED;
         if (!empty($config['api_provider'])
@@ -147,14 +145,12 @@ class ConfigurationProvider extends AbstractConfigurationProvider
             }
         }
 
-        return function () use ($enabled) {
-            return Promise\Create::promiseFor(
-                new Configuration(
-                    $enabled,
-                    self::DEFAULT_CACHE_LIMIT
-                )
-            );
-        };
+        return fn() => Promise\Create::promiseFor(
+            new Configuration(
+                $enabled,
+                self::DEFAULT_CACHE_LIMIT
+            )
+        );
     }
 
     /**
@@ -208,10 +204,9 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * always returning a ConfigurationInterface object.
      *
      * @param  mixed $config
-     * @return ConfigurationInterface
      * @throws \InvalidArgumentException
      */
-    public static function unwrap($config)
+    public static function unwrap($config): \Aws\EndpointDiscovery\ConfigurationInterface|\Aws\EndpointDiscovery\Configuration
     {
         if (is_callable($config)) {
             $config = $config();
@@ -221,7 +216,8 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         }
         if ($config instanceof ConfigurationInterface) {
             return $config;
-        } elseif (is_array($config) && isset($config['enabled'])) {
+        }
+        if (is_array($config) && isset($config['enabled'])) {
             if (isset($config['cache_limit'])) {
                 return new Configuration(
                     $config['enabled'],

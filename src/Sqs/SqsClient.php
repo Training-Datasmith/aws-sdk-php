@@ -75,7 +75,7 @@ class SqsClient extends AwsClient
      *
      * @return string An ARN representation of the queue URL.
      */
-    public function getQueueArn($queueUrl)
+    public function getQueueArn($queueUrl): string|array
     {
         $queueArn = strtr($queueUrl, [
             'http://'        => 'arn:aws:',
@@ -86,8 +86,8 @@ class SqsClient extends AwsClient
         ]);
 
         // Cope with SQS' .fifo / :fifo arn inconsistency
-        if (substr($queueArn, -5) === ':fifo') {
-            $queueArn = substr_replace($queueArn, '.fifo', -5);
+        if (str_ends_with($queueArn, ':fifo')) {
+            return substr_replace($queueArn, '.fifo', -5);
         }
         return $queueArn;
     }
@@ -105,7 +105,7 @@ class SqsClient extends AwsClient
      *                     attributes.
      * @link http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-attributes.html#message-attributes-items-validation
      */
-    private static function calculateMessageAttributesMd5($message)
+    private static function calculateMessageAttributesMd5(array $message): ?string
     {
         if (empty($message['MessageAttributes'])
             || !is_array($message['MessageAttributes'])
@@ -118,7 +118,7 @@ class SqsClient extends AwsClient
         foreach ($message['MessageAttributes'] as $name => $details) {
             $attributeValues .= self::getEncodedStringPiece($name);
             $attributeValues .= self::getEncodedStringPiece($details['DataType']);
-            if (substr($details['DataType'], 0, 6) === 'Binary') {
+            if (str_starts_with((string) $details['DataType'], 'Binary')) {
                 $attributeValues .= pack('c', 0x02);
                 $attributeValues .= self::getEncodedBinaryPiece(
                     $details['BinaryValue']
@@ -134,29 +134,29 @@ class SqsClient extends AwsClient
         return md5($attributeValues);
     }
 
-    private static function calculateBodyMd5($message)
+    private static function calculateBodyMd5(array $message): string
     {
-        return md5($message['Body']);
+        return md5((string) $message['Body']);
     }
 
-    private static function getEncodedStringPiece($piece)
+    private static function getEncodedStringPiece($piece): string
     {
         $utf8Piece = iconv(
-            mb_detect_encoding($piece, mb_detect_order(), true),
+            mb_detect_encoding((string) $piece, mb_detect_order(), true),
             "UTF-8",
-            $piece
+            (string) $piece
         );
         return self::getFourBytePieceLength($utf8Piece) . $utf8Piece;
     }
 
-    private static function getEncodedBinaryPiece($piece)
+    private static function getEncodedBinaryPiece(string $piece): string
     {
         return self::getFourBytePieceLength($piece) . $piece;
     }
 
-    private static function getFourBytePieceLength($piece)
+    private static function getFourBytePieceLength(string|bool $piece): string
     {
-        return pack('N', (int)strlen($piece));
+        return pack('N', strlen($piece));
     }
 
     /**
@@ -166,73 +166,69 @@ class SqsClient extends AwsClient
      */
     private function validateMd5()
     {
-        return static function (callable $handler) {
-            return function (
-                CommandInterface $c,
-                ?RequestInterface $r = null
-            ) use ($handler) {
-                if ($c->getName() !== 'ReceiveMessage') {
-                    return $handler($c, $r);
-                }
+        return static fn(callable $handler) => function (
+            CommandInterface $c,
+            ?RequestInterface $r = null
+        ) use ($handler) {
+            if ($c->getName() !== 'ReceiveMessage') {
+                return $handler($c, $r);
+            }
 
-                return $handler($c, $r)
-                    ->then(
-                        function ($result) use ($c, $r) {
-                            foreach ((array) $result['Messages'] as $msg) {
-                                $bodyMd5 = self::calculateBodyMd5($msg);
-                                if (isset($msg['MD5OfBody'])
-                                    && $bodyMd5 !== $msg['MD5OfBody']
-                                ) {
-                                    throw new SqsException(
-                                        sprintf(
-                                            'MD5 mismatch. Expected %s, found %s',
-                                            $msg['MD5OfBody'],
-                                            $bodyMd5
-                                        ),
-                                        $c,
-                                        [
-                                            'code' => 'ClientChecksumMismatch',
-                                            'request' => $r
-                                        ]
-                                    );
-                                }
-
-                                if (isset($msg['MD5OfMessageAttributes'])) {
-                                    $messageAttributesMd5 = self::calculateMessageAttributesMd5($msg);
-                                    if ($messageAttributesMd5 !== $msg['MD5OfMessageAttributes']) {
-                                        throw new SqsException(
-                                            sprintf(
-                                                'Attribute MD5 mismatch. Expected %s, found %s',
-                                                $msg['MD5OfMessageAttributes'],
-                                                $messageAttributesMd5
-                                                    ? $messageAttributesMd5
-                                                    : 'No Attributes'
-                                            ),
-                                            $c,
-                                            [
-                                                'code' => 'ClientChecksumMismatch',
-                                                'request' => $r
-                                            ]
-                                        );
-                                    }
-                                } else if (!empty($msg['MessageAttributes'])) {
-                                    throw new SqsException(
-                                        sprintf(
-                                            'No Attribute MD5 found. Expected %s',
-                                            self::calculateMessageAttributesMd5($msg)
-                                        ),
-                                        $c,
-                                        [
-                                            'code' => 'ClientChecksumMismatch',
-                                            'request' => $r
-                                        ]
-                                    );
-                                }
+            return $handler($c, $r)
+                ->then(
+                    function (array $result) use ($c, $r): array {
+                        foreach ((array) $result['Messages'] as $msg) {
+                            $bodyMd5 = self::calculateBodyMd5($msg);
+                            if (isset($msg['MD5OfBody'])
+                                && $bodyMd5 !== $msg['MD5OfBody']
+                            ) {
+                                throw new SqsException(
+                                    sprintf(
+                                        'MD5 mismatch. Expected %s, found %s',
+                                        $msg['MD5OfBody'],
+                                        $bodyMd5
+                                    ),
+                                    $c,
+                                    [
+                                        'code' => 'ClientChecksumMismatch',
+                                        'request' => $r
+                                    ]
+                                );
                             }
-                            return $result;
+
+                            if (isset($msg['MD5OfMessageAttributes'])) {
+                                $messageAttributesMd5 = self::calculateMessageAttributesMd5($msg);
+                                if ($messageAttributesMd5 !== $msg['MD5OfMessageAttributes']) {
+                                    throw new SqsException(
+                                        sprintf(
+                                            'Attribute MD5 mismatch. Expected %s, found %s',
+                                            $msg['MD5OfMessageAttributes'],
+                                            $messageAttributesMd5 ?: 'No Attributes'
+                                        ),
+                                        $c,
+                                        [
+                                            'code' => 'ClientChecksumMismatch',
+                                            'request' => $r
+                                        ]
+                                    );
+                                }
+                            } else if (!empty($msg['MessageAttributes'])) {
+                                throw new SqsException(
+                                    sprintf(
+                                        'No Attribute MD5 found. Expected %s',
+                                        self::calculateMessageAttributesMd5($msg)
+                                    ),
+                                    $c,
+                                    [
+                                        'code' => 'ClientChecksumMismatch',
+                                        'request' => $r
+                                    ]
+                                );
+                            }
                         }
-                    );
-            };
+                        return $result;
+                    }
+                );
         };
     }
 }

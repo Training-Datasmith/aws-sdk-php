@@ -14,16 +14,9 @@ use Psr\Http\Message\UriInterface;
 
 class EndpointDiscoveryMiddleware
 {
-    /**
-     * @var CacheInterface
-     */
-    private static $cache;
-    private static $discoveryCooldown = 60;
-
-    private $args;
-    private $client;
-    private $config;
-    private $discoveryTimes = [];
+    private static ?\Aws\LruArrayCache $cache = null;
+    private static int $discoveryCooldown = 60;
+    private array $discoveryTimes = [];
     private $nextHandler;
     private $service;
 
@@ -32,31 +25,21 @@ class EndpointDiscoveryMiddleware
         $args,
         $config
     ) {
-        return function (callable $handler) use (
+        return fn(callable $handler) => new static(
+            $handler,
             $client,
             $args,
             $config
-        ) {
-            return new static(
-                $handler,
-                $client,
-                $args,
-                $config
-            );
-        };
+        );
     }
 
     public function __construct(
         callable $handler,
-        AwsClient $client,
-        array $args,
-        $config
+        private readonly AwsClient $client,
+        private $config
     ) {
         $this->nextHandler = $handler;
-        $this->client = $client;
-        $this->args = $args;
-        $this->service = $client->getApi();
-        $this->config = $config;
+        $this->service = $this->client->getApi();
     }
 
     public function __invoke(CommandInterface $cmd, RequestInterface $request)
@@ -200,7 +183,7 @@ class EndpointDiscoveryMiddleware
         CredentialsInterface $creds,
         CommandInterface $cmd,
         array $identifiers
-    ) {
+    ): string {
         $key = $this->service->getServiceName() . '_' . $creds->getAccessKeyId();
         if (!empty($identifiers)) {
             $key .= '_' . $cmd->getName();
@@ -239,19 +222,20 @@ class EndpointDiscoveryMiddleware
         }
         $command = $this->client->getCommand($endpointOperation, $params);
         $command->getHandlerList()->appendBuild(
-            Middleware::mapRequest(function (RequestInterface $r) {
-                return $r->withHeader(
-                    'x-amz-api-version',
-                    $this->service->getApiVersion()
-                );
-            }),
+            Middleware::mapRequest(fn(RequestInterface $r) => $r->withHeader(
+                'x-amz-api-version',
+                $this->service->getApiVersion()
+            )),
             'x-amz-api-version-header'
         );
 
         return $command;
     }
 
-    private function getIdentifiers(array $operation)
+    /**
+     * @return mixed[]
+     */
+    private function getIdentifiers(array $operation): array
     {
         $inputShape = $this->service->getShapeMap()
             ->resolve($operation['input'])
@@ -266,8 +250,8 @@ class EndpointDiscoveryMiddleware
     }
 
     private function handleDiscoveryException(
-        $isRequired,
-        $originalUri,
+        bool $isRequired,
+        \Psr\Http\Message\UriInterface $originalUri,
         \Exception $e,
         CommandInterface $cmd,
         RequestInterface $request
@@ -299,12 +283,12 @@ class EndpointDiscoveryMiddleware
 
     private function handleInvalidEndpoint(
         $cacheKey,
-        $cmd,
-        $identifiers,
-        $isRequired,
-        $originalUri,
+        \Aws\CommandInterface $cmd,
+        array $identifiers,
+        bool $isRequired,
+        \Psr\Http\Message\UriInterface $originalUri,
         $request,
-        $value,
+        \Aws\Exception\AwsException $value,
         &$endpoint,
         &$g
     ) {
@@ -356,7 +340,7 @@ class EndpointDiscoveryMiddleware
         $parsed = $this->parseEndpoint($endpoint);
         if (!empty($request->getHeader('User-Agent'))) {
             $userAgent = $request->getHeader('User-Agent')[0];
-            if (strpos($userAgent, 'endpoint-discovery') === false) {
+            if (!str_contains((string) $userAgent, 'endpoint-discovery')) {
                 $userAgent = $userAgent . ' endpoint-discovery';
             }
         } else {
@@ -381,7 +365,7 @@ class EndpointDiscoveryMiddleware
      */
     private function parseEndpoint($endpoint)
     {
-        $parsed = parse_url($endpoint);
+        $parsed = parse_url((string) $endpoint);
 
         // parse_url() will correctly parse full URIs with schemes
         if (isset($parsed['host'])) {
@@ -393,7 +377,7 @@ class EndpointDiscoveryMiddleware
             $split = explode('/', $parsed['path'], 2);
             $parsed['host'] = $split[0];
             if (isset($split[1])) {
-                if (substr($split[1], 0 , 1) !== '/') {
+                if (!str_starts_with($split[1], '/')) {
                     $split[1] = '/' . $split[1];
                 }
                 $parsed['path'] = $split[1];

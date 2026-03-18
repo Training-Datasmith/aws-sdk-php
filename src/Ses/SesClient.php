@@ -163,16 +163,14 @@ class SesClient extends \Aws\AwsClient
      *
      * @link http://docs.aws.amazon.com/ses/latest/DeveloperGuide/smtp-credentials.html#smtp-credentials-convert
      *
-     * @param CredentialsInterface $creds
      *
-     * @return string
      */
-    public static function generateSmtpPassword(CredentialsInterface $creds)
+    public static function generateSmtpPassword(CredentialsInterface $creds): string
     {
         static $version = "\x02";
         static $algo = 'sha256';
         static $message = 'SendRawEmail';
-        $signature = hash_hmac($algo, $message, $creds->getSecretKey(), true);
+        $signature = hash_hmac((string) $algo, (string) $message, $creds->getSecretKey(), true);
 
         return base64_encode($version . $signature);
     }
@@ -187,12 +185,10 @@ class SesClient extends \Aws\AwsClient
      *
      * @link https://docs.aws.amazon.com/ses/latest/DeveloperGuide/smtp-credentials.html#smtp-credentials-convert
      *
-     * @param CredentialsInterface $creds
      * @param string $region
      *
-     * @return string
      */
-    public static function generateSmtpPasswordV4(CredentialsInterface $creds, $region)
+    public static function generateSmtpPasswordV4(CredentialsInterface $creds, $region): string
     {
         $key = $creds->getSecretKey();
 
@@ -212,15 +208,15 @@ class SesClient extends \Aws\AwsClient
         return  base64_encode($signatureAndVersion);
     }
 
-    private static function sign($key, $message) {
-        return hash_hmac('sha256', $key, $message, true);
+    private static function sign($key, $message): string {
+        return hash_hmac('sha256', (string) $key, (string) $message, true);
     }
 
     /**
      * @internal
      * @codeCoverageIgnore
      */
-    public static function applyDocFilters(array $api, array $docs)
+    public static function applyDocFilters(array $api, array $docs): array
     {
         $b64 = '<div class="alert alert-info">This value will be base64 encoded on your behalf.</div>';
 

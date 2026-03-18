@@ -63,7 +63,6 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      * This provider is automatically wrapped in a memoize function that caches
      * previously provided config options.
      *
-     * @param array $config
      *
      * @return callable
      */
@@ -79,7 +78,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
         $configProviders[] = self::fallback($config['region']);
 
         $memo = self::memoize(
-            call_user_func_array([ConfigurationProvider::class, 'chain'], $configProviders)
+            call_user_func_array(ConfigurationProvider::chain(...), $configProviders)
         );
 
         if (isset($config['use_fips_endpoint'])
@@ -166,8 +165,8 @@ class ConfigurationProvider extends AbstractConfigurationProvider
     public static function fallback($region)
     {
         return function () use ($region) {
-            $isFipsPseudoRegion = strpos($region, 'fips-') !== false
-                || strpos($region, '-fips') !== false;
+            $isFipsPseudoRegion = str_contains((string) $region, 'fips-')
+                || str_contains((string) $region, '-fips');
             if ($isFipsPseudoRegion){
                 $configuration = new Configuration(true);
             } else {

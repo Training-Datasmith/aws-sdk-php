@@ -10,14 +10,14 @@ use Aws\Api\Service;
  */
 trait AwsClientTrait
 {
-    public function getPaginator($name, array $args = [])
+    public function getPaginator($name, array $args = []): \Aws\ResultPaginator
     {
         $config = $this->getApi()->getPaginatorConfig($name);
 
         return new ResultPaginator($this, $name, $args, $config);
     }
 
-    public function getIterator($name, array $args = [])
+    public function getIterator(string $name, array $args = [])
     {
         $config = $this->getApi()->getPaginatorConfig($name);
         if (!$config['result_key']) {
@@ -45,9 +45,9 @@ trait AwsClientTrait
         return $this->getWaiter($name, $args)->promise()->wait();
     }
 
-    public function getWaiter($name, array $args = [])
+    public function getWaiter($name, array $args = []): \Aws\Waiter
     {
-        $config = isset($args['@waiter']) ? $args['@waiter'] : [];
+        $config = $args['@waiter'] ?? [];
         $config += $this->getApi()->getWaiterConfig($name);
 
         return new Waiter($this, $name, $args, $config);
@@ -66,13 +66,13 @@ trait AwsClientTrait
 
     public function __call($name, array $args)
     {
-        if (substr($name, -5) === 'Async') {
-            $name = substr($name, 0, -5);
+        if (str_ends_with((string) $name, 'Async')) {
+            $name = substr((string) $name, 0, -5);
             $isAsync = true;
         }
 
-        if (!empty($this->aliases[ucfirst($name)])) {
-            $name = $this->aliases[ucfirst($name)];
+        if (!empty($this->aliases[ucfirst((string) $name)])) {
+            $name = $this->aliases[ucfirst((string) $name)];
         }
 
         $params = $args['args'] ?? $args[0] ?? [];
@@ -88,7 +88,6 @@ trait AwsClientTrait
 
     /**
      * @param string $name
-     * @param array $args
      *
      * @return CommandInterface
      */

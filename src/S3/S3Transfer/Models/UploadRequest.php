@@ -17,14 +17,7 @@ final class UploadRequest extends AbstractTransferRequest
         'request_checksum_calculation' => 'string',
     ];
 
-    /** @var StreamInterface|string  */
-    private StreamInterface|string $source;
-
-    /** @var array  */
-    private array $uploadRequestArgs;
-
     /**
-     * @param string|StreamInterface $source
      * @param array $uploadRequestArgs The putObject request arguments.
      * Required parameters would be:
      * - Bucket: (string, required)
@@ -42,26 +35,20 @@ final class UploadRequest extends AbstractTransferRequest
      * - concurrency: (int, optional) To override default value for concurrency.
      * - request_checksum_calculation: (string, optional, defaulted to `when_supported`)
      * @param AbstractTransferListener[]|null $listeners
-     * @param AbstractTransferListener|null $progressTracker
-     * @param S3ClientInterface|null $s3Client
      */
     public function __construct(
-        StreamInterface|string $source,
-        array $uploadRequestArgs,
+        private readonly StreamInterface|string $source,
+        private array $uploadRequestArgs,
         array $config = [],
         array $listeners = [],
         ?AbstractTransferListener $progressTracker  = null,
         ?S3ClientInterface $s3Client = null
     ) {
         parent::__construct($listeners, $progressTracker, $config, $s3Client);
-        $this->source = $source;
-        $this->uploadRequestArgs = $uploadRequestArgs;
     }
 
     /**
      * Get the source.
-     *
-     * @return StreamInterface|string
      */
     public function getSource(): StreamInterface|string
     {
@@ -70,8 +57,6 @@ final class UploadRequest extends AbstractTransferRequest
 
     /**
      * Get the put object request.
-     *
-     * @return array
      */
     public function getUploadRequestArgs(): array
     {
@@ -80,8 +65,6 @@ final class UploadRequest extends AbstractTransferRequest
 
     /**
      * Helper method for validating the given source.
-     *
-     * @return void
      */
     public function validateSource(): void
     {
@@ -95,9 +78,6 @@ final class UploadRequest extends AbstractTransferRequest
 
     /**
      * Helper method for validating required parameters.
-     *
-     * @param string|null $customMessage
-     * @return void
      */
     public function validateRequiredParameters(
         ?string $customMessage = null

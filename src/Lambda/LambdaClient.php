@@ -200,7 +200,7 @@ class LambdaClient extends AwsClient
      */
     public function getDefaultCurlOptionsMiddleware()
     {
-        return Middleware::mapCommand(function (CommandInterface $cmd) {
+        return Middleware::mapCommand(function (CommandInterface $cmd): \Aws\CommandInterface {
             $defaultCurlOptions = [
                 CURLOPT_TCP_KEEPALIVE => 1,
             ];

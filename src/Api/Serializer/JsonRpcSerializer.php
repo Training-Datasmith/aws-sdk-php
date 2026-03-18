@@ -16,14 +16,10 @@ class JsonRpcSerializer
 {
     use EndpointV2SerializerTrait;
 
-    /** @var JsonBody */
-    private $jsonFormatter;
+    private \Aws\Api\Serializer\JsonBody $jsonFormatter;
 
     /** @var string */
     private $endpoint;
-
-    /** @var Service */
-    private $api;
 
     /** @var string */
     private $contentType;
@@ -34,14 +30,13 @@ class JsonRpcSerializer
      * @param JsonBody $jsonFormatter Optional JSON formatter to use
      */
     public function __construct(
-        Service $api,
+        private Service $api,
         $endpoint,
         ?JsonBody $jsonFormatter = null
     ) {
         $this->endpoint = $endpoint;
-        $this->api = $api;
         $this->jsonFormatter = $jsonFormatter ?: new JsonBody($this->api);
-        $this->contentType = JsonBody::getContentType($api);
+        $this->contentType = JsonBody::getContentType($this->api);
     }
 
     /**

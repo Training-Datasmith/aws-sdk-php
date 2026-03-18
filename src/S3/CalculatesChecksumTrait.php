@@ -18,9 +18,8 @@ trait CalculatesChecksumTrait
     /**
      * @param string $requestedAlgorithm  the algorithm to encode with
      * @param string $value               the value to be encoded
-     * @return string
      */
-    public static function getEncodedValue($requestedAlgorithm, $value) {
+    public static function getEncodedValue($requestedAlgorithm, $value): string {
         $requestedAlgorithm = strtolower($requestedAlgorithm);
         $useCrt = extension_loaded('awscrt');
 

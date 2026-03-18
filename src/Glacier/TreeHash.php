@@ -11,21 +11,21 @@ class TreeHash implements HashInterface
     const MB = 1048576;
     const EMPTY_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
-    /** @var string Algorithm used for hashing. */
-    private $algorithm;
-
     /** @var string Buffered data that has not yet been hashed. */
-    private $buffer;
+    private string $buffer;
 
     /** @var array Binary checksums from which the tree hash is derived. */
-    private $checksums = [];
+    private array $checksums = [];
 
     /** @var string Resulting hash in binary form. */
     private $hash;
 
-    public function __construct($algorithm = 'sha256')
+    /**
+     * @param string $algorithm
+     */
+    public function __construct(/** @var string Algorithm used for hashing. */
+    private $algorithm = 'sha256')
     {
-        $this->algorithm = $algorithm;
         $this->reset();
     }
 
@@ -33,7 +33,7 @@ class TreeHash implements HashInterface
      * {@inheritdoc}
      * @throws \LogicException if the root tree hash is already calculated
      */
-    public function update($data)
+    public function update($data): static
     {
         // Error if hash is already calculated.
         if ($this->hash) {
@@ -60,10 +60,9 @@ class TreeHash implements HashInterface
      * @param string $checksum   The checksum to add
      * @param bool $inBinaryForm TRUE if checksum is in binary form
      *
-     * @return self
      * @throws \LogicException if the root tree hash is already calculated
      */
-    public function addChecksum($checksum, $inBinaryForm = false)
+    public function addChecksum($checksum, $inBinaryForm = false): static
     {
         // Error if hash is already calculated
         if ($this->hash) {
@@ -95,7 +94,7 @@ class TreeHash implements HashInterface
             $hashes = $this->checksums;
             while (count($hashes) > 1) {
                 $sets = array_chunk($hashes, 2);
-                $hashes = array();
+                $hashes = [];
                 foreach ($sets as $set) {
                     $hashes[] = (count($set) === 1)
                         ? $set[0]
@@ -109,7 +108,7 @@ class TreeHash implements HashInterface
         return $this->hash;
     }
 
-    public function reset()
+    public function reset(): void
     {
         $this->hash = null;
         $this->checksums = [];

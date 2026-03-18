@@ -21,8 +21,6 @@ use \Aws\S3\S3Client;
 class InstructionFileMetadataStrategy implements MetadataStrategyInterface
 {
     const DEFAULT_FILE_SUFFIX = '.instruction';
-
-    private $client;
     private $suffix;
 
     /**
@@ -30,12 +28,11 @@ class InstructionFileMetadataStrategy implements MetadataStrategyInterface
      * @param string|null $suffix Optional override suffix for instruction file
      *                            object keys.
      */
-    public function __construct(S3Client $client, $suffix = null)
+    public function __construct(private readonly S3Client $client, $suffix = null)
     {
         $this->suffix = empty($suffix)
             ? self::DEFAULT_FILE_SUFFIX
             : $suffix;
-        $this->client = $client;
     }
 
     /**
@@ -48,7 +45,7 @@ class InstructionFileMetadataStrategy implements MetadataStrategyInterface
      *
      * @return array Updated arguments for PutObject.
      */
-    public function save(MetadataEnvelope $envelope, array $args)
+    public function save(MetadataEnvelope $envelope, array $args): array
     {
         //= ../specification/s3-encryption/data-format/metadata-strategy.md#instruction-file
         //# The S3EC MUST support writing some or all (depending on format) content metadata to an Instruction File.
@@ -125,7 +122,7 @@ class InstructionFileMetadataStrategy implements MetadataStrategyInterface
             'Key' => $args['Key'] . $this->suffix
         ]);
 
-        $metadataHeaders = json_decode($result['Body'], true);
+        $metadataHeaders = json_decode((string) $result['Body'], true);
         $envelope = new MetadataEnvelope();
         $constantValues = MetadataEnvelope::getConstantValues();
 

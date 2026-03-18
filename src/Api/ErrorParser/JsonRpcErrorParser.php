@@ -14,7 +14,7 @@ class JsonRpcErrorParser extends AbstractErrorParser
 {
     use JsonParserTrait;
 
-    private $parser;
+    private \Aws\Api\Parser\JsonParser $parser;
 
     public function __construct(?Service $api = null, ?JsonParser $parser = null)
     {
@@ -22,10 +22,13 @@ class JsonRpcErrorParser extends AbstractErrorParser
         $this->parser = $parser ?: new JsonParser();
     }
 
+    /**
+     * @return mixed[]
+     */
     public function __invoke(
         ResponseInterface $response,
         ?CommandInterface $command = null
-    ) {
+    ): array {
         $response = AbstractParser::getResponseWithCachingStream($response);
         $data = $this->genericHandler($response);
 
@@ -37,7 +40,7 @@ class JsonRpcErrorParser extends AbstractErrorParser
         if (isset($data['parsed']['__type'])) {
             if (!isset($data['code'])) {
                 $parts = explode('#', $data['parsed']['__type']);
-                $data['code'] = isset($parts[1]) ? $parts[1] : $parts[0];
+                $data['code'] = $parts[1] ?? $parts[0];
             }
             $data['message'] = $data['parsed']['message'] ?? null;
         }

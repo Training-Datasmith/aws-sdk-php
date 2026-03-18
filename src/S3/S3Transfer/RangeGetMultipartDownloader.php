@@ -10,8 +10,6 @@ final class RangeGetMultipartDownloader extends AbstractMultipartDownloader
 {
     /**
      * @inheritDoc
-     *
-     * @return CommandInterface
      */
     protected function nextCommand(): CommandInterface
     {
@@ -50,8 +48,6 @@ final class RangeGetMultipartDownloader extends AbstractMultipartDownloader
      * @inheritDoc
      *
      * @param Result $result
-     *
-     * @return void
      */
     protected function computeObjectDimensions(ResultInterface $result): void
     {

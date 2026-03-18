@@ -23,8 +23,6 @@ class BedrockTokenProvider extends TokenProvider
      * previously provided tokens.
      *
      * @param array $config Optional array of token provider options.
-     *
-     * @return callable
      */
     public static function defaultProvider(array $config = []): callable
     {
@@ -32,7 +30,7 @@ class BedrockTokenProvider extends TokenProvider
 
         return self::memoize(
             call_user_func_array(
-                [TokenProvider::class, 'chain'],
+                TokenProvider::chain(...),
                 array_values($defaultChain)
             )
         );
@@ -43,8 +41,6 @@ class BedrockTokenProvider extends TokenProvider
      *
      * @param string $configKey The configuration key that will be transformed
      *                          to an environment variable name by ConfigurationResolver
-     *
-     * @return callable
      */
     public static function env(string $configKey): callable
     {
@@ -68,8 +64,6 @@ class BedrockTokenProvider extends TokenProvider
      * Bedrock bearer tokens sourced from env do not have an expiration
      *
      * @param string $tokenValue The bearer token value
-     *
-     * @return callable
      */
     public static function fromTokenValue(
         string $tokenValue,

@@ -72,9 +72,6 @@ class CommandPool implements PromisorInterface
         $this->each = new EachPromise($mapFn($commands), $config);
     }
 
-    /**
-     * @return PromiseInterface
-     */
     public function promise(): PromiseInterface
     {
         return $this->each->promise();
@@ -102,7 +99,7 @@ class CommandPool implements PromisorInterface
 
         return (new self($client, $commands, $config))
             ->promise()
-            ->then(static function () use (&$results) {
+            ->then(static function () use (&$results): array {
                 ksort($results);
                 return $results;
             })
@@ -112,7 +109,7 @@ class CommandPool implements PromisorInterface
     /**
      * @return callable
      */
-    private function getBefore(array $config)
+    private function getBefore(array $config): ?callable
     {
         if (!isset($config['before'])) {
             return null;
@@ -130,19 +127,17 @@ class CommandPool implements PromisorInterface
      * an array. If a callback is already present, it is replaced with the
      * composed function.
      *
-     * @param array $config
      * @param       $name
-     * @param array $results
      */
-    private static function cmpCallback(array &$config, $name, array &$results)
+    private static function cmpCallback(array &$config, string $name, array &$results): void
     {
         if (!isset($config[$name])) {
-            $config[$name] = function ($v, $k) use (&$results) {
+            $config[$name] = function ($v, $k) use (&$results): void {
                 $results[$k] = $v;
             };
         } else {
             $currentFn = $config[$name];
-            $config[$name] = function ($v, $k) use (&$results, $currentFn) {
+            $config[$name] = function ($v, $k) use (&$results, $currentFn): void {
                 $currentFn($v, $k);
                 $results[$k] = $v;
             };

@@ -17,14 +17,10 @@ use Psr\Http\Message\StreamInterface;
  */
 final class RpcV2CborErrorParser extends AbstractRpcV2ErrorParser
 {
-    /** @var CborDecoder */
     private CborDecoder $decoder;
 
     use RpcV2ParserTrait;
 
-    /**
-     * @param Service|null $api
-     */
     public function __construct(?Service $api = null)
     {
         $this->decoder = new CborDecoder();
@@ -32,10 +28,7 @@ final class RpcV2CborErrorParser extends AbstractRpcV2ErrorParser
     }
 
     /**
-     * @param ResponseInterface $response
-     * @param StructureShape $member
      *
-     * @return array
      * @throws \Exception
      */
     protected function payload(
@@ -49,12 +42,6 @@ final class RpcV2CborErrorParser extends AbstractRpcV2ErrorParser
         return $this->resolveOutputShape($member, $cborBody);
     }
 
-    /**
-     * @param StreamInterface $body
-     * @param ResponseInterface $response
-     *
-     * @return mixed
-     */
     protected function parseBody(
         StreamInterface $body,
         ResponseInterface $response

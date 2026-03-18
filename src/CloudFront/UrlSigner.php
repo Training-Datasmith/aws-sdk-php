@@ -10,7 +10,7 @@ use Psr\Http\Message\UriInterface;
  */
 class UrlSigner
 {
-    private $signer;
+    private readonly \Aws\CloudFront\Signer $signer;
 
     /**
      * @param $keyPairId  string ID of the key pair
@@ -72,7 +72,7 @@ class UrlSigner
             : (string) $uri;
     }
 
-    private function createRtmpUrl(UriInterface $uri)
+    private function createRtmpUrl(UriInterface $uri): string
     {
         // Use a relative URL when creating Flash player URLs
         $result = ltrim($uri->getPath(), '/');
@@ -90,7 +90,7 @@ class UrlSigner
      *
      * @return string
      */
-    private function createResource($scheme, $url)
+    private function createResource(string|array $scheme, $url)
     {
         switch ($scheme) {
             case 'http':
@@ -98,7 +98,7 @@ class UrlSigner
             case 'https':
                 return $url;
             case 'rtmp':
-                $parts = parse_url($url);
+                $parts = parse_url((string) $url);
                 $pathParts = pathinfo($parts['path']);
                 $resource = ltrim(
                     str_replace('\\', '/', $pathParts['dirname']) . '/' . $pathParts['basename'],

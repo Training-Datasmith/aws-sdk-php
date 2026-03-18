@@ -14,18 +14,14 @@ use Psr\Http\Message\StreamInterface;
  */
 abstract class AbstractParser
 {
-    /** @var \Aws\Api\Service Representation of the service API*/
-    protected $api;
-
     /** @var callable */
     protected $parser;
 
     /**
      * @param Service $api Service description.
      */
-    public function __construct(Service $api)
+    public function __construct(protected \Aws\Api\Service $api)
     {
-        $this->api = $api;
     }
 
     /**

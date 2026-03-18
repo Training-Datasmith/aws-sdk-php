@@ -17,19 +17,15 @@ class EventParsingIterator implements Iterator
     /** @var StreamInterface */
     private $decodingIterator;
 
-    /** @var StructureShape */
-    private $shape;
-
     /** @var AbstractParser */
     private $parser;
 
     public function __construct(
         StreamInterface $stream,
-        StructureShape $shape,
+        private readonly StructureShape $shape,
         AbstractParser $parser
     ) {
         $this->decodingIterator = $this->chooseDecodingIterator($stream);
-        $this->shape = $shape;
         $this->parser = $parser;
     }
 
@@ -41,13 +37,12 @@ class EventParsingIterator implements Iterator
      *
      * @return Iterator
      */
-    private function chooseDecodingIterator($stream)
+    private function chooseDecodingIterator($stream): \Aws\Api\Parser\DecodingEventStreamIterator|\Aws\Api\Parser\NonSeekableStreamDecodingEventStreamIterator
     {
         if ($stream->isSeekable()) {
             return new DecodingEventStreamIterator($stream);
-        } else {
-            return new NonSeekableStreamDecodingEventStreamIterator($stream);
         }
+        return new NonSeekableStreamDecodingEventStreamIterator($stream);
     }
 
     /**
@@ -68,20 +63,14 @@ class EventParsingIterator implements Iterator
         return $this->decodingIterator->key();
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         $this->decodingIterator->next();
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         $this->decodingIterator->rewind();
     }
@@ -134,10 +123,8 @@ class EventParsingIterator implements Iterator
     /**
      * @param $headers
      * @param $eventShape
-     *
-     * @return array
      */
-    private function parseEventHeaders($headers, $eventShape): array
+    private function parseEventHeaders(array $headers, $eventShape): array
     {
         $parsedHeaders = [];
         foreach ($eventShape->getMembers() as $memberName => $memberProps) {
@@ -152,10 +139,8 @@ class EventParsingIterator implements Iterator
     /**
      * @param $payload
      * @param $eventShape
-     *
-     * @return array
      */
-    private function parseEventPayload($payload, $eventShape): array
+    private function parseEventPayload($payload, \Aws\Api\StructureShape $eventShape): array
     {
         $parsedPayload = [];
         foreach ($eventShape->getMembers() as $memberName => $memberProps) {
@@ -180,13 +165,13 @@ class EventParsingIterator implements Iterator
              * If we did not find a member with an eventpayload trait, then we should deserialize the payload
              * using the event's shape.
              */
-            $parsedPayload = $this->parser->parseMemberFromStream($payload, $eventShape, null);
+            return $this->parser->parseMemberFromStream($payload, $eventShape, null);
         }
 
         return $parsedPayload;
     }
 
-    private function parseError(array $event)
+    private function parseError(array $event): never
     {
         throw new EventStreamDataException(
             $event['headers'][':error-code'],
@@ -194,9 +179,9 @@ class EventParsingIterator implements Iterator
         );
     }
 
-    private function parseException(array $event) {
+    private function parseException(array $event): never {
         $payload = $event['payload']?->getContents();
-        $parsedPayload = json_decode($payload, true);
+        $parsedPayload = json_decode((string) $payload, true);
 
         throw new EventStreamDataException(
             $event['headers'][':exception-type'] ?? 'Unknown',
@@ -206,6 +191,6 @@ class EventParsingIterator implements Iterator
 
     private function parseInitialResponseEvent($payload): array
     {
-        return ['initial-response' => json_decode($payload, true)];
+        return ['initial-response' => json_decode((string) $payload, true)];
     }
 }

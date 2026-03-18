@@ -9,7 +9,7 @@ class StructureShape extends Shape
     /**
      * @var Shape[]
      */
-    private $members;
+    private ?array $members = null;
 
     public function __construct(array $definition, ShapeMap $shapeMap)
     {
@@ -40,10 +40,8 @@ class StructureShape extends Shape
      * Check if a specific member exists by name.
      *
      * @param string $name Name of the member to check
-     *
-     * @return bool
      */
-    public function hasMember($name)
+    public function hasMember($name): bool
     {
         return isset($this->definition['members'][$name]);
     }
@@ -56,7 +54,7 @@ class StructureShape extends Shape
      * @return Shape
      * @throws \InvalidArgumentException if the member is not found.
      */
-    public function getMember($name)
+    public function getMember(string $name)
     {
         $members = $this->getMembers();
 
@@ -73,7 +71,6 @@ class StructureShape extends Shape
      * member and target shape definitions, causing certain
      * properties like `locationName` to be overwritten.
      *
-     * @return ShapeMap
      * @internal This method is for internal use only and should not be used
      * by external code. It may be changed or removed without notice.
      */
@@ -85,16 +82,14 @@ class StructureShape extends Shape
     /**
      * Used to look up a shape's original definition.
      *
-     * @param string $name
      *
-     * @return array|null
      */
     public function getOriginalDefinition(string $name): ?array
     {
         return $this->shapeMap[$name] ?? null;
     }
 
-    private function generateMembersHash()
+    private function generateMembersHash(): void
     {
         $this->members = [];
 

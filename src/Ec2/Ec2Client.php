@@ -1527,7 +1527,7 @@ class Ec2Client extends AwsClient
 {
     public function __construct(array $args)
     {
-        $args['with_resolved'] = function (array $args) {
+        $args['with_resolved'] = function (array $args): void {
             $this->getHandlerList()->appendInit(
                 PresignUrlMiddleware::wrap(
                     $this,
@@ -1551,7 +1551,7 @@ class Ec2Client extends AwsClient
      * @internal
      * @codeCoverageIgnore
      */
-    public static function applyDocFilters(array $api, array $docs)
+    public static function applyDocFilters(array $api, array $docs): array
     {
         // Several copy snapshot parameters are optional.
         $docs['shapes']['String']['refs']['CopySnapshotRequest$PresignedUrl']

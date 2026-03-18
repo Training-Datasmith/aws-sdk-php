@@ -263,7 +263,7 @@ class ApiGatewayClient extends AwsClient
     {
         parent::__construct($args);
         $stack = $this->getHandlerList();
-        $stack->appendBuild([__CLASS__, '_add_accept_header']);
+        $stack->appendBuild([self::class, '_add_accept_header']);
     }
 
     public static function _add_accept_header(callable $handler)

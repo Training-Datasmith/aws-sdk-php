@@ -15,9 +15,6 @@ class QueryParser extends AbstractParser
 {
     use PayloadParserTrait;
 
-    /** @var bool */
-    private $honorResultWrapper;
-
     /**
      * @param Service   $api                Service description
      * @param XmlParser $xmlParser          Optional XML parser
@@ -28,17 +25,16 @@ class QueryParser extends AbstractParser
     public function __construct(
         Service $api,
         ?XmlParser $xmlParser = null,
-        $honorResultWrapper = true
+        private $honorResultWrapper = true
     ) {
         parent::__construct($api);
         $this->parser = $xmlParser ?: new XmlParser();
-        $this->honorResultWrapper = $honorResultWrapper;
     }
 
     public function __invoke(
         CommandInterface $command,
         ResponseInterface $response
-    ) {
+    ): \Aws\Result {
         $output = $this->api->getOperation($command->getName())->getOutput();
         // Read the full payload, even in non-seekable streams
         $rawBody = AbstractParser::getBodyContents($response);

@@ -14,9 +14,6 @@ class HashingStream implements StreamInterface
     /** @var StreamInterface */
     private $stream;
 
-    /** @var HashInterface */
-    private $hash;
-
     /** @var callable|null */
     private $callback;
 
@@ -28,11 +25,10 @@ class HashingStream implements StreamInterface
      */
     public function __construct(
         StreamInterface $stream,
-        HashInterface $hash,
+        private HashInterface $hash,
         ?callable $onComplete = null
     ) {
         $this->stream = $stream;
-        $this->hash = $hash;
         $this->callback = $onComplete;
     }
 

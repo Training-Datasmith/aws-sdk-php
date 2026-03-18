@@ -12,8 +12,6 @@ use Aws\Kms\KmsClient;
 class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsProviderInterfaceV3
 {
     const WRAP_ALGORITHM_NAME = 'kms+context';
-    private KmsClient $kmsClient;
-    private ?string $kmsKeyId;
 
     /**
      * @param KmsClient $kmsClient A KMS Client for use encrypting and
@@ -21,12 +19,8 @@ class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsPro
      * @param string $kmsKeyId The private KMS key id to be used for encrypting
      *                         and decrypting keys.
      */
-    public function __construct(
-        KmsClient $kmsClient,
-        ?string $kmsKeyId = null
-    ) {
-        $this->kmsClient = $kmsClient;
-        $this->kmsKeyId = $kmsKeyId;
+    public function __construct(private readonly KmsClient $kmsClient, private readonly ?string $kmsKeyId = null)
+    {
     }
 
     /**
@@ -152,7 +146,7 @@ class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsPro
 
         return [
             'Plaintext' => $result['Plaintext'],
-            'Ciphertext' => base64_encode($result['CiphertextBlob']),
+            'Ciphertext' => base64_encode((string) $result['CiphertextBlob']),
             'UpdatedContext' => $context
         ];
     }

@@ -74,9 +74,9 @@ class MetadataEnvelope implements ArrayAccess, IteratorAggregate, JsonSerializab
     //# - This mapkey ("x-amz-i") SHOULD be represented by a constant named "MESSAGE_ID_V3" or similar in the implementation code.
     const MESSAGE_ID_V3 = 'x-amz-i';
 
-    private static $constants = [];
+    private static array $constants = [];
 
-    public static function getConstantValues()
+    public static function getConstantValues(): array
     {
         if (empty(self::$constants)) {
             $reflection = new \ReflectionClass(static::class);
@@ -90,11 +90,8 @@ class MetadataEnvelope implements ArrayAccess, IteratorAggregate, JsonSerializab
         return array_keys(self::$constants);
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
         $constants = self::getConstantValues();
         //= ../specification/s3-encryption/data-format/content-metadata.md#determining-s3ec-object-status

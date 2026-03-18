@@ -16,7 +16,7 @@ class Configuration implements ConfigurationInterface
                 . " must be a boolean value.");
         }
         if ($this->useDualstackEndpoint == true
-            && (strpos($region, "iso-") !== false || strpos($region, "-iso") !== false)
+            && (str_contains((string) $region, "iso-") || str_contains((string) $region, "-iso"))
         ) {
             throw new ConfigurationException("Dual-stack is not supported in ISO regions");        }
     }
@@ -32,7 +32,7 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritdoc}
      */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'use_dual_stack_endpoint' => $this->isUseDualstackEndpoint(),

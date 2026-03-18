@@ -26,11 +26,7 @@ class MultiRegionAccessPointArn extends AccessPointArn
         return parent::parse($string);
     }
 
-    /**
-     *
-     * @param array $data
-     */
-    public static function validate(array $data)
+    public static function validate(array $data): void
     {
         Arn::validate($data);
     }

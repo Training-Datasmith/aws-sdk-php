@@ -3,8 +3,8 @@ namespace Aws\EndpointDiscovery;
 
 class Configuration implements ConfigurationInterface
 {
-    private $cacheLimit;
-    private $enabled;
+    private readonly int|bool $cacheLimit;
+    private readonly bool $enabled;
 
     public function __construct($enabled, $cacheLimit = 1000)
     {
@@ -38,7 +38,7 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritdoc}
      */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'enabled' => $this->isEnabled(),

@@ -22,7 +22,7 @@ class BearerTokenAuthorization implements TokenAuthorization
         RequestInterface $request,
         TokenInterface $token
     ) {
-        if (empty($token) || empty($token->getToken())) {
+        if (empty($token->getToken())) {
             throw new InvalidArgumentException(
                 "Cannot authorize a request with an empty token"
             );

@@ -10,11 +10,7 @@ use function \Aws\is_associative;
  */
 class RulesetParameter
 {
-    /** @var string */
-    private $name;
-
-    /** @var string */
-    private $type;
+    private ?string $type = null;
 
     /** @var string */
     private $builtIn;
@@ -32,15 +28,18 @@ class RulesetParameter
     private $deprecated;
 
     /** @var array<string, string> */
-    private static $typeMap = [
+    private static array $typeMap = [
         'String' => 'is_string',
         'Boolean' => 'is_bool',
         'StringArray' => 'isStringArray'
     ];
 
-    public function __construct($name, array $definition)
+    /**
+     * @param string $name
+     */
+    public function __construct(private $name, array $definition)
     {
-        $type = ucfirst($definition['type']);
+        $type = ucfirst((string) $definition['type']);
         if ($this->isValidType($type)) {
             $this->type = $type;
         } else {
@@ -49,8 +48,6 @@ class RulesetParameter
                 '. Parameters must be of type `String`, `Boolean` or `StringArray.'
             );
         }
-
-        $this->name = $name;
         $this->builtIn = $definition['builtIn'] ?? null;
         $this->default = $definition['default'] ?? null;
         $this->required = $definition['required'] ?? false;
@@ -117,10 +114,9 @@ class RulesetParameter
     /**
      * Validates that an input parameter matches the type provided in its definition.
      *
-     * @return void
      * @throws InvalidArgumentException
      */
-    public function validateInputParam($inputParam)
+    public function validateInputParam($inputParam): void
     {
         if (!$this->isValidInput($inputParam)) {
             throw new UnresolvedEndpointException(
@@ -145,7 +141,7 @@ class RulesetParameter
         }
     }
 
-    private function isValidType($type)
+    private function isValidType(string $type): bool
     {
         return isset(self::$typeMap[$type]);
     }
@@ -155,7 +151,8 @@ class RulesetParameter
         $method = self::$typeMap[$this->type];
         if (is_callable($method)) {
             return $method($inputParam);
-        } elseif (method_exists($this, $method)) {
+        }
+        if (method_exists($this, $method)) {
             return $this->$method($inputParam);
         }
 

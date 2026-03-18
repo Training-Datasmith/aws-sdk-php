@@ -23,70 +23,31 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
     public const PART_GET_MULTIPART_DOWNLOADER = "part";
     public const RANGED_GET_MULTIPART_DOWNLOADER = "ranged";
     private const OBJECT_SIZE_REGEX = "/\/(\d+)$/";
-    
-    /** @var array */
-    protected readonly array $downloadRequestArgs;
 
-    /** @var array */
     protected readonly array $config;
 
-    /** @var AbstractDownloadHandler */
-    private AbstractDownloadHandler $downloadHandler;
+    private readonly AbstractDownloadHandler $downloadHandler;
 
-    /** @var int */
-    protected int $currentPartNo;
-
-    /** @var int */
-    protected int $objectPartsCount;
-
-    /** @var int */
-    protected int $objectSizeInBytes;
-
-    /** @var string|null */
-    protected ?string $eTag;
-
-    /** @var TransferListenerNotifier|null */
     private readonly ?TransferListenerNotifier $listenerNotifier;
 
-    /** Tracking Members */
-    private ?TransferProgressSnapshot $currentSnapshot;
-
-    /**
-     * @param S3ClientInterface $s3Client
-     * @param array $downloadRequestArgs
-     * @param array $config
-     * @param ?AbstractDownloadHandler $downloadHandler
-     * @param int $currentPartNo
-     * @param int $objectPartsCount
-     * @param int $objectSizeInBytes
-     * @param string|null $eTag
-     * @param TransferProgressSnapshot|null $currentSnapshot
-     * @param TransferListenerNotifier|null $listenerNotifier
-     */
     public function __construct(
         protected readonly S3ClientInterface $s3Client,
-        array $downloadRequestArgs,
+        protected readonly array $downloadRequestArgs,
         array $config = [],
         ?AbstractDownloadHandler $downloadHandler = null,
-        int $currentPartNo = 0,
-        int $objectPartsCount = 0,
-        int $objectSizeInBytes = 0,
-        ?string $eTag = null,
-        ?TransferProgressSnapshot $currentSnapshot = null,
+        protected int $currentPartNo = 0,
+        protected int $objectPartsCount = 0,
+        protected int $objectSizeInBytes = 0,
+        protected ?string $eTag = null,
+        private ?TransferProgressSnapshot $currentSnapshot = null,
         ?TransferListenerNotifier $listenerNotifier  = null
     ) {
-        $this->downloadRequestArgs = $downloadRequestArgs;
         $this->validateConfig($config);
         $this->config = $config;
         if ($downloadHandler === null) {
             $downloadHandler = new StreamDownloadHandler();
         }
         $this->downloadHandler = $downloadHandler;
-        $this->currentPartNo = $currentPartNo;
-        $this->objectPartsCount = $objectPartsCount;
-        $this->objectSizeInBytes = $objectSizeInBytes;
-        $this->eTag = $eTag;
-        $this->currentSnapshot = $currentSnapshot;
         if ($listenerNotifier === null) {
             $listenerNotifier = new TransferListenerNotifier();
         }
@@ -97,17 +58,13 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
 
     /**
      * Returns the next command for fetching the next object part.
-     *
-     * @return CommandInterface
      */
     abstract protected function nextCommand(): CommandInterface;
 
     /**
      * Compute the object dimensions, such as size and parts count.
      *
-     * @param ResultInterface $result
      *
-     * @return void
      */
     abstract protected function computeObjectDimensions(ResultInterface $result): void;
 
@@ -122,49 +79,31 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
         }
     }
 
-    /**
-     * @return array
-     */
     public function getConfig(): array
     {
         return $this->config;
     }
 
-    /**
-     * @return int
-     */
     public function getCurrentPartNo(): int
     {
         return $this->currentPartNo;
     }
 
-    /**
-     * @return int
-     */
     public function getObjectPartsCount(): int
     {
         return $this->objectPartsCount;
     }
 
-    /**
-     * @return int
-     */
     public function getObjectSizeInBytes(): int
     {
         return $this->objectSizeInBytes;
     }
 
-    /**
-     * @return TransferProgressSnapshot
-     */
     public function getCurrentSnapshot(): TransferProgressSnapshot
     {
         return $this->currentSnapshot;
     }
 
-    /**
-     * @return DownloadResult
-     */
     public function download(): DownloadResult
     {
         return $this->promise()->wait();
@@ -173,8 +112,6 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
     /**
      * Returns that resolves a multipart download operation,
      * or to a rejection in case of any failures.
-     *
-     * @return PromiseInterface
      */
     public function promise(): PromiseInterface
     {
@@ -194,14 +131,14 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
 
                     $command = $this->nextCommand();
                     yield $this->s3Client->executeAsync($command)
-                        ->then(function ($result) use ($command) {
+                        ->then(function (\Aws\ResultInterface $result) use ($command): \Aws\ResultInterface {
                             $this->partDownloadCompleted(
                                 $result,
                                 $command->toArray()
                             );
 
                             return $result;
-                        })->otherwise(function ($reason) {
+                        })->otherwise(function (\Throwable $reason): void {
                             $this->partDownloadFailed($reason);
 
                             throw $reason;
@@ -235,8 +172,6 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
 
     /**
      * Perform the initial download request.
-     *
-     * @return PromiseInterface
      */
     protected function initialRequest(): PromiseInterface
     {
@@ -245,7 +180,7 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
         $this->downloadInitiated($command->toArray());
 
         return $this->s3Client->executeAsync($command)
-            ->then(function (ResultInterface $result) use ($command) {
+            ->then(function (ResultInterface $result) use ($command): \Aws\ResultInterface {
                 // Compute object dimensions such as parts count and object size
                 $this->computeObjectDimensions($result);
 
@@ -264,7 +199,7 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
                 $result['ContentLength'] = $this->objectSizeInBytes;
 
                 return $result;
-            })->otherwise(function ($reason)  {
+            })->otherwise(function (\Throwable $reason): void  {
                 $this->partDownloadFailed($reason);
 
                 throw $reason;
@@ -273,9 +208,6 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
 
     /**
      * Calculates the object size from content range.
-     *
-     * @param string $contentRange
-     * @return int
      */
     protected function computeObjectSizeFromContentRange(
         string $contentRange
@@ -301,9 +233,7 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
      * also it does some computation regarding internal states
      * that need to be maintained.
      *
-     * @param array $commandArgs
      *
-     * @return void
      */
     private function downloadInitiated(array $commandArgs): void
     {
@@ -331,9 +261,7 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
     /**
      * Propagates download-failed event to listeners.
      *
-     * @param \Throwable $reason
      *
-     * @return void
      */
     private function downloadFailed(\Throwable $reason): void
     {
@@ -361,9 +289,7 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
      * Propagates part-download-completed to listeners.
      * It also does some computation in order to maintain internal states.
      *
-     * @param ResultInterface $result
      *
-     * @return void
      */
     private function partDownloadCompleted(
         ResultInterface $result,
@@ -391,9 +317,7 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
     /**
      * Propagates part-download-failed event to listeners.
      *
-     * @param \Throwable $reason
      *
-     * @return void
      */
     private function partDownloadFailed(
         \Throwable $reason,
@@ -404,8 +328,6 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
 
     /**
      * Propagates object-download-completed event to listeners.
-     *
-     * @return void
      */
     private function downloadComplete(): void
     {
@@ -424,8 +346,6 @@ abstract class AbstractMultipartDownloader implements PromisorInterface
 
     /**
      * @param mixed $multipartDownloadType
-     *
-     * @return string
      */
     public static function chooseDownloaderClass(
         string $multipartDownloadType

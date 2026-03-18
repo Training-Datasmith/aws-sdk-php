@@ -25,20 +25,20 @@ class DecodingEventStreamIterator implements Iterator
     const BYTES_PRELUDE = 12;
     const BYTES_TRAILING = 4;
 
-    private static $preludeFormat = [
+    private static array $preludeFormat = [
         self::LENGTH_TOTAL => 'decodeUint32',
         self::LENGTH_HEADERS => 'decodeUint32',
         self::CRC_PRELUDE => 'decodeUint32',
     ];
 
-    private static $lengthFormatMap = [
+    private static array $lengthFormatMap = [
         1 => 'decodeUint8',
         2 => 'decodeUint16',
         4 => 'decodeUint32',
         8 => 'decodeUint64',
     ];
 
-    private static $headerTypeMap = [
+    private static array $headerTypeMap = [
         0 => 'decodeBooleanTrue',
         1 => 'decodeBooleanFalse',
         2 => 'decodeInt8',
@@ -68,8 +68,6 @@ class DecodingEventStreamIterator implements Iterator
 
     /**
      * DecodingEventStreamIterator constructor.
-     *
-     * @param StreamInterface $stream
      */
     public function __construct(StreamInterface $stream)
     {
@@ -77,20 +75,20 @@ class DecodingEventStreamIterator implements Iterator
         $this->rewind();
     }
 
-    protected function parseHeaders($headerBytes)
+    protected function parseHeaders($headerBytes): array
     {
         $headers = [];
         $bytesRead = 0;
 
         while ($bytesRead < $headerBytes) {
-            list($key, $numBytes) = $this->decodeString(1);
+            [$key, $numBytes] = $this->decodeString(1);
             $bytesRead += $numBytes;
 
-            list($type, $numBytes) = $this->decodeUint8();
+            [$type, $numBytes] = $this->decodeUint8();
             $bytesRead += $numBytes;
 
             $f = self::$headerTypeMap[$type];
-            list($value, $numBytes) = $this->{$f}();
+            [$value, $numBytes] = $this->{$f}();
             $bytesRead += $numBytes;
 
             if (isset($headers[$key])) {
@@ -102,7 +100,7 @@ class DecodingEventStreamIterator implements Iterator
         return [$headers, $bytesRead];
     }
 
-    protected function parsePrelude()
+    protected function parsePrelude(): array
     {
         $prelude = [];
         $bytesRead = 0;
@@ -114,13 +112,13 @@ class DecodingEventStreamIterator implements Iterator
                 $calculatedCrc = hash_final($this->hashContext, true);
                 $this->hashContext = $hashCopy;
             }
-            list($value, $numBytes) = $this->{$decodeFunction}();
+            [$value, $numBytes] = $this->{$decodeFunction}();
             $bytesRead += $numBytes;
 
             $prelude[$key] = $value;
         }
 
-        if (unpack('N', $calculatedCrc)[1] !== $prelude[self::CRC_PRELUDE]) {
+        if (unpack('N', (string) $calculatedCrc)[1] !== $prelude[self::CRC_PRELUDE]) {
             throw new ParserException('Prelude checksum mismatch.');
         }
 
@@ -129,10 +127,8 @@ class DecodingEventStreamIterator implements Iterator
 
     /**
      * This method decodes an event from the stream.
-     *
-     * @return array
      */
-    protected function parseEvent()
+    protected function parseEvent(): array
     {
         $event = [];
 
@@ -140,7 +136,7 @@ class DecodingEventStreamIterator implements Iterator
             $this->hashContext = hash_init('crc32b');
 
             $bytesLeft = $this->stream->getSize() - $this->stream->tell();
-            list($prelude, $numBytes) = $this->parsePrelude();
+            [$prelude, $numBytes] = $this->parsePrelude();
             if ($prelude[self::LENGTH_TOTAL] > $bytesLeft) {
                 throw new ParserException('Message length too long.');
             }
@@ -150,10 +146,7 @@ class DecodingEventStreamIterator implements Iterator
                 throw new ParserException('Headers length too long.');
             }
 
-            list(
-                $event[self::HEADERS],
-                $numBytes
-            ) = $this->parseHeaders($prelude[self::LENGTH_HEADERS]);
+            [$event[self::HEADERS], $numBytes] = $this->parseHeaders($prelude[self::LENGTH_HEADERS]);
 
             $event[self::PAYLOAD] = Psr7\Utils::streamFor(
                 $this->readAndHashBytes(
@@ -192,11 +185,8 @@ class DecodingEventStreamIterator implements Iterator
         return $this->key;
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         $this->currentPosition = $this->stream->tell();
         if ($this->valid()) {
@@ -205,11 +195,8 @@ class DecodingEventStreamIterator implements Iterator
         }
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         $this->stream->rewind();
         $this->key = 0;
@@ -235,112 +222,112 @@ class DecodingEventStreamIterator implements Iterator
         return $bytes;
     }
 
-    private function decodeBooleanTrue()
+    private function decodeBooleanTrue(): array
     {
         return [true, 0];
     }
 
-    private function decodeBooleanFalse()
+    private function decodeBooleanFalse(): array
     {
         return [false, 0];
     }
 
-    private function uintToInt($val, $size)
+    private function uintToInt($val, int $size)
     {
-        $signedCap = pow(2, $size - 1);
+        $signedCap = 2 ** ($size - 1);
         if ($val > $signedCap) {
             $val -= (2 * $signedCap);
         }
         return $val;
     }
 
-    private function decodeInt8()
+    private function decodeInt8(): array
     {
-        $val = (int)unpack('C', $this->readAndHashBytes(1))[1];
+        $val = (int)unpack('C', (string) $this->readAndHashBytes(1))[1];
         return [$this->uintToInt($val, 8), 1];
     }
 
-    private function decodeUint8()
+    private function decodeUint8(): array
     {
-        return [unpack('C', $this->readAndHashBytes(1))[1], 1];
+        return [unpack('C', (string) $this->readAndHashBytes(1))[1], 1];
     }
 
-    private function decodeInt16()
+    private function decodeInt16(): array
     {
-        $val = (int)unpack('n', $this->readAndHashBytes(2))[1];
+        $val = (int)unpack('n', (string) $this->readAndHashBytes(2))[1];
         return [$this->uintToInt($val, 16), 2];
     }
 
-    private function decodeUint16()
+    private function decodeUint16(): array
     {
-        return [unpack('n', $this->readAndHashBytes(2))[1], 2];
+        return [unpack('n', (string) $this->readAndHashBytes(2))[1], 2];
     }
 
-    private function decodeInt32()
+    private function decodeInt32(): array
     {
-        $val = (int)unpack('N', $this->readAndHashBytes(4))[1];
+        $val = (int)unpack('N', (string) $this->readAndHashBytes(4))[1];
         return [$this->uintToInt($val, 32), 4];
     }
 
-    private function decodeUint32()
+    private function decodeUint32(): array
     {
-        return [unpack('N', $this->readAndHashBytes(4))[1], 4];
+        return [unpack('N', (string) $this->readAndHashBytes(4))[1], 4];
     }
 
-    private function decodeInt64()
+    private function decodeInt64(): array
     {
         $val = $this->unpackInt64($this->readAndHashBytes(8))[1];
         return [$this->uintToInt($val, 64), 8];
     }
 
-    private function decodeUint64()
+    private function decodeUint64(): array
     {
         return [$this->unpackInt64($this->readAndHashBytes(8))[1], 8];
     }
 
-    private function unpackInt64($bytes)
+    private function unpackInt64($bytes): array|false
     {
         return unpack('J', $bytes);
     }
 
-    private function decodeBytes($lengthBytes=2)
+    private function decodeBytes($lengthBytes=2): array
     {
         if (!isset(self::$lengthFormatMap[$lengthBytes])) {
             throw new ParserException('Undefined variable length format.');
         }
         $f = self::$lengthFormatMap[$lengthBytes];
-        list($len, $bytes) = $this->{$f}();
+        [$len, $bytes] = $this->{$f}();
         return [$this->readAndHashBytes($len), $len + $bytes];
     }
 
-    private function decodeString($lengthBytes=2)
+    private function decodeString(int $lengthBytes=2): array
     {
         if (!isset(self::$lengthFormatMap[$lengthBytes])) {
             throw new ParserException('Undefined variable length format.');
         }
         $f = self::$lengthFormatMap[$lengthBytes];
-        list($len, $bytes) = $this->{$f}();
+        [$len, $bytes] = $this->{$f}();
         return [$this->readAndHashBytes($len), $len + $bytes];
     }
 
-    private function decodeTimestamp()
+    private function decodeTimestamp(): array
     {
-        list($val, $bytes) = $this->decodeInt64();
+        [$val, $bytes] = $this->decodeInt64();
         return [
             DateTimeResult::createFromFormat('U.u', $val / 1000),
             $bytes
         ];
     }
 
-    private function decodeUuid()
+    private function decodeUuid(): array
     {
-        $val = unpack('H32', $this->readAndHashBytes(16))[1];
+        $val = unpack('H32', (string) $this->readAndHashBytes(16))[1];
         return [
-            substr($val, 0, 8) . '-'
-            . substr($val, 8, 4) . '-'
-            . substr($val, 12, 4) . '-'
-            . substr($val, 16, 4) . '-'
-            . substr($val, 20, 12),
+            substr((string) $val, 0, 8) . '-'
+            . substr((string) $val, 8, 4) . '-'
+            . substr((string) $val, 12, 4) . '-'
+            . substr((string) $val, 16, 4) . '-'
+            . substr((string) $val, 20, 12),
             16
         ];
     }

@@ -78,7 +78,7 @@ class MultipartUploader extends AbstractUploader
         }
     }
 
-    protected function loadUploadWorkflowInfo()
+    protected function loadUploadWorkflowInfo(): array
     {
         return [
             'command' => [
@@ -95,14 +95,14 @@ class MultipartUploader extends AbstractUploader
         ];
     }
 
-    protected function createPart($seekable, $number)
+    protected function createPart($seekable, $number): false|array
     {
         // Initialize the array of part data that will be returned.
         $data = [];
 
         // Apply custom params to UploadPart data
         $config = $this->getConfig();
-        $params = isset($config['params']) ? $config['params'] : [];
+        $params = $config['params'] ?? [];
         foreach ($params as $k => $v) {
             $data[$k] = $v;
         }
@@ -170,11 +170,11 @@ class MultipartUploader extends AbstractUploader
      *
      * @return Stream
      */
-    private function decorateWithHashes(Stream $stream, array &$data)
+    private function decorateWithHashes(Stream $stream, array &$data): \Aws\HashingStream
     {
         // Decorate source with a hashing stream
         $hash = new PhpHash('sha256');
-        return new HashingStream($stream, $hash, function ($result) use (&$data) {
+        return new HashingStream($stream, $hash, function ($result) use (&$data): void {
             $data['ContentSHA256'] = bin2hex($result);
         });
     }

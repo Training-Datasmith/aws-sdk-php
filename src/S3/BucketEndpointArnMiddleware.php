@@ -31,18 +31,12 @@ class BucketEndpointArnMiddleware
     /** @var callable */
     private $nextHandler;
 
-    /** @var array */
-    private $nonArnableCommands = ['CreateBucket'];
-
-    /** @var boolean */
-    private $isUseEndpointV2;
+    private array $nonArnableCommands = ['CreateBucket'];
 
     /**
      * Create a middleware wrapper function.
      *
-     * @param Service $service
      * @param $region
-     * @param array $config
      * @return callable
      */
     public static function wrap(
@@ -51,24 +45,24 @@ class BucketEndpointArnMiddleware
         array $config,
         $isUseEndpointV2
     ) {
-        return function (callable $handler) use ($service, $region, $config, $isUseEndpointV2) {
-            return new self($handler, $service, $region, $config, $isUseEndpointV2);
-        };
+        return fn(callable $handler) => new self($handler, $service, $region, $config, $isUseEndpointV2);
     }
 
+    /**
+     * @param bool $isUseEndpointV2
+     */
     public function __construct(
         callable $nextHandler,
         Service $service,
         $region,
         array $config = [],
-        $isUseEndpointV2 = false
+        private $isUseEndpointV2 = false
     ) {
         $this->partitionProvider = PartitionEndpointProvider::defaultProvider();
         $this->region = $region;
         $this->service = $service;
         $this->config = $config;
         $this->nextHandler = $nextHandler;
-        $this->isUseEndpointV2 = $isUseEndpointV2;
     }
 
     public function __invoke(CommandInterface $cmd, RequestInterface $req)
@@ -101,15 +95,15 @@ class BucketEndpointArnMiddleware
                         if (!$this->isUseEndpointV2) {
                             $arn = ArnParser::parse($cmd[$arnableKey]);
                             $partition = $this->validateArn($arn);
-                            $host = $this->generateAccessPointHost($arn, $req);
+                            $host = $this->generateAccessPointHost($arn);
                         }
                         // Remove encoded bucket string from path
                         $path = $req->getUri()->getPath();
-                        $encoded = rawurlencode($cmd[$arnableKey]);
+                        $encoded = rawurlencode((string) $cmd[$arnableKey]);
                         $len = strlen($encoded) + 1;
-                        if (trim(substr($path, 0, $len), '/') === "{$encoded}") {
-                            $path = substr($path, $len);
-                            if (substr($path, 0, 1) !== "/") {
+                        if (trim(substr((string) $path, 0, $len), '/') === "{$encoded}") {
+                            $path = substr((string) $path, $len);
+                            if (!str_starts_with($path, "/")) {
                                 $path = '/' . $path;
                             }
                         }
@@ -169,9 +163,8 @@ class BucketEndpointArnMiddleware
 
 
     private function generateAccessPointHost(
-        BaseAccessPointArn $arn,
-        RequestInterface $req
-    ) {
+        BaseAccessPointArn $arn
+    ): string {
         if ($arn instanceof OutpostsAccessPointArn) {
             $accesspointName = $arn->getAccesspointName();
         } else {
@@ -180,8 +173,7 @@ class BucketEndpointArnMiddleware
 
         if ($arn instanceof MultiRegionAccessPointArn) {
             $partition = $this->partitionProvider->getPartitionByName(
-                $arn->getPartition(),
-                's3'
+                $arn->getPartition()
             );
             $dnsSuffix = $partition->getDnsSuffix();
             return "{$accesspointName}.accesspoint.s3-global.{$dnsSuffix}";
@@ -197,9 +189,8 @@ class BucketEndpointArnMiddleware
         } else if ($arn instanceof ObjectLambdaAccessPointArn) {
             if (!empty($this->config['endpoint'])) {
                 return $host . '.' . $this->config['endpoint'];
-            } else {
-                $host .= ".s3-object-lambda{$fipsString}";
             }
+            $host .= ".s3-object-lambda{$fipsString}";
         } else {
             $host .= ".s3-accesspoint{$fipsString}";
             if (!empty($this->config['dual_stack'])) {
@@ -213,8 +204,7 @@ class BucketEndpointArnMiddleware
             $region = $this->region;
         }
         $region = \Aws\strip_fips_pseudo_regions($region);
-        $host .= '.' . $region . '.' . $this->getPartitionSuffix($arn, $this->partitionProvider);
-        return $host;
+        return $host . ('.' . $region . '.' . $this->getPartitionSuffix($arn, $this->partitionProvider));
     }
 
     /**
@@ -224,7 +214,7 @@ class BucketEndpointArnMiddleware
      * @param $arn
      * @return \Aws\Endpoint\Partition
      */
-    private function validateArn($arn)
+    private function validateArn(\Aws\Arn\Arn $arn)
     {
         if ($arn instanceof AccessPointArnInterface) {
 
@@ -346,9 +336,8 @@ class BucketEndpointArnMiddleware
      * Checks if a region is global
      *
      * @param $region
-     * @return bool
      */
-    private function isGlobal($region)
+    private function isGlobal($region): bool
     {
         return $region == 's3-external-1' || $region == 'aws-global';
     }

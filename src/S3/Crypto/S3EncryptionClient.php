@@ -39,9 +39,6 @@ class S3EncryptionClient extends AbstractCryptoClient
 
     const CRYPTO_VERSION = '1n';
 
-    private $client;
-    private $instructionFileSuffix;
-
     /**
      * @param S3Client $client The S3Client to be used for true uploading and
      *                         retrieving objects from S3 when using the
@@ -51,8 +48,8 @@ class S3EncryptionClient extends AbstractCryptoClient
      *                                           files for metadata storage.
      */
     public function __construct(
-        S3Client $client,
-        $instructionFileSuffix = null
+        private S3Client $client,
+        private $instructionFileSuffix = null
     ) {
         trigger_error(
             'S3EncryptionClient is deprecated and will be removed in a future ' .
@@ -62,15 +59,13 @@ class S3EncryptionClient extends AbstractCryptoClient
             'security.html for upgrade guidance.',
             E_USER_DEPRECATED
         );
-        $this->client = $client;
-        $this->instructionFileSuffix = $instructionFileSuffix;
         MetricsBuilder::appendMetricsCaptureMiddleware(
             $this->client->getHandlerList(),
             MetricsBuilder::S3_CRYPTO_V1N
         );
     }
 
-    private static function getDefaultStrategy()
+    private static function getDefaultStrategy(): \Aws\S3\Crypto\HeadersMetadataStrategy
     {
         return new HeadersMetadataStrategy();
     }
@@ -133,7 +128,7 @@ class S3EncryptionClient extends AbstractCryptoClient
             $provider,
             $envelope
         ))->then(
-            function ($encryptedBodyStream) use ($args) {
+            function ($encryptedBodyStream) use ($args): array {
                 $hash = new PhpHash('sha256');
                 $hashingEncryptedBodyStream = new HashingStream(
                     $encryptedBodyStream,
@@ -144,7 +139,7 @@ class S3EncryptionClient extends AbstractCryptoClient
             }
         )->then(
             function ($putObjectContents) use ($strategy, $envelope) {
-                list($bodyStream, $args) = $putObjectContents;
+                [$bodyStream, $args] = $putObjectContents;
                 if ($strategy === null) {
                     $strategy = self::getDefaultStrategy();
                 }
@@ -154,16 +149,16 @@ class S3EncryptionClient extends AbstractCryptoClient
                 return $updatedArgs;
             }
         )->then(
-            function ($args) {
+            function (array $args) {
                 unset($args['@CipherOptions']);
                 return $this->client->putObjectAsync($args);
             }
         );
     }
 
-    private static function getContentShaDecorator(&$args)
+    private static function getContentShaDecorator(array &$args)
     {
-        return function ($hash) use (&$args) {
+        return function ($hash) use (&$args): void {
             $args['ContentSHA256'] = bin2hex($hash);
         };
     }
@@ -266,14 +261,14 @@ class S3EncryptionClient extends AbstractCryptoClient
             $saveAs = $args['SaveAs'];
         }
 
-        $promise = $this->client->getObjectAsync($args)
+        return $this->client->getObjectAsync($args)
             ->then(
-                function ($result) use (
+                function (array $result) use (
                     $provider,
                     $instructionFileSuffix,
                     $strategy,
                     $args
-                ) {
+                ): array {
                     if ($strategy === null) {
                         $strategy = $this->determineGetObjectStrategy(
                             $result,
@@ -291,14 +286,12 @@ class S3EncryptionClient extends AbstractCryptoClient
                         $result['Body'],
                         $provider,
                         $envelope,
-                        isset($args['@CipherOptions'])
-                            ? $args['@CipherOptions']
-                            : []
+                        $args['@CipherOptions'] ?? []
                     );
                     return $result;
                 }
             )->then(
-                function ($result) use ($saveAs) {
+                function (array $result) use ($saveAs): array {
                     if (!empty($saveAs)) {
                         file_put_contents(
                             $saveAs,
@@ -309,8 +302,6 @@ class S3EncryptionClient extends AbstractCryptoClient
                     return $result;
                 }
             );
-
-        return $promise;
     }
 
     /**

@@ -78,7 +78,7 @@ abstract class AbstractRestParser extends AbstractParser
         StructureShape $output,
         ResponseInterface $response,
         array &$result
-    ) {
+    ): void {
         $member = $output->getMember($payload);
         $body = $response->getBody();
         if (!empty($member['eventstream'])) {
@@ -122,8 +122,8 @@ abstract class AbstractRestParser extends AbstractParser
         $name,
         Shape $shape,
         ResponseInterface $response,
-        &$result
-    ) {
+        array &$result
+    ): void {
         $value = $response->getHeaderLine($shape['locationName'] ?: $name);
         // Empty headers should not be deserialized
         if ($value === null || $value === '') {
@@ -155,7 +155,7 @@ abstract class AbstractRestParser extends AbstractParser
                         !empty($shape['timestampFormat']) ? $shape['timestampFormat'] : null
                     );
                     break;
-                } catch (\Exception $e) {
+                } catch (\Exception) {
                     // If the value cannot be parsed, then do not add it to the
                     // output structure.
                     return;
@@ -171,7 +171,7 @@ abstract class AbstractRestParser extends AbstractParser
                         return;
                     }
                     break;
-                } catch (\Exception $e) {
+                } catch (\Exception) {
                     //If the value cannot be parsed, then do not add it to the
                     //output structure.
                     return;
@@ -186,9 +186,9 @@ abstract class AbstractRestParser extends AbstractParser
                     break;
                 }
 
-                $items = array_map('trim', explode(',', $value));
+                $items = array_map(trim(...), explode(',', $value));
                 $value = array_map(
-                    static fn($item) => filter_var($item, FILTER_VALIDATE_BOOLEAN),
+                    static fn($item): bool => filter_var($item, FILTER_VALIDATE_BOOLEAN),
                     $items
                 );
 
@@ -205,8 +205,8 @@ abstract class AbstractRestParser extends AbstractParser
         $name,
         Shape $shape,
         ResponseInterface $response,
-        &$result
-    ) {
+        array &$result
+    ): void {
         // Check if the headers are prefixed by a location name
         $result[$name] = [];
         $prefix = $shape['locationName'];
@@ -215,7 +215,7 @@ abstract class AbstractRestParser extends AbstractParser
         foreach ($response->getHeaders() as $k => $values) {
             if (!$prefixLen) {
                 $result[$name][$k] = implode(', ', $values);
-            } elseif (stripos($k, $prefix) === 0) {
+            } elseif (stripos($k, (string) $prefix) === 0) {
                 $result[$name][substr($k, $prefixLen)] = implode(', ', $values);
             }
         }
@@ -228,7 +228,7 @@ abstract class AbstractRestParser extends AbstractParser
         $name,
         ResponseInterface $response,
         array &$result
-    ) {
+    ): void {
         $result[$name] = (int) $response->getStatusCode();
     }
 }

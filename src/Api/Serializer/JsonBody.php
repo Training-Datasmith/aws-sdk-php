@@ -12,21 +12,12 @@ use Aws\Exception\InvalidJsonException;
  */
 class JsonBody
 {
-    private $api;
-
-    public function __construct(Service $api)
-    {
-        $this->api = $api;
-    }
-
     /**
      * Gets the JSON Content-Type header for a service API
      *
-     * @param Service $service
      *
-     * @return string
      */
-    public static function getContentType(Service $service)
+    public static function getContentType(Service $service): string
     {
         if ($service->getMetadata('protocol') === 'rest-json') {
             return 'application/json';
@@ -35,10 +26,9 @@ class JsonBody
         $jsonVersion = $service->getMetadata('jsonVersion');
         if (empty($jsonVersion)) {
             throw new \InvalidArgumentException('invalid json');
-        } else {
-            return 'application/x-amz-json-'
-                . @number_format($service->getMetadata('jsonVersion'), 1);
         }
+        return 'application/x-amz-json-'
+            . @number_format($service->getMetadata('jsonVersion'), 1);
     }
 
     /**
@@ -101,7 +91,7 @@ class JsonBody
                 return $value;
 
             case 'blob':
-                return base64_encode($value);
+                return base64_encode((string) $value);
 
             case 'timestamp':
                 $timestampFormat = !empty($shape['timestampFormat'])

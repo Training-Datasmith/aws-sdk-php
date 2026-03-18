@@ -18,7 +18,7 @@ class XmlParser
         return $this->dispatch($shape, $value);
     }
 
-    private function dispatch($shape, \SimpleXMLElement $value)
+    private function dispatch(array $shape, \SimpleXMLElement $value)
     {
         static $methods = [
             'structure' => 'parse_structure',
@@ -40,10 +40,13 @@ class XmlParser
         return (string) $value;
     }
 
+    /**
+     * @return mixed[]
+     */
     private function parse_structure(
         StructureShape $shape,
         \SimpleXMLElement $value
-    ) {
+    ): array {
         $target = [];
 
         foreach ($shape->getMembers() as $name => $member) {
@@ -66,7 +69,7 @@ class XmlParser
             && $shape['union']
             && empty($target)
         ) {
-            foreach ($value as $key => $val) {
+            foreach ($value as $val) {
                 $name = $val->children()->getName();
                 $target['Unknown'][$name] = $val->$name;
             }
@@ -90,7 +93,10 @@ class XmlParser
         return $shape['locationName'] ?? $name;
     }
 
-    private function parse_list(ListShape $shape, \SimpleXMLElement  $value)
+    /**
+     * @return mixed[]
+     */
+    private function parse_list(ListShape $shape, \SimpleXMLElement  $value): array
     {
         $target = [];
         $member = $shape->getMember();
@@ -106,7 +112,10 @@ class XmlParser
         return $target;
     }
 
-    private function parse_map(MapShape $shape, \SimpleXMLElement $value)
+    /**
+     * @return mixed[]
+     */
+    private function parse_map(MapShape $shape, \SimpleXMLElement $value): array
     {
         $target = [];
 
@@ -128,12 +137,12 @@ class XmlParser
         return $target;
     }
 
-    private function parse_blob(Shape $shape, $value)
+    private function parse_blob($value): string
     {
         return base64_decode((string) $value);
     }
 
-    private function parse_float(Shape $shape, $value)
+    private function parse_float($value): float|string
     {
         $value = (string) $value;
 
@@ -143,12 +152,12 @@ class XmlParser
         };
     }
 
-    private function parse_integer(Shape $shape, $value)
+    private function parse_integer($value): int
     {
         return (int) (string) $value;
     }
 
-    private function parse_boolean(Shape $shape, $value)
+    private function parse_boolean($value): bool
     {
         return $value == 'true';
     }
@@ -168,7 +177,7 @@ class XmlParser
         throw new ParserException('Invalid timestamp value passed to XmlParser::parse_timestamp');
     }
 
-    private function parse_xml_attribute(Shape $shape, Shape $memberShape, $value)
+    private function parse_xml_attribute(Shape $shape, Shape $memberShape, \SimpleXMLElement $value): ?string
     {
         $namespace = $shape['xmlNamespace']['uri'] ?? '';
         $prefix = $shape['xmlNamespace']['prefix'] ?? '';

@@ -27,9 +27,9 @@ trait CryptoParamsTrait
     }
 
     protected function determineGetObjectStrategy(
-        $result,
+        array $result,
         $instructionFileSuffix
-    ) {
+    ): \Aws\S3\Crypto\HeadersMetadataStrategy|\Aws\S3\Crypto\InstructionFileMetadataStrategy {
         if (isset($result['Metadata'][MetadataEnvelope::CONTENT_KEY_V2_HEADER]) ||
             isset($result['Metadata'][MetadataEnvelope::ENCRYPTED_DATA_KEY_V3])
         ) {
@@ -42,7 +42,7 @@ trait CryptoParamsTrait
         );
     }
 
-    protected function getMetadataStrategy(array $args, $instructionFileSuffix)
+    protected function getMetadataStrategy(array $args, $instructionFileSuffix): \Aws\Crypto\MetadataStrategyInterface|\Aws\S3\Crypto\HeadersMetadataStrategy|\Aws\S3\Crypto\InstructionFileMetadataStrategy|null
     {
         if (!empty($args['@MetadataStrategy'])) {
             if ($args['@MetadataStrategy'] instanceof MetadataStrategyInterface) {

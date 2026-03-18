@@ -42,7 +42,7 @@ class AuthTokenGenerator
      *
      * @return string Token generated
      */
-    public function createToken($endpoint, $region, $username, $lifetime = 15)
+    public function createToken($endpoint, $region, string $username, $lifetime = 15): string
     {
         if (!is_numeric($lifetime) || $lifetime > 15 || $lifetime <= 0) {
             throw new \InvalidArgumentException(

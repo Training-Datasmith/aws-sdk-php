@@ -38,14 +38,12 @@ final class S3TransferManager
     /** @var S3Client  */
     private S3ClientInterface $s3Client;
 
-    /** @var S3TransferManagerConfig  */
     private S3TransferManagerConfig $config;
 
     /**
      * @param S3ClientInterface|null $s3Client If provided as null then,
      * a default client will be created where its region will be the one
      * resolved from either the default from the config or the provided.
-     * @param array|S3TransferManagerConfig|null $config
      */
     public function __construct(
         ?S3ClientInterface $s3Client = null,
@@ -69,27 +67,16 @@ final class S3TransferManager
         );
     }
 
-    /**
-     * @return S3ClientInterface
-     */
     public function getS3Client(): S3ClientInterface
     {
         return $this->s3Client;
     }
 
-    /**
-     * @return S3TransferManagerConfig
-     */
     public function getConfig(): S3TransferManagerConfig
     {
         return $this->config;
     }
 
-    /**
-     * @param UploadRequest $uploadRequest
-     *
-     * @return PromiseInterface
-     */
     public function upload(UploadRequest $uploadRequest): PromiseInterface
     {
         // Make sure it is a valid in path in case of a string
@@ -153,11 +140,6 @@ final class S3TransferManager
         );
     }
 
-    /**
-     * @param UploadDirectoryRequest $uploadDirectoryRequest
-     *
-     * @return PromiseInterface
-     */
     public function uploadDirectory(
         UploadDirectoryRequest $uploadDirectoryRequest,
     ): PromiseInterface
@@ -175,10 +157,7 @@ final class S3TransferManager
      * this metric be appended in another operations that are not
      * part of the upload directory.
      *
-     * @param UploadDirectoryRequest $uploadDirectoryRequest
-     * @param S3ClientInterface $s3Client
      *
-     * @return PromiseInterface
      */
     private function doUploadDirectory(
         UploadDirectoryRequest $uploadDirectoryRequest,
@@ -229,7 +208,7 @@ final class S3TransferManager
         $dirVisited = [];
         $files = filter(
             $dirIterator,
-            function ($file) use ($filter, &$dirVisited) {
+            function ($file) use ($filter, &$dirVisited): bool {
                 if (is_dir($file)) {
                     // To avoid circular symbolic links traversal
                     $dirRealPath = realpath($file);
@@ -260,7 +239,7 @@ final class S3TransferManager
         $baseDir = rtrim($sourceDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         $s3Delimiter = $config['s3_delimiter'] ?? '/';
         $s3Prefix = $config['s3_prefix'] ?? '';
-        if ($s3Prefix !== '' && !str_ends_with($s3Prefix, '/')) {
+        if ($s3Prefix !== '' && !str_ends_with((string) $s3Prefix, '/')) {
             $s3Prefix .= '/';
         }
         $targetBucket = $uploadDirectoryRequest->getTargetBucket();
@@ -271,7 +250,7 @@ final class S3TransferManager
         }
 
         foreach ($files as $file) {
-            $relativePath = substr($file, strlen($baseDir));
+            $relativePath = substr((string) $file, strlen($baseDir));
             if (str_contains($relativePath, $s3Delimiter) && $s3Delimiter !== '/') {
                 throw new S3TransferException(
                     "The filename `$relativePath` must not contain the provided delimiter `$s3Delimiter`"
@@ -297,13 +276,13 @@ final class S3TransferManager
                     $uploadRequestArgs,
                     $config,
                     array_map(
-                        fn($listener) => clone $listener,
+                        fn($listener): object => clone $listener,
                         $uploadDirectoryRequest->getListeners()
                     ),
                     $progressTracker,
                     $s3Client
                 )
-            )->then(function (UploadResult $response) use (&$objectsUploaded) {
+            )->then(function (UploadResult $response) use (&$objectsUploaded): \Aws\S3\S3Transfer\Models\UploadResult {
                 $objectsUploaded++;
 
                 return $response;
@@ -314,7 +293,7 @@ final class S3TransferManager
                 $uploadRequestArgs,
                 &$objectsUploaded,
                 &$objectsFailed
-            ) {
+            ): void {
                 $objectsFailed++;
                 if($failurePolicyCallback !== null) {
                     call_user_func(
@@ -342,10 +321,10 @@ final class S3TransferManager
             ?? UploadDirectoryRequest::DEFAULT_MAX_CONCURRENCY;
 
         return Each::ofLimitAll($promises, $maxConcurrency)
-            ->then(function () use (&$objectsUploaded, &$objectsFailed) {
+            ->then(function () use (&$objectsUploaded, &$objectsFailed): \Aws\S3\S3Transfer\Models\UploadDirectoryResult {
                 return new UploadDirectoryResult($objectsUploaded, $objectsFailed);
             })->otherwise(function (Throwable $reason)
-            use (&$objectsUploaded, &$objectsFailed) {
+            use (&$objectsUploaded, &$objectsFailed): \Aws\S3\S3Transfer\Models\UploadDirectoryResult {
                 return new UploadDirectoryResult(
                     $objectsUploaded,
                     $objectsFailed,
@@ -354,11 +333,6 @@ final class S3TransferManager
             });
     }
 
-    /**
-     * @param DownloadRequest $downloadRequest
-     *
-     * @return PromiseInterface
-     */
     public function download(DownloadRequest $downloadRequest): PromiseInterface
     {
         $sourceArgs = $downloadRequest->normalizeSourceAsArray();
@@ -402,11 +376,6 @@ final class S3TransferManager
         );
     }
 
-    /**
-     * @param DownloadFileRequest $downloadFileRequest
-     *
-     * @return PromiseInterface
-     */
     public function downloadFile(
         DownloadFileRequest $downloadFileRequest
     ): PromiseInterface
@@ -414,11 +383,6 @@ final class S3TransferManager
        return $this->download($downloadFileRequest->getDownloadRequest());
     }
 
-    /**
-     * @param DownloadDirectoryRequest $downloadDirectoryRequest
-     *
-     * @return PromiseInterface
-     */
     public function downloadDirectory(
         DownloadDirectoryRequest $downloadDirectoryRequest
     ): PromiseInterface
@@ -436,10 +400,7 @@ final class S3TransferManager
      * this metric be appended in another operations that are not
      * part of the download directory.
      *
-     * @param DownloadDirectoryRequest $downloadDirectoryRequest
-     * @param S3ClientInterface $s3Client
      *
-     * @return PromiseInterface
      */
     private function doDownloadDirectory(
         DownloadDirectoryRequest $downloadDirectoryRequest,
@@ -483,7 +444,7 @@ final class S3TransferManager
             ->search('Contents[].Key');
 
         $filter = $config['filter'] ?? null;
-        $objects = filter($objects, function (string $key) use ($filter) {
+        $objects = filter($objects, function (string $key) use ($filter): bool {
             if ($filter !== null) {
                 // Avoid returning objects meant for directories in s3
                 return call_user_func($filter, $key) && !str_ends_with($key, "/");
@@ -492,9 +453,7 @@ final class S3TransferManager
             // Avoid returning objects meant for directories in s3
             return !str_ends_with($key, "/");
         });
-        $objects = map($objects, function (string $key) use ($sourceBucket) {
-            return  self::formatAsS3URI($sourceBucket, $key);
-        });
+        $objects = map($objects, fn(string $key) => self::formatAsS3URI($sourceBucket, $key));
 
         $downloadObjectRequestModifier = $config['download_object_request_modifier']
             ?? null;
@@ -507,12 +466,12 @@ final class S3TransferManager
         foreach ($objects as $object) {
             $bucketAndKeyArray = self::s3UriAsBucketAndKey($object);
             $objectKey = $bucketAndKeyArray['Key'];
-            if ($s3Prefix !== null && str_contains($objectKey, $s3Delimiter)) {
+            if ($s3Prefix !== null && str_contains((string) $objectKey, $s3Delimiter)) {
                 if (!str_ends_with($s3Prefix, $s3Delimiter)) {
                     $s3Prefix = $s3Prefix.$s3Delimiter;
                 }
 
-                $objectKey = substr($objectKey, strlen($s3Prefix));
+                $objectKey = substr((string) $objectKey, strlen((string) $s3Prefix));
             }
 
             // CONVERT THE KEY DIR SEPARATOR TO OS BASED DIR SEPARATOR
@@ -552,7 +511,7 @@ final class S3TransferManager
                         ],
                         downloadHandler: null,
                         listeners: array_map(
-                            fn($listener) => clone $listener,
+                            fn($listener): object => clone $listener,
                             $downloadDirectoryRequest->getListeners()
                         ),
                         progressTracker: $progressTracker,
@@ -561,7 +520,7 @@ final class S3TransferManager
                 ),
             )->then(function () use (
                 &$objectsDownloaded
-            ) {
+            ): void {
                 $objectsDownloaded++;
             })->otherwise(function (Throwable $reason) use (
                 $sourceBucket,
@@ -570,7 +529,7 @@ final class S3TransferManager
                 &$objectsDownloaded,
                 &$objectsFailed,
                 $requestArgs
-            ) {
+            ): void {
                 $objectsFailed++;
                 if ($failurePolicyCallback !== null) {
                     call_user_func(
@@ -598,13 +557,13 @@ final class S3TransferManager
             ?? DownloadDirectoryRequest::DEFAULT_MAX_CONCURRENCY;
 
         return Each::ofLimitAll($promises, $maxConcurrency)
-            ->then(function () use (&$objectsFailed, &$objectsDownloaded) {
+            ->then(function () use (&$objectsFailed, &$objectsDownloaded): \Aws\S3\S3Transfer\Models\DownloadDirectoryResult {
                 return new DownloadDirectoryResult(
                     $objectsDownloaded,
                     $objectsFailed
                 );
             })->otherwise(function (Throwable $reason)
-            use (&$objectsFailed, &$objectsDownloaded) {
+            use (&$objectsFailed, &$objectsDownloaded): \Aws\S3\S3Transfer\Models\DownloadDirectoryResult {
                 return new DownloadDirectoryResult(
                     $objectsDownloaded,
                     $objectsFailed,
@@ -616,13 +575,8 @@ final class S3TransferManager
     /**
      * Tries an object multipart download.
      *
-     * @param array $getObjectRequestArgs
-     * @param array $config
-     * @param AbstractDownloadHandler $downloadHandler
-     * @param TransferListenerNotifier|null $listenerNotifier
      * @param S3ClientInterface|null $s3Client
      *
-     * @return PromiseInterface
      */
     private function tryMultipartDownload(
         array $getObjectRequestArgs,
@@ -633,7 +587,7 @@ final class S3TransferManager
     ): PromiseInterface
     {
         $downloaderClassName = AbstractMultipartDownloader::chooseDownloaderClass(
-            strtolower($config['multipart_download_type'])
+            strtolower((string) $config['multipart_download_type'])
         );
         $multipartDownloader = new $downloaderClassName(
             $s3Client,
@@ -646,14 +600,6 @@ final class S3TransferManager
         return $multipartDownloader->promise();
     }
 
-    /**
-     * @param string|StreamInterface $source
-     * @param array $requestArgs
-     * @param S3ClientInterface $s3Client
-     * @param TransferListenerNotifier|null $listenerNotifier
-     *
-     * @return PromiseInterface
-     */
     private function trySingleUpload(
         string|StreamInterface $source,
         array $requestArgs,
@@ -673,7 +619,7 @@ final class S3TransferManager
             );
         }
 
-        if (!empty($listenerNotifier)) {
+        if ($listenerNotifier instanceof \Aws\S3\S3Transfer\Progress\TransferListenerNotifier) {
             $listenerNotifier->transferInitiated(
                 [
                     AbstractTransferListener::REQUEST_ARGS_KEY => $requestArgs,
@@ -688,7 +634,7 @@ final class S3TransferManager
             $command = $s3Client->getCommand('PutObject', $requestArgs);
             return $s3Client->executeAsync($command)->then(
                 function (ResultInterface $result)
-                use ($objectSize, $listenerNotifier, $requestArgs) {
+                use ($objectSize, $listenerNotifier, $requestArgs): \Aws\S3\S3Transfer\Models\UploadResult {
                     $listenerNotifier->bytesTransferred(
                         [
                             AbstractTransferListener::REQUEST_ARGS_KEY => $requestArgs,
@@ -717,7 +663,7 @@ final class S3TransferManager
                     );
                 }
             )->otherwise(function (Throwable $reason)
-            use ($objectSize, $requestArgs, $listenerNotifier) {
+            use ($objectSize, $requestArgs, $listenerNotifier): never {
                 $listenerNotifier->transferFail(
                     [
                         AbstractTransferListener::REQUEST_ARGS_KEY => $requestArgs,
@@ -737,18 +683,9 @@ final class S3TransferManager
         $command = $s3Client->getCommand('PutObject', $requestArgs);
 
         return $s3Client->executeAsync($command)
-            ->then(function (ResultInterface $result) {
-                return new UploadResult($result->toArray());
-            });
+            ->then(fn(ResultInterface $result) => new UploadResult($result->toArray()));
     }
 
-    /**
-     * @param UploadRequest $uploadRequest
-     * @param S3ClientInterface $s3Client
-     * @param TransferListenerNotifier|null $listenerNotifier
-     *
-     * @return PromiseInterface
-     */
     private function tryMultipartUpload(
         UploadRequest $uploadRequest,
         S3ClientInterface $s3Client,
@@ -764,12 +701,6 @@ final class S3TransferManager
         ))->promise();
     }
 
-    /**
-     * @param string|StreamInterface $source
-     * @param int $mupThreshold
-     *
-     * @return bool
-     */
     private function requiresMultipartUpload(
         string|StreamInterface $source,
         int $mupThreshold
@@ -777,12 +708,12 @@ final class S3TransferManager
     {
         if (is_string($source) && is_readable($source)) {
             return filesize($source) >= $mupThreshold;
-        } elseif ($source instanceof StreamInterface) {
+        }
+        if ($source instanceof StreamInterface) {
             // When the stream's size is unknown then we could try a multipart upload.
             if (empty($source->getSize())) {
                 return true;
             }
-
             return $source->getSize() >= $mupThreshold;
         }
 
@@ -819,9 +750,7 @@ final class S3TransferManager
      * Validates a string value is a valid S3 URI.
      * Valid S3 URI Example: S3://mybucket.dev/myobject.txt
      *
-     * @param string $uri
      *
-     * @return bool
      */
     public static function isValidS3URI(string $uri): bool
     {
@@ -835,8 +764,6 @@ final class S3TransferManager
      * properties set.
      *
      * @param string $uri: The S3 URI.
-     *
-     * @return array
      */
     public static function s3UriAsBucketAndKey(string $uri): array
     {
@@ -858,23 +785,11 @@ final class S3TransferManager
         ];
     }
 
-    /**
-     * @param string $bucket
-     * @param string $key
-     *
-     * @return string
-     */
     private static function formatAsS3URI(string $bucket, string $key): string
     {
         return "s3://$bucket/$key";
     }
 
-    /**
-     * @param string $sink
-     * @param string $objectKey
-     *
-     * @return bool
-     */
     private function resolvesOutsideTargetDirectory(
         string $sink,
         string $objectKey
@@ -887,7 +802,10 @@ final class S3TransferManager
         $targetDirectory = $targetSections[0];
 
         foreach ($targetSections as $section) {
-            if ($section === '.' || $section === '') {
+            if ($section === '.') {
+                continue;
+            }
+            if ($section === '') {
                 continue;
             }
             if ($section === '..') {

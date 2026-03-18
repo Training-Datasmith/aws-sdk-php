@@ -476,14 +476,14 @@ final class CborDecoder
                         if ($exp === 0) {
                             return $mant === 0
                                 ? ($sign ? -0.0 : 0.0)
-                                : ($sign ? -1 : 1) * pow(2, -14) * ($mant / 1024);
+                                : ($sign ? -1 : 1) * 2 ** -14 * ($mant / 1024);
                         }
 
                         if ($exp === 31) {
                             return $mant === 0 ? ($sign ? -INF : INF) : NAN;
                         }
 
-                        return (float) (($sign ? -1 : 1) * pow(2, $exp - 15) * (1 + $mant / 1024));
+                        return (float) (($sign ? -1 : 1) * 2 ** ($exp - 15) * (1 + $mant / 1024));
 
                     case 26: // Single-precision float
                         if ($offset + 4 > $length) {

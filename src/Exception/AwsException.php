@@ -28,31 +28,28 @@ class AwsException extends \RuntimeException implements
     private $response;
     private $request;
     private $result;
-    private $command;
     private $requestId;
     private $errorType;
     private $errorCode;
     private $errorShape;
-    private $connectionError;
+    private bool $connectionError;
     private $transferInfo;
     private $errorMessage;
-    private $maxRetriesExceeded;
+    private bool $maxRetriesExceeded;
 
 
     /**
      * @param string $message Exception message
-     * @param CommandInterface $command
      * @param array $context Exception context
      * @param Throwable|null $previous Previous exception (if any)
      */
     public function __construct(
         $message,
-        CommandInterface $command,
+        private CommandInterface $command,
         array $context = [],
         ?Throwable $previous = null
     ) {
         $this->data = $context['body'] ?? [];
-        $this->command = $command;
         $this->response = $context['response'] ?? null;
         $this->request = $context['request'] ?? null;
         $this->requestId = $context['request_id'] ?? null;
@@ -68,7 +65,7 @@ class AwsException extends \RuntimeException implements
         parent::__construct($message, 0, $previous);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->getPrevious()) {
             return parent::__toString();
@@ -82,7 +79,7 @@ class AwsException extends \RuntimeException implements
         // can't see the outer exception's __toString output.
         return sprintf(
             "exception '%s' with message '%s'\n\n%s",
-            get_class($this),
+            static::class,
             $this->getMessage(),
             parent::__toString()
         );
@@ -220,10 +217,8 @@ class AwsException extends \RuntimeException implements
 
     /**
      * Replace the transfer information associated with an exception.
-     *
-     * @param array $info
      */
-    public function setTransferInfo(array $info)
+    public function setTransferInfo(array $info): void
     {
         $this->transferInfo = $info;
     }
@@ -241,12 +236,12 @@ class AwsException extends \RuntimeException implements
     /**
      * Sets the flag for max number of retries exceeded.
      */
-    public function setMaxRetriesExceeded()
+    public function setMaxRetriesExceeded(): void
     {
         $this->maxRetriesExceeded = true;
     }
 
-    public function hasKey($name)
+    public function hasKey($name): bool
     {
         return isset($this->data[$name]);
     }

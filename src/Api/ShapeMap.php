@@ -6,26 +6,20 @@ namespace Aws\Api;
  */
 class ShapeMap implements \ArrayAccess
 {
-    /** @var array */
-    private $definitions;
-
     /** @var Shape[] */
     private $simple;
 
     /**
-     * @param array $shapeModels Associative array of shape definitions.
+     * @param array $definitions Associative array of shape definitions.
      */
-    public function __construct(array $shapeModels)
+    public function __construct(private array $definitions)
     {
-        $this->definitions = $shapeModels;
     }
 
     /**
      * Get an array of shape names.
-     *
-     * @return array
      */
-    public function getShapeNames()
+    public function getShapeNames(): array
     {
         return array_keys($this->definitions);
     }
@@ -73,27 +67,17 @@ class ShapeMap implements \ArrayAccess
         return $result;
     }
 
-    /**
-     * @param mixed $offset
-     * @return bool
-     */
     public function offsetExists(mixed $offset): bool
     {
         return isset($this->definitions[$offset]);
     }
 
-    /**
-     * @param mixed $offset
-     * @return mixed
-     */
     public function offsetGet(mixed $offset): mixed
     {
         return $this->definitions[$offset] ?? null;
     }
 
     /**
-     * @param mixed $offset
-     * @param mixed $value
      * @throws \BadMethodCallException
      */
     public function offsetSet(mixed $offset, mixed $value): void
@@ -104,7 +88,6 @@ class ShapeMap implements \ArrayAccess
     }
 
     /**
-     * @param mixed $offset
      * @throws \BadMethodCallException
      */
     public function offsetUnset(mixed $offset): void

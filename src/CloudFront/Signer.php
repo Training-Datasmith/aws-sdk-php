@@ -6,8 +6,7 @@ namespace Aws\CloudFront;
  */
 class Signer
 {
-    private $keyPairId;
-    private $pkHandle;
+    private \OpenSSLAsymmetricKey|bool|null $pkHandle = null;
 
     /**
      * A signer for creating the signature values used in CloudFront signed URLs
@@ -20,7 +19,7 @@ class Signer
      * @throws \RuntimeException if the openssl extension is missing
      * @throws \InvalidArgumentException if the private key cannot be found.
      */
-    public function __construct($keyPairId, $privateKey, $passphrase = "")
+    public function __construct(private $keyPairId, $privateKey, $passphrase = "")
     {
         if (!extension_loaded('openssl')) {
             //@codeCoverageIgnoreStart
@@ -28,8 +27,6 @@ class Signer
                 . 'sign CloudFront urls.');
             //@codeCoverageIgnoreEnd
         }
-
-        $this->keyPairId = $keyPairId;
 
         if (!$this->pkHandle = openssl_pkey_get_private($privateKey, $passphrase)) {
             if (!file_exists($privateKey)) {
@@ -76,7 +73,7 @@ class Signer
      *
      * @link http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-cookies.html
      */
-    public function getSignature($resource = null, $expires = null, $policy = null)
+    public function getSignature($resource = null, $expires = null, $policy = null): array
     {
         $signatureHash = [];
         if ($policy) {
@@ -99,7 +96,7 @@ class Signer
         return $signatureHash;
     }
 
-    private function createCannedPolicy($resource, $expiration)
+    private function createCannedPolicy($resource, int $expiration)
     {
         return json_encode([
             'Statement' => [
@@ -134,17 +131,15 @@ class Signer
         return $signature;
     }
 
-    private function encode($policy)
+    private function encode($policy): string
     {
-        return strtr(base64_encode($policy), '+=/', '-_~');
+        return strtr(base64_encode((string) $policy), '+=/', '-_~');
     }
 
     /**
      * Validates a customer provided json document.
      *
-     * @param string $jsonPolicy
      *
-     * @return void
      */
     private static function validatePolicy(string $jsonPolicy): void
     {
@@ -156,11 +151,6 @@ class Signer
         }
     }
 
-    /**
-     * @param string $url
-     *
-     * @return void
-     */
     private static function validateResourceUrl(string $url): void
     {
         if (preg_match('/["\\\\\x00-\x1F]/', $url)) {

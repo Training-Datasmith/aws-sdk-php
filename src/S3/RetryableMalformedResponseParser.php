@@ -16,15 +16,14 @@ use Psr\Http\Message\StreamInterface;
  */
 class RetryableMalformedResponseParser extends AbstractParser
 {
-    /** @var string */
-    private $exceptionClass;
-
+    /**
+     * @param string $exceptionClass
+     */
     public function __construct(
         callable $parser,
-        $exceptionClass = AwsException::class
+        private $exceptionClass = AwsException::class
     ) {
         $this->parser = $parser;
-        $this->exceptionClass = $exceptionClass;
     }
 
     public function __invoke(

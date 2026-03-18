@@ -16,7 +16,7 @@ use Psr\Http\Message\StreamInterface;
  */
 class AmbiguousSuccessParser extends AbstractParser
 {
-    private static $ambiguousSuccesses = [
+    private static array $ambiguousSuccesses = [
         'UploadPart' => true,
         'UploadPartCopy' => true,
         'CopyObject' => true,
@@ -25,17 +25,17 @@ class AmbiguousSuccessParser extends AbstractParser
 
     /** @var callable */
     private $errorParser;
-    /** @var string */
-    private $exceptionClass;
 
+    /**
+     * @param string $exceptionClass
+     */
     public function __construct(
         callable $parser,
         callable $errorParser,
-        $exceptionClass = AwsException::class
+        private $exceptionClass = AwsException::class
     ) {
         $this->parser = $parser;
         $this->errorParser = $errorParser;
-        $this->exceptionClass = $exceptionClass;
     }
 
     public function __invoke(
@@ -48,7 +48,7 @@ class AmbiguousSuccessParser extends AbstractParser
             $errorParser = $this->errorParser;
             try {
                 $parsed = $errorParser($response);
-            } catch (ParserException $e) {
+            } catch (ParserException) {
                 $parsed = [
                     'code' => 'ConnectionError',
                     'message' => "An error connecting to the service occurred"

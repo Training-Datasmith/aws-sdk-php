@@ -15,7 +15,10 @@ class Arn implements ArnInterface
     protected $data;
     protected $string;
 
-    public static function parse($string)
+    /**
+     * @return mixed[]
+     */
+    public static function parse($string): array
     {
         $data = [
             'arn' => null,
@@ -26,14 +29,14 @@ class Arn implements ArnInterface
             'resource' => null,
         ];
 
-        $length = strlen($string);
+        $length = strlen((string) $string);
         $lastDelim = 0;
         $numComponents = 0;
         for ($i = 0; $i < $length; $i++) {
 
             if (($numComponents < 5 && $string[$i] === ':')) {
                 // Split components between delimiters
-                $data[key($data)] = substr($string, $lastDelim, $i - $lastDelim);
+                $data[key($data)] = substr((string) $string, $lastDelim, $i - $lastDelim);
 
                 // Do not include delimiter character itself
                 $lastDelim = $i + 1;
@@ -44,11 +47,11 @@ class Arn implements ArnInterface
             if ($i === $length - 1) {
                 // Put the remainder in the last component.
                 if (in_array($numComponents, [5])) {
-                    $data['resource'] = substr($string, $lastDelim);
+                    $data['resource'] = substr((string) $string, $lastDelim);
                 } else {
                     // If there are < 5 components, put remainder in current
                     // component.
-                    $data[key($data)] = substr($string, $lastDelim);
+                    $data[key($data)] = substr((string) $string, $lastDelim);
                 }
             }
         }
@@ -70,7 +73,7 @@ class Arn implements ArnInterface
         static::validate($this->data);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!isset($this->string)) {
             $components = [
@@ -84,7 +87,7 @@ class Arn implements ArnInterface
 
             $this->string = implode(':', $components);
         }
-        return $this->string;
+        return (string) $this->string;
     }
 
     public function getPrefix()
@@ -124,8 +127,6 @@ class Arn implements ArnInterface
 
     /**
      * Minimally restrictive generic ARN validation
-     *
-     * @param array $data
      */
     protected static function validate(array $data)
     {
@@ -152,7 +153,7 @@ class Arn implements ArnInterface
         }
     }
 
-    protected static function validateAccountId($data, $arnName)
+    protected static function validateAccountId(array $data, $arnName)
     {
         if (!self::isValidHostLabel($data['account_id'])) {
             throw new InvalidArnException("The 5th component of a {$arnName}"
@@ -161,7 +162,7 @@ class Arn implements ArnInterface
         }
     }
 
-    protected static function validateRegion($data, $arnName)
+    protected static function validateRegion(array $data, $arnName)
     {
         if (empty($data['region'])) {
             throw new InvalidArnException("The 4th component of a {$arnName}"
@@ -173,14 +174,13 @@ class Arn implements ArnInterface
      * Validates whether a string component is a valid host label
      *
      * @param $string
-     * @return bool
      */
-    protected static function isValidHostLabel($string)
+    protected static function isValidHostLabel($string): bool
     {
-        if (empty($string) || strlen($string) > 63) {
+        if (empty($string) || strlen((string) $string) > 63) {
             return false;
         }
-        if ($value = preg_match("/^[a-zA-Z0-9-]+$/", $string)) {
+        if ($value = preg_match("/^[a-zA-Z0-9-]+$/", (string) $string)) {
             return true;
         }
         return false;

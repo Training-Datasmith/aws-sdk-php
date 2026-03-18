@@ -112,7 +112,6 @@ abstract class AbstractCryptoClientV3
      * @param MetadataEnvelope $envelope A storage envelope for encryption
      *                                   metadata to be added to.
      *
-     * @return AppendStream
      *
      * @internal
      */
@@ -137,7 +136,6 @@ abstract class AbstractCryptoClientV3
      * @param string $commitmentPolicy Commitment Policy to use for decrypting objects.
      * @param array $options Options used for decryption.
      *
-     * @return AesStreamInterface
      *
      * @internal
      */

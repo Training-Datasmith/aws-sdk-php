@@ -42,14 +42,12 @@ class InstanceProfileProvider
     /** @var int */
     private $retries;
 
-    /** @var int */
-    private $attempts;
+    private ?int $attempts = null;
 
     /** @var float|mixed */
     private $timeout;
 
-    /** @var bool */
-    private $secureMode = true;
+    private bool $secureMode = true;
 
     /** @var bool|null */
     private $ec2MetadataV1Disabled;
@@ -60,8 +58,7 @@ class InstanceProfileProvider
     /** @var string */
     private $endpointMode;
 
-    /** @var array */
-    private $config;
+    private readonly array $config;
 
     /**
      * The constructor accepts the following options:
@@ -200,7 +197,7 @@ class InstanceProfileProvider
                     // 401 indicates insecure flow not supported, switch to
                     // attempting secure mode for subsequent calls
                     if (($this->getExceptionStatusCode($e) === 500
-                            || strpos($e->getMessage(), "cURL error 28") !== false)
+                            || str_contains($e->getMessage(), "cURL error 28"))
                         && $previousCredentials instanceof Credentials
                     ) {
                         goto generateCredentials;
@@ -226,7 +223,7 @@ class InstanceProfileProvider
                     $result['AccessKeyId'],
                     $result['SecretAccessKey'],
                     $result['Token'],
-                    strtotime($result['Expiration']),
+                    strtotime((string) $result['Expiration']),
                     $result['AccountId'] ?? null,
                     CredentialSources::IMDS
                 );
@@ -241,13 +238,10 @@ class InstanceProfileProvider
     }
 
     /**
-     * @param string $url
-     * @param string $method
-     * @param array $headers
      * @return PromiseInterface Returns a promise that is fulfilled with the
      *                          body of the response as a string.
      */
-    private function request($url, $method = 'GET', $headers = [])
+    private function request(string $url, string $method = 'GET', array $headers = [])
     {
         $disabled = getenv(self::ENV_DISABLE) ?: false;
         if (strcasecmp($disabled, 'true') === 0) {
@@ -269,9 +263,7 @@ class InstanceProfileProvider
         }
 
         return $fn($request, ['timeout' => $this->timeout])
-            ->then(function (ResponseInterface $response) {
-                return (string) $response->getBody();
-            })->otherwise(function (array $reason) {
+            ->then(fn(ResponseInterface $response) => (string) $response->getBody())->otherwise(function (array $reason): void {
                 $reason = $reason['exception'];
                 if ($reason instanceof TransferException) {
                     throw $reason;
@@ -285,9 +277,9 @@ class InstanceProfileProvider
 
     private function handleRetryableException(
         \Exception $e,
-        $retryOptions,
+        array $retryOptions,
         $message
-    ) {
+    ): void {
         $isRetryable = true;
         if (!empty($status = $this->getExceptionStatusCode($e))
             && isset($retryOptions['blacklist'])
@@ -296,7 +288,7 @@ class InstanceProfileProvider
             $isRetryable = false;
         }
         if ($isRetryable && $this->attempts < $this->retries) {
-            sleep((int) pow(1.2, $this->attempts));
+            sleep((int) 1.2 ** $this->attempts);
         } else {
             throw new CredentialsException($message);
         }
@@ -312,7 +304,7 @@ class InstanceProfileProvider
         return null;
     }
 
-    private function createErrorMessage($previous)
+    private function createErrorMessage($previous): string
     {
         return "Error retrieving credentials from the instance profile "
             . "metadata service. ({$previous})";
@@ -320,7 +312,7 @@ class InstanceProfileProvider
 
     private function decodeResult($response)
     {
-        $result = json_decode($response, true);
+        $result = json_decode((string) $response, true);
 
         if (json_last_error() > 0) {
             throw new InvalidJsonException();
@@ -341,8 +333,6 @@ class InstanceProfileProvider
      * - From environment: "AWS_EC2_METADATA_V1_DISABLED".
      * - From config file: aws_ec2_metadata_v1_disabled
      * - Defaulted to false
-     *
-     * @return bool
      */
     private function shouldFallbackToIMDSv1(): bool
     {
@@ -366,8 +356,6 @@ class InstanceProfileProvider
      * will be used.
      * Example: if endpoint_mode is resolved to be IPv4 and the endpoint is not provided
      * then, the endpoint to be used will be http://169.254.169.254.
-     *
-     * @return string
      */
     private function resolveEndpoint(): string
     {
@@ -398,33 +386,26 @@ class InstanceProfileProvider
      * - endpoint = http://169.254.169.254
      * If endpoint_mode is resolved as IPv6 then:
      * - endpoint = http://[fd00:ec2::254]
-     *
-     * @return string
      */
     private function getDefaultEndpoint(): string
     {
         $endpointMode = $this->resolveEndpointMode();
-        switch ($endpointMode) {
-            case self::ENDPOINT_MODE_IPv4:
-                return self::DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT;
-            case self::ENDPOINT_MODE_IPv6:
-                return self::DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT;
-        }
-
-        throw new CredentialsException("Invalid endpoint mode '$endpointMode' resolved");
+        return match ($endpointMode) {
+            self::ENDPOINT_MODE_IPv4 => self::DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT,
+            self::ENDPOINT_MODE_IPv6 => self::DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT,
+            default => throw new CredentialsException("Invalid endpoint mode '$endpointMode' resolved"),
+        };
     }
 
     /**
      * Resolves the endpoint mode to be considered when resolving the default
      * metadata service endpoint.
-     *
-     * @return string
      */
     private function resolveEndpointMode(): string
     {
         $endpointMode = $this->endpointMode;
         if (is_null($endpointMode)) {
-            $endpointMode = ConfigurationResolver::resolve(
+            return ConfigurationResolver::resolve(
                 self::CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE,
                     self::ENDPOINT_MODE_IPv4,
                 'string',
@@ -455,12 +436,13 @@ class InstanceProfileProvider
         $parsedUri = parse_url($uri);
         if ($parsedUri['scheme'] !== 'https') {
             $host = trim($parsedUri['host'], '[]');
-
-            return CredentialsUtils::isLoopBackAddress(gethostbyname($host))
-                || in_array(
-                    $uri,
-                    [self::DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT, self::DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT]
-                );
+            if (CredentialsUtils::isLoopBackAddress(gethostbyname($host))) {
+                return true;
+            }
+            return in_array(
+                $uri,
+                [self::DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT, self::DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT]
+            );
         }
 
         return true;

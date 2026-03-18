@@ -15,17 +15,15 @@ use RecursiveIteratorIterator;
  */
 class TraceMiddleware
 {
-    private $prevOutput;
-    private $prevInput;
-    private $config;
-    /** @var Service */
-    private $service;
+    private ?array $prevOutput = null;
+    private ?array $prevInput = null;
+    private array $config;
 
-    private static $authHeaders = [
+    private static array $authHeaders = [
         'X-Amz-Security-Token' => '[TOKEN]',
     ];
 
-    private static $authStrings = [
+    private static array $authStrings = [
         // S3Signature
         '/AWSAccessKeyId=[A-Z0-9]{20}&/i' => 'AWSAccessKeyId=[KEY]&',
         // SignatureV4 Signature and S3Signature
@@ -61,10 +59,10 @@ class TraceMiddleware
      *   headers contained in this array will be replaced with the if
      *   "scrub_auth" is set to true.
      */
-    public function __construct(array $config = [], ?Service $service = null)
+    public function __construct(array $config = [], private ?Service $service = null)
     {
         $this->config = $config + [
-            'logfn'        => function ($value) { echo $value; },
+            'logfn'        => function ($value): void { echo $value; },
             'stream_size'  => 524288,
             'scrub_auth'   => true,
             'http'         => true,
@@ -74,54 +72,51 @@ class TraceMiddleware
 
         $this->config['auth_strings'] += self::$authStrings;
         $this->config['auth_headers'] += self::$authHeaders;
-        $this->service = $service;
     }
 
     public function __invoke($step, $name)
     {
         $this->prevOutput = $this->prevInput = [];
 
-        return function (callable $next) use ($step, $name) {
-            return function (
-                CommandInterface $command,
-                $request = null
-            ) use ($next, $step, $name) {
-                $this->createHttpDebug($command);
-                $start = microtime(true);
-                $this->stepInput([
-                    'step'    => $step,
-                    'name'    => $name,
-                    'request' => $this->requestArray($request),
-                    'command' => $this->commandArray($command)
-                ]);
+        return fn(callable $next) => function (
+            CommandInterface $command,
+            $request = null
+        ) use ($next, $step, $name) {
+            $this->createHttpDebug($command);
+            $start = microtime(true);
+            $this->stepInput([
+                'step'    => $step,
+                'name'    => $name,
+                'request' => $this->requestArray($request),
+                'command' => $this->commandArray($command)
+            ]);
 
-                return $next($command, $request)->then(
-                    function ($value) use ($step, $name, $command, $start) {
-                        $this->flushHttpDebug($command);
-                        $this->stepOutput($start, [
-                            'step'   => $step,
-                            'name'   => $name,
-                            'result' => $this->resultArray($value),
-                            'error'  => null
-                        ]);
-                        return $value;
-                    },
-                    function ($reason) use ($step, $name, $start, $command) {
-                        $this->flushHttpDebug($command);
-                        $this->stepOutput($start, [
-                            'step'   => $step,
-                            'name'   => $name,
-                            'result' => null,
-                            'error'  => $this->exceptionArray($reason)
-                        ]);
-                        return new RejectedPromise($reason);
-                    }
-                );
-            };
+            return $next($command, $request)->then(
+                function ($value) use ($step, $name, $command, $start) {
+                    $this->flushHttpDebug($command);
+                    $this->stepOutput($start, [
+                        'step'   => $step,
+                        'name'   => $name,
+                        'result' => $this->resultArray($value),
+                        'error'  => null
+                    ]);
+                    return $value;
+                },
+                function ($reason) use ($step, $name, $start, $command): \GuzzleHttp\Promise\RejectedPromise {
+                    $this->flushHttpDebug($command);
+                    $this->stepOutput($start, [
+                        'step'   => $step,
+                        'name'   => $name,
+                        'result' => null,
+                        'error'  => $this->exceptionArray($reason)
+                    ]);
+                    return new RejectedPromise($reason);
+                }
+            );
         };
     }
 
-    private function stepInput($entry)
+    private function stepInput(array $entry): void
     {
         static $keys = ['command', 'request'];
         $this->compareStep($this->prevInput, $entry, '-> Entering', $keys);
@@ -129,7 +124,7 @@ class TraceMiddleware
         $this->prevInput = $entry;
     }
 
-    private function stepOutput($start, $entry)
+    private function stepOutput(float|string $start, array $entry): void
     {
         static $keys = ['result', 'error'];
         $this->compareStep($this->prevOutput, $entry, '<- Leaving', $keys);
@@ -138,12 +133,12 @@ class TraceMiddleware
         $this->prevOutput = $entry;
     }
 
-    private function compareStep(array $a, array $b, $title, array $keys)
+    private function compareStep(array $a, array $b, string $title, array $keys): void
     {
         $changes = [];
         foreach ($keys as $key) {
-            $av = isset($a[$key]) ? $a[$key] : null;
-            $bv = isset($b[$key]) ? $b[$key] : null;
+            $av = $a[$key] ?? null;
+            $bv = $b[$key] ?? null;
             $this->compareArray($av, $bv, $key, $changes);
         }
         $str = "\n{$title} step {$b['step']}, name '{$b['name']}'";
@@ -154,7 +149,7 @@ class TraceMiddleware
         $this->write($str . "\n");
     }
 
-    private function commandArray(CommandInterface $cmd)
+    private function commandArray(CommandInterface $cmd): array
     {
         return [
             'instance' => spl_object_hash($cmd),
@@ -163,7 +158,7 @@ class TraceMiddleware
         ];
     }
 
-    private function requestArray($request = null)
+    private function requestArray($request = null): array
     {
         return !$request instanceof RequestInterface
             ? []
@@ -179,7 +174,7 @@ class TraceMiddleware
         ]);
     }
 
-    private function responseArray(?ResponseInterface $response = null)
+    private function responseArray(?ResponseInterface $response = null): array
     {
         return !$response ? [] : [
             'instance'   => spl_object_hash($response),
@@ -206,7 +201,7 @@ class TraceMiddleware
 
         $result = [
             'instance'   => spl_object_hash($e),
-            'class'      => get_class($e),
+            'class'      => $e::class,
             'message'    => $e->getMessage(),
             'file'       => $e->getFile(),
             'line'       => $e->getLine(),
@@ -228,7 +223,7 @@ class TraceMiddleware
         return $result;
     }
 
-    private function compareArray($a, $b, $path, array &$diff)
+    private function compareArray($a, $b, $path, array &$diff): void
     {
         if ($a === $b) {
             return;
@@ -255,7 +250,7 @@ class TraceMiddleware
         }
     }
 
-    private function str($value)
+    private function str($value): string|false
     {
         if (is_scalar($value)) {
             return (string) $value;
@@ -277,14 +272,14 @@ class TraceMiddleware
             : 'stream(size=' . $body->getSize() . ')';
     }
 
-    private function createHttpDebug(CommandInterface $command)
+    private function createHttpDebug(CommandInterface $command): void
     {
         if ($this->config['http'] && !isset($command['@http']['debug'])) {
             $command['@http']['debug'] = fopen('php://temp', 'w+');
         }
     }
 
-    private function flushHttpDebug(CommandInterface $command)
+    private function flushHttpDebug(CommandInterface $command): void
     {
         if ($res = $command['@http']['debug']) {
             if (is_resource($res)) {
@@ -296,15 +291,13 @@ class TraceMiddleware
         }
     }
 
-    private function write($value)
+    private function write(string|bool $value): void
     {
         if ($this->config['scrub_auth']) {
             foreach ($this->config['auth_strings'] as $pattern => $replacement) {
                 $value = preg_replace_callback(
                     $pattern,
-                    function ($matches) use ($replacement) {
-                        return $replacement;
-                    },
+                    fn($matches) => $replacement,
                     $value
                 );
             }
@@ -316,14 +309,13 @@ class TraceMiddleware
     private function redactHeaders(array $headers)
     {
         if ($this->config['scrub_auth']) {
-            $headers = $this->config['auth_headers'] + $headers;
+            return $this->config['auth_headers'] + $headers;
         }
 
         return $headers;
     }
 
     /**
-     * @param CommandInterface $cmd
      * @return array
      */
     private function getRedactedArray(CommandInterface $cmd)

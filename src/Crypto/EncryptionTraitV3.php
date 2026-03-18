@@ -53,7 +53,6 @@ trait EncryptionTraitV3
      * @param MetadataEnvelope $envelope A storage envelope for encryption
      *                                   metadata to be added to.
      *
-     * @return AppendStream
      *
      * @throws \InvalidArgumentException Thrown when a value in $options['@CipherOptions']
      *                                   is not valid.
@@ -81,7 +80,7 @@ trait EncryptionTraitV3
             throw new \InvalidArgumentException("The contentLength of the object you are attempting"
                 . " to encrypt exceeds the maximum length allowed for GCM encryption.");
         }
-        $cipherOptions['Cipher'] = strtolower($cipherOptions['Cipher']);
+        $cipherOptions['Cipher'] = strtolower((string) $cipherOptions['Cipher']);
 
         if (!self::isSupportedCipher($cipherOptions['Cipher'])) {
             throw new \InvalidArgumentException('The cipher requested is not'
@@ -129,17 +128,16 @@ trait EncryptionTraitV3
                 $provider,
                 $envelope
             );
-        } else {
-            return $this->encryptNonCommitingStream(
-                $plaintext,
-                $cipherOptions,
-                $keys,
-                $materialsDescription,
-                $aesName,
-                $provider,
-                $envelope
-            );
         }
+        return $this->encryptNonCommitingStream(
+            $plaintext,
+            $cipherOptions,
+            $keys,
+            $materialsDescription,
+            $aesName,
+            $provider,
+            $envelope
+        );
     }
 
     private function encryptNonCommitingStream(
@@ -191,7 +189,7 @@ trait EncryptionTraitV3
             json_encode($materialsDescription);
         if (!empty($cipherOptions['Tag'])) {
             $envelope[MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER] =
-                (string) (strlen($cipherOptions['Tag']) * 8);
+                (string) (strlen((string) $cipherOptions['Tag']) * 8);
         }
         if (!MetadataEnvelope::isV2Envelope($envelope)) {
             throw new CryptoException("Error while writing metadata envelope."
@@ -310,9 +308,7 @@ trait EncryptionTraitV3
                     $plaintext,
                     $cek,
                     $cipherOptions['Iv'],
-                    $cipherOptions['Aad'] = isset($cipherOptions['Aad'])
-                    ? $cipherOptions['Aad']
-                    : '',
+                    $cipherOptions['Aad'] ??= '',
                     $cipherOptions['TagLength'],
                     $cipherOptions['KeySize']
                 );

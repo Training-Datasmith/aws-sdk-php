@@ -25,28 +25,18 @@ final class S3Parser extends AbstractParser
     private $protocolParser;
     /**  @var XmlErrorParser */
     private $errorParser;
-    /** @var string */
-    private $exceptionClass;
-    /** @var array */
-    private $s3ResultMutators;
+    private array $s3ResultMutators;
 
-    /**
-     * @param AbstractParser $protocolParser
-     * @param XmlErrorParser $errorParser
-     * @param Service $api
-     * @param string $exceptionClass
-     */
     public function __construct(
         AbstractParser $protocolParser,
         XmlErrorParser $errorParser,
         Service $api,
-        string $exceptionClass = AwsException::class
+        private readonly string $exceptionClass = AwsException::class
     )
     {
         parent::__construct($api);
         $this->protocolParser = $protocolParser;
         $this->errorParser = $errorParser;
-        $this->exceptionClass = $exceptionClass;
         $this->s3ResultMutators = [];
     }
 
@@ -55,13 +45,11 @@ final class S3Parser extends AbstractParser
      *
      * @param CommandInterface $command The command that originated the request.
      * @param ResponseInterface $response The response received from the service.
-     *
-     * @return ResultInterface|null
      */
     public function __invoke(
         CommandInterface $command,
         ResponseInterface $response
-    ):? ResultInterface
+    ):\Aws\ResultInterface
     {
         // Check first if the response is an error
         $this->parse200Error($command, $response);
@@ -88,10 +76,7 @@ final class S3Parser extends AbstractParser
      * If the parsed result contains a code and message then that means an error
      * was found, and hence an exception is thrown with that error.
      *
-     * @param CommandInterface $command
-     * @param ResponseInterface $response
      *
-     * @return void
      */
     private function parse200Error(
         CommandInterface $command,
@@ -115,7 +100,7 @@ final class S3Parser extends AbstractParser
         try {
             $errorParserFn = $this->errorParser;
             $parsedError = $errorParserFn($response, $command);
-        } catch (ParserException $e) {
+        } catch (ParserException) {
             // Parsing errors will be considered retryable.
             $parsedError = [
                 'code' => 'ConnectionError',
@@ -144,14 +129,12 @@ final class S3Parser extends AbstractParser
      * has a streaming or httpPayload trait should be not considered.
      *
      * @param $commandName
-     *
-     * @return bool
      */
     private function shouldBeConsidered200Error($commandName): bool
     {
         $operation = $this->api->getOperation($commandName);
         $output = $operation->getOutput();
-        foreach ($output->getMembers() as $_ => $memberProps) {
+        foreach ($output->getMembers() as $memberProps) {
             if (!empty($memberProps['eventstream']) || !empty($memberProps['streaming'])) {
                 return false;
             }
@@ -166,9 +149,7 @@ final class S3Parser extends AbstractParser
      * It is recommended to make sure the stream given is seekable, otherwise
      * the rewind call will cause a user warning.
      *
-     * @param StreamInterface $responseBody
      *
-     * @return bool
      */
     private function isFirstRootElementError(StreamInterface $responseBody): bool
     {
@@ -187,11 +168,7 @@ final class S3Parser extends AbstractParser
      * Execute mutator implementations over a result.
      * Mutators are logics that modifies a result.
      *
-     * @param ResultInterface $result
-     * @param CommandInterface $command
-     * @param ResponseInterface $response
      *
-     * @return ResultInterface
      */
     private function executeS3ResultMutators(
         ResultInterface $result,
@@ -208,10 +185,6 @@ final class S3Parser extends AbstractParser
 
     /**
      * Adds a mutator into the list of mutators.
-     *
-     * @param string $mutatorName
-     * @param S3ResultMutator $s3ResultMutator
-     * @return void
      */
     public function addS3ResultMutator(
         string $mutatorName,
@@ -232,9 +205,6 @@ final class S3Parser extends AbstractParser
 
     /**
      * Removes a mutator from the mutator list.
-     *
-     * @param string $mutatorName
-     * @return void
      */
     public function removeS3ResultMutator(string $mutatorName): void
     {
@@ -252,8 +222,6 @@ final class S3Parser extends AbstractParser
 
     /**
      * Returns the list of result mutators available.
-     *
-     * @return array
      */
     public function getS3ResultMutators(): array
     {

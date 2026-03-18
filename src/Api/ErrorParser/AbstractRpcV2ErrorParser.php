@@ -19,8 +19,6 @@ abstract class AbstractRpcV2ErrorParser extends AbstractErrorParser
     private const HEADER_REQUEST_ID = 'x-amzn-requestid';
 
     /**
-     * @param ResponseInterface $response
-     * @param CommandInterface|null $command
      *
      * @return array
      */
@@ -40,33 +38,16 @@ abstract class AbstractRpcV2ErrorParser extends AbstractErrorParser
         return $data;
     }
 
-    /**
-     * @param ResponseInterface $response
-     * @param StructureShape $member
-     *
-     * @return array
-     */
     abstract protected function payload(
         ResponseInterface $response,
         StructureShape $member
     ): array;
 
-    /**
-     * @param StreamInterface $body
-     * @param ResponseInterface $response
-     *
-     * @return mixed
-     */
     abstract protected function parseBody(
         StreamInterface $body,
         ResponseInterface $response
     ): mixed;
 
-    /**
-     * @param ResponseInterface $response
-     *
-     * @return array
-     */
     private function parseError(ResponseInterface $response): array
     {
         $statusCode = (string) $response->getStatusCode();
@@ -112,7 +93,6 @@ abstract class AbstractRpcV2ErrorParser extends AbstractErrorParser
     /**
      * Parse AWS Query Compatible error from header
      *
-     * @param ResponseInterface $response
      *
      * @return array|null Returns ['code' => string, 'type' => string] or null
      */
@@ -131,9 +111,6 @@ abstract class AbstractRpcV2ErrorParser extends AbstractErrorParser
 
     /**
      * Extract error code from raw error string containing # and/or : delimiters
-     *
-     * @param string $rawErrorCode
-     * @return string
      */
     private function extractErrorCode(string $rawErrorCode): string
     {

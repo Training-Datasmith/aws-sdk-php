@@ -9,9 +9,6 @@ use Psr\Http\Message\RequestInterface;
  */
 class IdempotencyTokenMiddleware
 {
-    /** @var Service */
-    private $service;
-
     /** @var string */
     private $bytesGenerator;
 
@@ -32,8 +29,6 @@ class IdempotencyTokenMiddleware
      * You may also supply a custom bytes generator as an optional second
      * parameter.
      *
-     * @param \Aws\Api\Service $service
-     * @param callable|null $bytesGenerator
      *
      * @return callable
      */
@@ -41,19 +36,16 @@ class IdempotencyTokenMiddleware
         Service $service,
         ?callable $bytesGenerator = null
     ) {
-        return function (callable $handler) use ($service, $bytesGenerator) {
-            return new self($handler, $service, $bytesGenerator);
-        };
+        return fn(callable $handler) => new self($handler, $service, $bytesGenerator);
     }
 
     public function __construct(
         callable $nextHandler,
-        Service $service,
+        private readonly Service $service,
         ?callable $bytesGenerator = null
     ) {
         $this->bytesGenerator = $bytesGenerator
             ?: $this->findCompatibleRandomSource();
-        $this->service = $service;
         $this->nextHandler = $nextHandler;
     }
 
@@ -70,7 +62,7 @@ class IdempotencyTokenMiddleware
                     $bytes = call_user_func($this->bytesGenerator, 16);
                     // populating UUIDv4 only when the parameter is not set
                     $command[$member] = $command[$member]
-                        ?: $this->getUuidV4($bytes);
+                        ?: self::getUuidV4($bytes);
                     // only one member could have the trait enabled
                     break;
                 }
@@ -89,7 +81,7 @@ class IdempotencyTokenMiddleware
      * https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_.28random.29
      * https://tools.ietf.org/html/rfc4122#page-14
      */
-    private static function getUuidV4($bytes)
+    private static function getUuidV4($bytes): string
     {
         // set version to 0100
         $bytes[6] = chr(ord($bytes[6]) & 0x0f | 0x40);

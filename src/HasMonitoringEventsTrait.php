@@ -19,20 +19,16 @@ trait HasMonitoringEventsTrait
 
     /**
      * Prepend a client-side monitoring event to this object's event list
-     *
-     * @param array $event
      */
-    public function prependMonitoringEvent(array $event)
+    public function prependMonitoringEvent(array $event): void
     {
         array_unshift($this->monitoringEvents, $event);
     }
 
     /**
      * Append a client-side monitoring event to this object's event list
-     *
-     * @param array $event
      */
-    public function appendMonitoringEvent(array $event)
+    public function appendMonitoringEvent(array $event): void
     {
         $this->monitoringEvents []= $event;
     }

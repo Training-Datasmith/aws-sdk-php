@@ -10,80 +10,45 @@ use Aws\S3\S3Transfer\Exception\ProgressTrackerException;
 final class SingleProgressTracker extends AbstractTransferListener
     implements ProgressTrackerInterface
 {
-    /** @var ProgressBarInterface */
-    private ProgressBarInterface $progressBar;
-
     /** @var resource */
-    private mixed $output;
-
-    /** @var bool */
-    private bool $clear;
-
-    /** @var TransferProgressSnapshot|null */
-    private ?TransferProgressSnapshot $currentSnapshot;
-
-    /** @var bool */
-    private bool $showProgressOnUpdate;
+    private readonly mixed $output;
 
     /**
-     * @param ProgressBarInterface $progressBar
      * @param mixed|false|resource $output
-     * @param bool $clear
-     * @param TransferProgressSnapshot|null $currentSnapshot
-     * @param bool $showProgressOnUpdate
      */
     public function __construct(
-        ProgressBarInterface $progressBar = new ConsoleProgressBar(),
+        private readonly ProgressBarInterface $progressBar = new ConsoleProgressBar(),
         mixed $output = STDOUT,
-        bool $clear = true,
-        ?TransferProgressSnapshot $currentSnapshot = null,
-        bool $showProgressOnUpdate = true
+        private readonly bool $clear = true,
+        private ?TransferProgressSnapshot $currentSnapshot = null,
+        private readonly bool $showProgressOnUpdate = true
     ) {
-        $this->progressBar = $progressBar;
         if (get_resource_type($output) !== 'stream') {
             throw new \InvalidArgumentException("The type for $output must be a stream");
         }
         $this->output = $output;
-        $this->clear = $clear;
-        $this->currentSnapshot = $currentSnapshot;
-        $this->showProgressOnUpdate = $showProgressOnUpdate;
     }
 
-    /**
-     * @return ProgressBarInterface
-     */
     public function getProgressBar(): ProgressBarInterface
     {
         return $this->progressBar;
     }
 
-    /**
-     * @return mixed
-     */
     public function getOutput(): mixed
     {
         return $this->output;
     }
 
-    /**
-     * @return bool
-     */
     public function isClear(): bool
     {
         return $this->clear;
     }
 
-    /**
-     * @return TransferProgressSnapshot|null
-     */
     public function getCurrentSnapshot(): ?TransferProgressSnapshot
     {
         return $this->currentSnapshot;
     }
 
-    /**
-     * @return bool
-     */
     public function isShowProgressOnUpdate(): bool
     {
         return $this->showProgressOnUpdate;
@@ -91,8 +56,6 @@ final class SingleProgressTracker extends AbstractTransferListener
 
     /**
      * @inheritDoc
-     *
-     * @return void
      */
     public function transferInitiated(array $context): void
     {
@@ -128,8 +91,6 @@ final class SingleProgressTracker extends AbstractTransferListener
 
     /**
      * @inheritDoc
-     *
-     * @return void
      */
     public function transferComplete(array $context): void
     {
@@ -149,8 +110,6 @@ final class SingleProgressTracker extends AbstractTransferListener
 
     /**
      * @inheritDoc
-     *
-     * @return void
      */
     public function transferFail(array $context): void
     {
@@ -178,8 +137,6 @@ final class SingleProgressTracker extends AbstractTransferListener
      * completed. This is useful for files where its size is zero,
      * for which a ratio will return zero, and hence the percent
      * will be zero.
-     *
-     * @return void
      */
     private function updateProgressBar(
         bool $forceCompletion = false
@@ -206,8 +163,6 @@ final class SingleProgressTracker extends AbstractTransferListener
 
     /**
      * @inheritDoc
-     *
-     * @return void
      */
     public function showProgress(): void
     {

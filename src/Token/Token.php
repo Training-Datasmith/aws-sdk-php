@@ -9,10 +9,6 @@ use Aws\Identity\BearerTokenIdentity;
  */
 class Token extends BearerTokenIdentity implements TokenInterface, \Serializable
 {
-    protected $token;
-    protected $expires;
-    protected ?TokenSource $source;
-
     /**
      * Constructs a new basic token object, with the specified AWS
      * token
@@ -20,14 +16,8 @@ class Token extends BearerTokenIdentity implements TokenInterface, \Serializable
      * @param string $token   Security token to use
      * @param int    $expires UNIX timestamp for when the token expires
      */
-    public function __construct(
-        $token,
-        $expires = null,
-        ?TokenSource $source = null
-    ){
-        $this->token = $token;
-        $this->expires = $expires;
-        $this->source = $source;
+    public function __construct(protected $token, protected $expires = null, protected ?TokenSource $source = null)
+    {
     }
 
     /**
@@ -59,26 +49,17 @@ class Token extends BearerTokenIdentity implements TokenInterface, \Serializable
         return $this->expires;
     }
 
-    /**
-     * @return string|null
-     */
     public function getSource(): ?string
     {
         return $this->source?->value;
     }
 
-    /**
-     * @return bool
-     */
-    public function isExpired()
+    public function isExpired(): bool
     {
         return $this->expires !== null && time() >= $this->expires;
     }
 
-    /**
-     * @return array
-     */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'token'   => $this->token,
@@ -98,7 +79,7 @@ class Token extends BearerTokenIdentity implements TokenInterface, \Serializable
     /**
      * Sets the state of the object from serialized json data
      */
-    public function unserialize($serialized)
+    public function unserialize($serialized): void
     {
         $data = json_decode($serialized, true);
 
@@ -116,7 +97,7 @@ class Token extends BearerTokenIdentity implements TokenInterface, \Serializable
     /**
      *  Sets the state of this object from an array
      */
-    public function __unserialize($data)
+    public function __unserialize(array $data)
     {
         $this->token = $data['token'];
         $this->expires = $data['expires'];

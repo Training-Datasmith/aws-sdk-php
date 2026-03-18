@@ -15,38 +15,29 @@ use Psr\Http\Message\RequestInterface;
  */
 class BucketEndpointMiddleware
 {
-    private static $exclusions = ['GetBucketLocation' => true];
+    private static array $exclusions = ['GetBucketLocation' => true];
     private $nextHandler;
-    private bool $useEndpointV2;
-    private ?string $endpoint;
 
     /**
      * Create a middleware wrapper function.
      *
-     * @param bool $useEndpointV2
-     * @param string|null $endpoint
      *
-     * @return callable
      */
     public static function wrap(
         bool $useEndpointV2 = false,
         ?string $endpoint = null
     ): callable
     {
-        return function (callable $handler) use ($useEndpointV2, $endpoint) {
-            return new self($handler, $useEndpointV2, $endpoint);
-        };
+        return fn(callable $handler) => new self($handler, $useEndpointV2, $endpoint);
     }
 
     public function __construct(
         callable $nextHandler,
-        bool $useEndpointV2,
-        ?string $endpoint = null
+        private readonly bool $useEndpointV2,
+        private readonly ?string $endpoint = null
     )
     {
         $this->nextHandler = $nextHandler;
-        $this->useEndpointV2 = $useEndpointV2;
-        $this->endpoint = $endpoint;
     }
 
     public function __invoke(CommandInterface $command, RequestInterface $request)
@@ -61,12 +52,6 @@ class BucketEndpointMiddleware
         return $nextHandler($command, $request);
     }
 
-    /**
-     * @param string $path
-     * @param string $bucket
-     *
-     * @return string
-     */
     private function removeBucketFromPath(string $path, string $bucket): string
     {
         $len = strlen($bucket) + 1;
@@ -77,12 +62,6 @@ class BucketEndpointMiddleware
         return $path ?: '/';
     }
 
-    /**
-     * @param RequestInterface $request
-     * @param CommandInterface $command
-     *
-     * @return RequestInterface
-     */
     private function modifyRequest(
         RequestInterface $request,
         CommandInterface $command

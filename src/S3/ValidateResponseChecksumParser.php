@@ -33,25 +33,17 @@ class ValidateResponseChecksumParser extends AbstractParser
 
         //Skip this middleware if the operation doesn't have an httpChecksum
         $op = $this->api->getOperation($command->getName());
-        $checksumInfo = isset($op['httpChecksum'])
-            ? $op['httpChecksum']
-            : [];
+        $checksumInfo = $op['httpChecksum'] ?? [];
         if (empty($checksumInfo)) {
             return $result;
         }
 
         //Skip this middleware if the operation doesn't send back a checksum, or the user doesn't opt in
-        $checksumModeEnabledMember = isset($checksumInfo['requestValidationModeMember'])
-            ? $checksumInfo['requestValidationModeMember']
-            : "";
-        $checksumModeEnabled = isset($command[$checksumModeEnabledMember])
-            ? $command[$checksumModeEnabledMember]
-            : "";
-        $responseAlgorithms = isset($checksumInfo['responseAlgorithms'])
-            ? $checksumInfo['responseAlgorithms']
-            : [];
+        $checksumModeEnabledMember = $checksumInfo['requestValidationModeMember'] ?? "";
+        $checksumModeEnabled = $command[$checksumModeEnabledMember] ?? "";
+        $responseAlgorithms = $checksumInfo['responseAlgorithms'] ?? [];
         if (empty($responseAlgorithms)
-            || strtolower($checksumModeEnabled) !== "enabled"
+            || strtolower((string) $checksumModeEnabled) !== "enabled"
         ) {
             return $result;
         }
@@ -72,8 +64,8 @@ class ValidateResponseChecksumParser extends AbstractParser
                 && !empty($checksumValidationInfo['checksumHeaderValue'])
             ) {
                 $headerValue = $checksumValidationInfo['checksumHeaderValue'];
-                $lastDashPos = strrpos($headerValue, '-');
-                $endOfChecksum = substr($headerValue, $lastDashPos + 1);
+                $lastDashPos = strrpos((string) $headerValue, '-');
+                $endOfChecksum = substr((string) $headerValue, $lastDashPos + 1);
                 if (is_numeric($endOfChecksum)
                     && intval($endOfChecksum) > 1
                     && intval($endOfChecksum) < 10000) {
@@ -98,9 +90,8 @@ class ValidateResponseChecksumParser extends AbstractParser
 
     /**
      * @param $checksumPriority
-     * @param ResponseInterface $response
      */
-    public function validateChecksum($checksumPriority, ResponseInterface $response)
+    public function validateChecksum($checksumPriority, ResponseInterface $response): array
     {
         $checksumToValidate = $this->chooseChecksumHeaderToValidate(
             $checksumPriority,
@@ -132,7 +123,6 @@ class ValidateResponseChecksumParser extends AbstractParser
 
     /**
      * @param $checksumPriority
-     * @param ResponseInterface $response
      */
     public function chooseChecksumHeaderToValidate(
         $checksumPriority,

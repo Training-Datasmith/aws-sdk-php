@@ -44,7 +44,7 @@ trait S3ClientTrait
         $body,
         $acl = 'private',
         array $options = []
-    ) {
+    ): \GuzzleHttp\Promise\PromiseInterface {
         return (new ObjectUploader($this, $bucket, $key, $body, $acl, $options))
             ->promise();
     }
@@ -74,7 +74,7 @@ trait S3ClientTrait
         $destK,
         $acl = 'private',
         array $opts = []
-    ) {
+    ): \GuzzleHttp\Promise\PromiseInterface {
         $source = [
             'Bucket' => $fromB,
             'Key' => $fromK,
@@ -94,7 +94,7 @@ trait S3ClientTrait
     /**
      * @see S3ClientInterface::registerStreamWrapper()
      */
-    public function registerStreamWrapper()
+    public function registerStreamWrapper(): void
     {
         StreamWrapper::register($this);
     }
@@ -102,7 +102,7 @@ trait S3ClientTrait
     /**
      * @see S3ClientInterface::registerStreamWrapperV2()
      */
-    public function registerStreamWrapperV2()
+    public function registerStreamWrapperV2(): void
     {
         StreamWrapper::register(
             $this,
@@ -120,7 +120,7 @@ trait S3ClientTrait
         $prefix = '',
         $regex = '',
         array $options = []
-    ) {
+    ): void {
         $this->deleteMatchingObjectsAsync($bucket, $prefix, $regex, $options)
             ->wait();
     }
@@ -144,9 +144,7 @@ trait S3ClientTrait
         $iter = $this->getIterator('ListObjects', $params);
 
         if ($regex) {
-            $iter = \Aws\filter($iter, function ($c) use ($regex) {
-                return preg_match($regex, $c['Key']);
-            });
+            $iter = \Aws\filter($iter, fn($c) => preg_match($regex, (string) $c['Key']));
         }
 
         return BatchDelete::fromIterator($this, $bucket, $iter, $options)
@@ -161,7 +159,7 @@ trait S3ClientTrait
         $bucket,
         $keyPrefix = null,
         array $options = []
-    ) {
+    ): void {
         $this->uploadDirectoryAsync($directory, $bucket, $keyPrefix, $options)
             ->wait();
     }
@@ -174,8 +172,8 @@ trait S3ClientTrait
         $bucket,
         $keyPrefix = null,
         array $options = []
-    ) {
-        $d = "s3://$bucket" . ($keyPrefix ? '/' . ltrim($keyPrefix, '/') : '');
+    ): \GuzzleHttp\Promise\PromiseInterface {
+        $d = "s3://$bucket" . ($keyPrefix ? '/' . ltrim((string) $keyPrefix, '/') : '');
         return (new Transfer($this, $directory, $d, $options))->promise();
     }
 
@@ -187,7 +185,7 @@ trait S3ClientTrait
         $bucket,
         $keyPrefix = '',
         array $options = []
-    ) {
+    ): void {
         $this->downloadBucketAsync($directory, $bucket, $keyPrefix, $options)
             ->wait();
     }
@@ -200,8 +198,8 @@ trait S3ClientTrait
         $bucket,
         $keyPrefix = '',
         array $options = []
-    ) {
-        $s = "s3://$bucket" . ($keyPrefix ? '/' . ltrim($keyPrefix, '/') : '');
+    ): \GuzzleHttp\Promise\PromiseInterface {
+        $s = "s3://$bucket" . ($keyPrefix ? '/' . ltrim((string) $keyPrefix, '/') : '');
         return (new Transfer($this, $s, $directory, $options))->promise();
     }
 
@@ -229,9 +227,7 @@ trait S3ClientTrait
         $handler = $handlerList->resolve();
 
         return $handler($command)
-            ->then(static function (ResultInterface $result) {
-                return $result['@metadata']['headers']['x-amz-bucket-region'];
-            }, function (AwsException $e) {
+            ->then(static fn(ResultInterface $result) => $result['@metadata']['headers']['x-amz-bucket-region'], function (AwsException $e) {
                 $response = $e->getResponse();
                 if ($response === null) {
                     throw $e;
@@ -251,14 +247,14 @@ trait S3ClientTrait
             });
     }
 
-    private function determineBucketRegionFromExceptionBody(ResponseInterface $response)
+    private function determineBucketRegionFromExceptionBody(ResponseInterface $response): string|false
     {
         try {
             $element = $this->parseXml($response->getBody(), $response);
             if (!empty($element->Region)) {
                 return (string)$element->Region;
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Fallthrough on exceptions from parsing
         }
         return false;
@@ -277,7 +273,7 @@ trait S3ClientTrait
     /**
      * @see S3ClientInterface::doesBucketExistV2()
      */
-    public function doesBucketExistV2($bucket, $accept403 = false)
+    public function doesBucketExistV2($bucket, $accept403 = false): bool
     {
         $command = $this->getCommand('HeadBucket', ['Bucket' => $bucket]);
 
@@ -319,7 +315,7 @@ trait S3ClientTrait
         $key,
         $includeDeleteMarkers = false,
         array $options = []
-    ){
+    ): bool{
         $command = $this->getCommand('HeadObject', [
                 'Bucket' => $bucket,
                 'Key'    => $key
@@ -342,7 +338,7 @@ trait S3ClientTrait
         }
     }
 
-    private function useDeleteMarkers($exception)
+    private function useDeleteMarkers($exception): bool
     {
         $response = $exception->getResponse();
         return !empty($response)
@@ -354,10 +350,9 @@ trait S3ClientTrait
      *
      * @param CommandInterface $command Command used to poll for the resource
      *
-     * @return bool
      * @throws S3Exception|\Exception if there is an unhandled exception
      */
-    private function checkExistenceWithCommand(CommandInterface $command)
+    private function checkExistenceWithCommand(CommandInterface $command): bool
     {
         try {
             $this->execute($command);

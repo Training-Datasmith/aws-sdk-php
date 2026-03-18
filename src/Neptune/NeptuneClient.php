@@ -150,7 +150,7 @@ use Aws\PresignUrlMiddleware;
 class NeptuneClient extends AwsClient {
     public function __construct(array $args)
     {
-        $args['with_resolved'] = function (array $args) {
+        $args['with_resolved'] = function (array $args): void {
             $this->getHandlerList()->appendInit(
                 PresignUrlMiddleware::wrap(
                     $this,

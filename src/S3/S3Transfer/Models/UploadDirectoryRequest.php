@@ -22,14 +22,7 @@ final class UploadDirectoryRequest extends AbstractTransferRequest
     ];
     public const DEFAULT_MAX_CONCURRENCY = 100;
 
-    /** @var string */
-    private string $sourceDirectory;
-
-    /** @var string */
-    private string $targetBucket;
-
-    /** @var array */
-    private readonly array $uploadRequestArgs;
+    private readonly string $targetBucket;
 
     /**
      * @param string $sourceDirectory The source directory to upload.
@@ -58,42 +51,31 @@ final class UploadDirectoryRequest extends AbstractTransferRequest
      * @param AbstractTransferListener|null $progressTracker For showing progress in transfers.
      */
     public function __construct(
-        string $sourceDirectory,
+        private readonly string $sourceDirectory,
         string $targetBucket,
-        array $uploadRequestArgs = [],
+        private readonly array $uploadRequestArgs = [],
         array $config = [],
         array $listeners = [],
         ?AbstractTransferListener $progressTracker = null
     ) {
         parent::__construct($listeners, $progressTracker, $config);
-        $this->sourceDirectory = $sourceDirectory;
         if (ArnParser::isArn($targetBucket)) {
             $targetBucket =  ArnParser::parse($targetBucket)->getResource();
         }
         $this->targetBucket = $targetBucket;
-        $this->uploadRequestArgs = $uploadRequestArgs;
         $this->config = $config;
     }
 
-    /**
-     * @return string
-     */
     public function getSourceDirectory(): string
     {
         return $this->sourceDirectory;
     }
 
-    /**
-     * @return string
-     */
     public function getTargetBucket(): string
     {
         return $this->targetBucket;
     }
 
-    /**
-     * @return array
-     */
     public function getUploadRequestArgs(): array
     {
         return $this->uploadRequestArgs;
@@ -101,7 +83,6 @@ final class UploadDirectoryRequest extends AbstractTransferRequest
 
     /**
      * Helper method to validate source directory
-     * @return void
      */
     public function validateSourceDirectory(): void
     {

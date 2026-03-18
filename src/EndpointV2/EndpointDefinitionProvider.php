@@ -25,14 +25,13 @@ class EndpointDefinitionProvider
 
         if (file_exists($basePath . $file . '.php')) {
            return require($basePath . $file . '.php');
-        } else {
-            return json_decode(file_get_contents($basePath . $file));
         }
+        return json_decode(file_get_contents($basePath . $file));
     }
 
-    private static function getData($service, $apiVersion, $type, $baseDir)
+    private static function getData(string $service, $apiVersion, string $type, $baseDir)
     {
-        $basePath = $baseDir ? $baseDir :  __DIR__ . '/../data';
+        $basePath = $baseDir ?: __DIR__ . '/../data';
         $serviceDir = $basePath . "/{$service}";
         if (!is_dir($serviceDir)) {
             throw new \InvalidArgumentException(
@@ -51,16 +50,16 @@ class EndpointDefinitionProvider
             );
         }
         $fileName = $type === 'tests' ? '/endpoint-tests-1' : '/endpoint-rule-set-1';
-
         if (file_exists($rulesetPath . $fileName . '.json.php')) {
             return require($rulesetPath . $fileName . '.json.php');
-        } elseif (file_exists($rulesetPath . $fileName . '.json')) {
-            return json_decode(file_get_contents($rulesetPath . $fileName . '.json'), true);
-        } else {
-            throw new \InvalidArgumentException(
-                'Specified ' . $type . ' endpoint file for ' . $service . ' with api version ' . $apiVersion . ' does not exist.'
-            );
         }
+
+        if (file_exists($rulesetPath . $fileName . '.json')) {
+            return json_decode(file_get_contents($rulesetPath . $fileName . '.json'), true);
+        }
+        throw new \InvalidArgumentException(
+            'Specified ' . $type . ' endpoint file for ' . $service . ' with api version ' . $apiVersion . ' does not exist.'
+        );
     }
 
     private static function getLatest($service)

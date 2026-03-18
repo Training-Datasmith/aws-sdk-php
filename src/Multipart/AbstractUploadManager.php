@@ -23,7 +23,7 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
     const DEFAULT_CONCURRENCY = 5;
 
     /** @var array Default values for base multipart configuration */
-    private static $defaultConfig = [
+    private static array $defaultConfig = [
         'part_size'           => null,
         'state'               => null,
         'concurrency'         => self::DEFAULT_CONCURRENCY,
@@ -34,11 +34,8 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
         'exception_class'     => MultipartUploadException::class,
     ];
 
-    /** @var Client Client used for the upload. */
-    protected $client;
-
     /** @var array Configuration used to perform the upload. */
-    protected $config;
+    protected array $config;
 
     /** @var array Service-specific information about the upload workflow. */
     protected $info;
@@ -47,18 +44,14 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
     protected $promise;
 
     /** @var UploadState State used to manage the upload. */
-    protected $state;
+    protected \Aws\Multipart\UploadState $state;
 
     /** @var bool Configuration used to indicate if upload progress will be displayed. */
     protected $displayProgress;
 
-    /**
-     * @param Client $client
-     * @param array  $config
-     */
-    public function __construct(Client $client, array $config = [])
+    public function __construct(/** @var Client Client used for the upload. */
+    protected \Aws\AwsClientInterface $client, array $config = [])
     {
-        $this->client = $client;
         $this->info = $this->loadUploadWorkflowInfo();
         $this->config = $config + self::$defaultConfig;
         $this->state = $this->determineState();
@@ -94,8 +87,6 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
 
     /**
      * Upload the source asynchronously using multipart upload operations.
-     *
-     * @return PromiseInterface
      */
     public function promise(): PromiseInterface
     {
@@ -149,7 +140,7 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
         })->otherwise($this->buildFailureCatch());
     }
 
-    private function transformException($e)
+    private function transformException(\Throwable|\Exception $e): void
     {
         // Throw errors from the operations as a specific Multipart error.
         if ($e instanceof AwsException) {
@@ -161,14 +152,9 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
     private function buildFailureCatch()
     {
         if (interface_exists("Throwable")) {
-            return function (\Throwable $e) {
-                return $this->transformException($e);
-            };
-        } else {
-            return function (\Exception $e) {
-                return $this->transformException($e);
-            };
+            return fn(\Throwable $e) => $this->transformException($e);
         }
+        return fn(\Exception $e) => $this->transformException($e);
     }
 
     protected function getConfig()
@@ -201,9 +187,6 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
     /**
      * Uses information from the Command and Result to determine which part was
      * uploaded and mark it as uploaded in the upload's state.
-     *
-     * @param CommandInterface $command
-     * @param ResultInterface  $result
      */
     abstract protected function handleResult(
         CommandInterface $command,
@@ -293,17 +276,17 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
      */
     protected function getResultHandler(&$errors = [])
     {
-        return function (callable $handler) use (&$errors) {
+        return function (callable $handler) use (&$errors): \Closure {
             return function (
                 CommandInterface $command,
                 ?RequestInterface $request = null
             ) use ($handler, &$errors) {
                 return $handler($command, $request)->then(
-                    function (ResultInterface $result) use ($command) {
+                    function (ResultInterface $result) use ($command): \Aws\ResultInterface {
                         $this->handleResult($command, $result);
                         return $result;
                     },
-                    function (AwsException $e) use (&$errors) {
+                    function (AwsException $e) use (&$errors): \Aws\Result {
                         $errors[$e->getCommand()[$this->info['part_num']]] = $e;
                         return new Result();
                     }
@@ -320,7 +303,6 @@ abstract class AbstractUploadManager implements Promise\PromisorInterface
      * include the Body parameter, which is a limited stream (i.e., a Stream
      * object, decorated with a LimitStream).
      *
-     * @param callable $resultHandler
      *
      * @return \Generator
      */

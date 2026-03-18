@@ -17,13 +17,10 @@ use Psr\Http\Message\ResponseInterface;
 abstract class AbstractMonitoringMiddleware
     implements MonitoringMiddlewareInterface
 {
-    private static $socket;
+    private static \Socket|bool|null $socket = null;
 
     private $nextHandler;
-    private $options;
     protected $credentialProvider;
-    protected $region;
-    protected $service;
 
     protected static function getAwsExceptionHeader(AwsException $e, $headerName)
     {
@@ -39,10 +36,7 @@ abstract class AbstractMonitoringMiddleware
 
     protected static function getResultHeader(ResultInterface $result, $headerName)
     {
-        if (isset($result['@metadata']['headers'][$headerName])) {
-            return $result['@metadata']['headers'][$headerName];
-        }
-        return null;
+        return $result['@metadata']['headers'][$headerName] ?? null;
     }
 
     protected static function getExceptionHeader(\Exception $e, $headerName)
@@ -62,8 +56,6 @@ abstract class AbstractMonitoringMiddleware
     /**
      * Constructor stores the passed in handler and options.
      *
-     * @param callable $handler
-     * @param callable $credentialProvider
      * @param $options
      * @param $region
      * @param $service
@@ -71,23 +63,18 @@ abstract class AbstractMonitoringMiddleware
     public function __construct(
         callable $handler,
         callable $credentialProvider,
-        $options,
-        $region,
-        $service
+        private $options,
+        protected $region,
+        protected $service
     ) {
         $this->nextHandler = $handler;
         $this->credentialProvider = $credentialProvider;
-        $this->options = $options;
-        $this->region = $region;
-        $this->service = $service;
     }
 
     /**
      * Standard invoke pattern for middleware execution to be implemented by
      * child classes.
      *
-     * @param  CommandInterface $cmd
-     * @param  RequestInterface $request
      * @return Promise\PromiseInterface
      */
     public function __invoke(CommandInterface $cmd, RequestInterface $request)
@@ -134,8 +121,8 @@ abstract class AbstractMonitoringMiddleware
     private function getNewEvent(
         CommandInterface $cmd,
         RequestInterface $request
-    ) {
-        $event = [
+    ): array {
+        return [
             'Api' => $cmd->getName(),
             'ClientId' => $this->getClientId(),
             'Region' => $this->getRegion(),
@@ -148,7 +135,6 @@ abstract class AbstractMonitoringMiddleware
             ),
             'Version' => 1
         ];
-        return $event;
     }
 
     private function getHost()
@@ -184,9 +170,6 @@ abstract class AbstractMonitoringMiddleware
     /**
      * Returns $eventData array with information from the request and command.
      *
-     * @param CommandInterface $cmd
-     * @param RequestInterface $request
-     * @param array $event
      * @return array
      */
     protected function populateRequestEventData(
@@ -208,7 +191,6 @@ abstract class AbstractMonitoringMiddleware
      * the calculation for attempt latency.
      *
      * @param ResultInterface|\Exception $result
-     * @param array $event
      * @return array
      */
     protected function populateResultEventData(
@@ -239,9 +221,8 @@ abstract class AbstractMonitoringMiddleware
         if (PHP_MAJOR_VERSION >= 8) {
             $socketClass = '\Socket';
             return self::$socket instanceof $socketClass;
-        } else {
-            return is_resource(self::$socket);
         }
+        return is_resource(self::$socket);
     }
 
     /**
@@ -250,10 +231,9 @@ abstract class AbstractMonitoringMiddleware
      * re-connecting if necessary. If $forceNewConnection is set to true, a new
      * socket will be created.
      *
-     * @param bool $forceNewConnection
      * @return Resource
      */
-    private function prepareSocket($forceNewConnection = false)
+    private function prepareSocket(bool $forceNewConnection = false)
     {
         if (!$this->isSocketCreated()
             || $forceNewConnection
@@ -271,10 +251,9 @@ abstract class AbstractMonitoringMiddleware
      * Sends formatted monitoring event data via the UDP socket connection to
      * the CSM agent endpoint.
      *
-     * @param array $eventData
      * @return int
      */
-    private function sendEventData(array $eventData)
+    private function sendEventData(array $eventData): int|false
     {
         $socket = $this->prepareSocket();
         $datagram = json_encode($eventData);
@@ -295,7 +274,7 @@ abstract class AbstractMonitoringMiddleware
         if (!($this->options instanceof ConfigurationInterface)) {
             try {
                 $this->options = ConfigurationProvider::unwrap($this->options);
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 // Errors unwrapping CSM config defaults to disabling it
                 $this->options = new Configuration(
                     false,

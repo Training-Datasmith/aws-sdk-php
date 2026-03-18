@@ -27,29 +27,22 @@ class RulesetStandardLibrary
     const TEMPLATE_PARSE_RE = '#\{((?>[^\{\}]+)|(?R))*\}#x';
     const HOST_LABEL_RE = '/^(?!-)[a-zA-Z\d-]{1,63}(?<!-)$/';
 
-    private $partitions;
-
-    public function __construct($partitions)
+    public function __construct(private $partitions)
     {
-        $this->partitions = $partitions;
     }
 
     /**
      * Determines if a value is set.
-     *
-     * @return boolean
      */
-    public function is_set($value)
+    public function is_set($value): bool
     {
         return isset($value);
     }
 
     /**
      * Function implementation of logical operator `not`
-     *
-     * @return boolean
      */
-    public function not($value)
+    public function not($value): bool
     {
         return !$value;
     }
@@ -59,20 +52,20 @@ class RulesetStandardLibrary
      *
      * @return mixed
      */
-    public function getAttr($from, $path)
+    public function getAttr(array $from, $path)
     {
         // Handles the case where "[<int|string]" is provided as the top-level path
-        if (preg_match('/^\[(\w+)\]$/', $path, $matches)) {
+        if (preg_match('/^\[(\w+)\]$/', (string) $path, $matches)) {
             $index = is_numeric($matches[1]) ? (int) $matches[1] : $matches[1];
 
             return $from[$index] ?? null;
         }
 
-        $parts = explode('.', $path);
+        $parts = explode('.', (string) $path);
         foreach ($parts as $part) {
             $sliceIdx = strpos($part, '[');
             if ($sliceIdx !== false) {
-                if (substr($part, -1) !== ']') {
+                if (!str_ends_with($part, ']')) {
                     return null;
                 }
                 $slice = (int) substr($part, $sliceIdx + 1, strlen($part) - 1);
@@ -88,10 +81,8 @@ class RulesetStandardLibrary
     /**
      * Computes a substring given the start index and end index. If `reverse` is
      * true, slice the string from the end instead.
-     *
-     * @return mixed
      */
-    public function substring($input, $start, $stop, $reverse)
+    public function substring($input, $start, $stop, $reverse): ?string
     {
         if (!is_string($input)) {
             throw new UnresolvedEndpointException(
@@ -107,19 +98,16 @@ class RulesetStandardLibrary
         }
         if (!$reverse) {
             return substr($input, $start, $stop - $start);
-        } else {
-            $offset = strlen($input) - $stop;
-            $length = $stop - $start;
-            return substr($input, $offset, $length);
         }
+        $offset = strlen($input) - $stop;
+        $length = $stop - $start;
+        return substr($input, $offset, $length);
     }
 
     /**
      * Evaluates two strings for equality.
-     *
-     * @return boolean
      */
-    public function stringEquals($string1, $string2)
+    public function stringEquals($string1, $string2): bool
     {
         if (!is_string($string1) || !is_string($string2)) {
             throw new UnresolvedEndpointException(
@@ -131,10 +119,8 @@ class RulesetStandardLibrary
 
     /**
      * Evaluates two booleans for equality.
-     *
-     * @return boolean
      */
-    public function booleanEquals($boolean1, $boolean2)
+    public function booleanEquals($boolean1, $boolean2): bool
     {
         return
             filter_var($boolean1, FILTER_VALIDATE_BOOLEAN)
@@ -143,10 +129,8 @@ class RulesetStandardLibrary
 
     /**
      * Percent-encodes an input string.
-     *
-     * @return mixed
      */
-    public function uriEncode($input)
+    public function uriEncode($input): ?string
     {
         if (is_null($input)) {
             return null;
@@ -156,20 +140,19 @@ class RulesetStandardLibrary
 
     /**
      * Parses URL string into components.
-     *
-     * @return mixed
      */
-    public function parseUrl($url)
+    public function parseUrl($url): ?array
     {
         if (is_null($url)) {
             return null;
         }
 
         $parsed = parse_url($url);
-
         if ($parsed === false || !empty($parsed['query'])) {
             return null;
-        } elseif (!isset($parsed['scheme'])) {
+        }
+
+        if (!isset($parsed['scheme'])) {
             return null;
         }
 
@@ -181,11 +164,11 @@ class RulesetStandardLibrary
 
         $urlInfo = [];
         $urlInfo['scheme'] = $parsed['scheme'];
-        $urlInfo['authority'] = isset($parsed['host']) ? $parsed['host'] : '';
+        $urlInfo['authority'] = $parsed['host'] ?? '';
         if (isset($parsed['port'])) {
             $urlInfo['authority'] = $urlInfo['authority'] . ":" . $parsed['port'];
         }
-        $urlInfo['path'] = isset($parsed['path']) ? $parsed['path'] : '';
+        $urlInfo['path'] = $parsed['path'] ?? '';
         $urlInfo['normalizedPath'] = !empty($parsed['path'])
             ? rtrim($urlInfo['path'] ?: '', '/' .  "/") . '/'
             : '/';
@@ -205,7 +188,7 @@ class RulesetStandardLibrary
     public function isValidHostLabel($hostLabel, $allowSubDomains)
     {
         if (!isset($hostLabel)
-            || (!$allowSubDomains && strpos($hostLabel, '.') != false)
+            || (!$allowSubDomains && str_contains($hostLabel, '.'))
         ) {
             return false;
         }
@@ -217,20 +200,17 @@ class RulesetStandardLibrary
                 }
             }
             return true;
-        } else {
-            return $this->validateHostLabel($hostLabel);
         }
+        return $this->validateHostLabel($hostLabel);
     }
 
     /**
      * Parse and validate string for ARN components.
-     *
-     * @return array|null
      */
-    public function parseArn($arnString)
+    public function parseArn($arnString): ?array
     {
         if (is_null($arnString)
-            || substr( $arnString, 0, 3 ) !== "arn"
+            || !str_starts_with($arnString, "arn")
         ) {
             return null;
         }
@@ -241,11 +221,11 @@ class RulesetStandardLibrary
             return null;
         }
 
-        $arn['partition'] = isset($parts[1]) ? $parts[1] : null;
-        $arn['service'] = isset($parts[2]) ? $parts[2] : null;
-        $arn['region'] = isset($parts[3]) ? $parts[3] : null;
-        $arn['accountId'] = isset($parts[4]) ? $parts[4] : null;
-        $arn['resourceId'] = isset($parts[5]) ? $parts[5] : null;
+        $arn['partition'] = $parts[1] ?? null;
+        $arn['service'] = $parts[2] ?? null;
+        $arn['region'] = $parts[3] ?? null;
+        $arn['accountId'] = $parts[4] ?? null;
+        $arn['resourceId'] = $parts[5] ?? null;
 
         if (empty($arn['partition'])
             || empty($arn['service'])
@@ -311,7 +291,7 @@ class RulesetStandardLibrary
         return $this->isValidHostLabel($bucketName, false);
     }
 
-    public function callFunction($funcCondition, &$inputParameters)
+    public function callFunction(array $funcCondition, array &$inputParameters)
     {
         $funcArgs = [];
 
@@ -342,48 +322,50 @@ class RulesetStandardLibrary
         return $result;
     }
 
-    public function resolveValue($value, $inputParameters)
+    public function resolveValue(array $value, array $inputParameters)
     {
         //Given a value, check if it's a function, reference or template.
         //returns resolved value
         if ($this->isFunc($value)) {
             return $this->callFunction($value, $inputParameters);
-        } elseif ($this->isRef($value)) {
-            return isset($inputParameters[$value['ref']]) ? $inputParameters[$value['ref']] : null;
-        } elseif ($this->isTemplate($value)) {
+        }
+        if ($this->isRef($value)) {
+            return $inputParameters[$value['ref']] ?? null;
+        }
+        if ($this->isTemplate($value)) {
             return $this->resolveTemplateString($value, $inputParameters);
         }
         return $value;
     }
 
-    public function isFunc($arg)
+    public function isFunc($arg): bool
     {
         return is_array($arg) && isset($arg['fn']);
     }
 
-    public function isRef($arg)
+    public function isRef($arg): bool
     {
         return is_array($arg) && isset($arg['ref']);
     }
 
-    public function isTemplate($arg)
+    public function isTemplate($arg): bool
     {
         return is_string($arg) && !empty(preg_match(self::TEMPLATE_SEARCH_RE, $arg));
     }
 
-    public function resolveTemplateString($value, $inputParameters)
+    public function resolveTemplateString($value, $inputParameters): string|array|null
     {
         return preg_replace_callback(
             self::TEMPLATE_PARSE_RE,
-            function ($match) use ($inputParameters) {
-                if (preg_match(self::TEMPLATE_ESCAPE_RE, $match[0])) {
+            function (array $match) use ($inputParameters) {
+                if (preg_match(self::TEMPLATE_ESCAPE_RE, (string) $match[0])) {
                     return $match[1];
                 }
 
                 $notFoundMessage = 'Resolved value was null.  Please check rules and ' .
                     'input parameters and try again.';
 
-                $parts = explode("#", $match[1]);
+                $parts = explode("#", (string) $match[1]);
                 if (count($parts) > 1) {
                     $resolvedValue = $inputParameters;
                     foreach($parts as $part) {
@@ -393,31 +375,30 @@ class RulesetStandardLibrary
                         $resolvedValue = $resolvedValue[$part];
                     }
                     return $resolvedValue;
-                } else {
-                    if (!isset($inputParameters[$parts[0]])) {
-                        throw new UnresolvedEndpointException($notFoundMessage);
-                    }
-                    return $inputParameters[$parts[0]];
                 }
+                if (!isset($inputParameters[$parts[0]])) {
+                    throw new UnresolvedEndpointException($notFoundMessage);
+                }
+                return $inputParameters[$parts[0]];
             },
-            $value
+            (string) $value
         );
     }
 
-    private function validateHostLabel ($hostLabel)
+    private function validateHostLabel ($hostLabel): bool
     {
-        if (empty($hostLabel) || strlen($hostLabel) > 63) {
+        if (empty($hostLabel) || strlen((string) $hostLabel) > 63) {
             return false;
         }
-        if (preg_match(self::HOST_LABEL_RE, $hostLabel)) {
+        if (preg_match(self::HOST_LABEL_RE, (string) $hostLabel)) {
             return true;
         }
         return false;
     }
 
-    private function isValidIp($hostName)
+    private function isValidIp(string $hostName): string
     {
-        $isWrapped = strpos($hostName, '[') === 0
+        $isWrapped = str_starts_with($hostName, '[')
             && strrpos($hostName, ']') === strlen($hostName) - 1;
 
         return preg_match(

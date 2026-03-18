@@ -8,22 +8,10 @@ use Psr\Http\Message\StreamInterface;
 
 final class StreamDownloadHandler extends AbstractDownloadHandler
 {
-    /** @var StreamInterface|null */
-    private ?StreamInterface $stream;
-
-    /**
-     * @param StreamInterface|null $stream
-     */
-    public function __construct(?StreamInterface $stream = null)
+    public function __construct(private ?StreamInterface $stream = null)
     {
-        $this->stream = $stream;
     }
 
-    /**
-     * @param array $context
-     *
-     * @return void
-     */
     public function transferInitiated(array $context): void
     {
         if (is_null($this->stream)) {
@@ -55,21 +43,11 @@ final class StreamDownloadHandler extends AbstractDownloadHandler
         return true;
     }
 
-    /**
-     * @param array $context
-     *
-     * @return void
-     */
     public function transferComplete(array $context): void
     {
         $this->stream->rewind();
     }
 
-    /**
-     * @param array $context
-     *
-     * @return void
-     */
     public function transferFail(array $context): void
     {
         $this->stream->close();
@@ -78,8 +56,6 @@ final class StreamDownloadHandler extends AbstractDownloadHandler
 
     /**
      * @inheritDoc
-     *
-     * @return StreamInterface
      */
     public function getHandlerResult(): StreamInterface
     {

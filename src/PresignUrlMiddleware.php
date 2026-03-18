@@ -11,8 +11,6 @@ use Psr\Http\Message\RequestInterface;
  */
 class PresignUrlMiddleware
 {
-    private $client;
-    private $endpointProvider;
     private $nextHandler;
     /** @var array names of operations that require presign url */
     private $commandPool;
@@ -22,17 +20,14 @@ class PresignUrlMiddleware
     private $serviceName;
     /** @var string */
     private $presignParam;
-    /** @var bool */
-    private $requireDifferentRegion;
+    private readonly bool $requireDifferentRegion;
 
     public function __construct(
         array $options,
-        $endpointProvider,
-        AwsClientInterface $client,
+        private $endpointProvider,
+        private readonly AwsClientInterface $client,
         callable $nextHandler
     ) {
-        $this->endpointProvider = $endpointProvider;
-        $this->client = $client;
         $this->nextHandler = $nextHandler;
         $this->commandPool = $options['operations'];
         $this->serviceName = $options['service'];
@@ -50,10 +45,7 @@ class PresignUrlMiddleware
         $endpointProvider,
         array $options = []
     ) {
-        return function (callable $handler) use ($endpointProvider, $client, $options) {
-            $f = new PresignUrlMiddleware($options, $endpointProvider, $client, $handler);
-            return $f;
-        };
+        return fn(callable $handler): \Aws\PresignUrlMiddleware => new PresignUrlMiddleware($options, $endpointProvider, $client, $handler);
     }
 
     public function __invoke(CommandInterface $cmd, ?RequestInterface $request = null)
@@ -80,7 +72,7 @@ class PresignUrlMiddleware
     private function createPresignedUrl(
         AwsClientInterface $client,
         CommandInterface $cmd
-    ) {
+    ): string {
         $cmdName = $cmd->getName();
         $newCmd = $client->getCommand($cmdName, $cmd->toArray());
         // Avoid infinite recursion by flagging the new command.
@@ -113,8 +105,8 @@ class PresignUrlMiddleware
         $paramsToAdd = false;
         if (!empty($this->extraQueryParams[$cmdName])) {
             foreach ($this->extraQueryParams[$cmdName] as $param) {
-                if (!strpos($currentQueryParams, $param)) {
-                    $paramsToAdd =  "&{$param}=" . urlencode($cmd[$param]);
+                if (!strpos($currentQueryParams, (string) $param)) {
+                    $paramsToAdd =  "&{$param}=" . urlencode((string) $cmd[$param]);
                 }
             }
         }

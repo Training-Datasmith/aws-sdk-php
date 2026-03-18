@@ -16,9 +16,7 @@ abstract class AbstractUploader extends AbstractUploadManager
     protected $displayProgress;
 
     /**
-     * @param Client $client
      * @param mixed  $source
-     * @param array  $config
      */
     public function __construct(Client $client, $source, array $config = [])
     {
@@ -30,7 +28,6 @@ abstract class AbstractUploader extends AbstractUploadManager
      * Create a stream for a part that starts at the current position and
      * has a length of the upload part size (or less with the final part).
      *
-     * @param Stream $stream
      *
      * @return Psr7\LimitStream
      */
@@ -106,11 +103,9 @@ abstract class AbstractUploader extends AbstractUploadManager
     /**
      * Checks if the source is at EOF.
      *
-     * @param bool $seekable
      *
-     * @return bool
      */
-    private function isEof($seekable)
+    private function isEof(bool $seekable): bool
     {
         return $seekable
             ? $this->source->tell() < $this->source->getSize()

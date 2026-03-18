@@ -76,13 +76,11 @@ class Ruleset
     /**
      * Ensures all corresponding client-provided parameters match
      * the Ruleset parameter's specified type.
-     *
-     * @return void
      */
-    private function validateInputParameters(array &$inputParameters)
+    private function validateInputParameters(array &$inputParameters): void
     {
         foreach($this->parameters as $paramName => $param) {
-            $inputParam = isset($inputParameters[$paramName]) ? $inputParameters[$paramName] : null;
+            $inputParam = $inputParameters[$paramName] ?? null;
 
             if (is_null($inputParam) && !is_null($param->getDefault())) {
                 $inputParameters[$paramName] = $param->getDefault();
@@ -92,7 +90,10 @@ class Ruleset
         }
     }
 
-    private function createParameters(array $parameters)
+    /**
+     * @return \Aws\EndpointV2\Ruleset\RulesetParameter[]
+     */
+    private function createParameters(array $parameters): array
     {
         $parameterList = [];
 
@@ -103,7 +104,10 @@ class Ruleset
         return $parameterList;
     }
 
-    private function createRules(array $rules)
+    /**
+     * @return mixed[]
+     */
+    private function createRules(array $rules): array
     {
         $rulesList = [];
 

@@ -7,24 +7,16 @@ namespace Aws\Api;
 abstract class AbstractModel implements \ArrayAccess
 {
     /** @var array */
-    protected $definition;
-
-    /** @var ShapeMap */
-    protected $shapeMap;
-
-    /** @var array */
     protected $contextParam;
 
     /**
      * @param array    $definition Service description
      * @param ShapeMap $shapeMap   Shapemap used for creating shapes
      */
-    public function __construct(array $definition, ShapeMap $shapeMap)
+    public function __construct(protected array $definition, protected \Aws\Api\ShapeMap $shapeMap)
     {
-        $this->definition = $definition;
-        $this->shapeMap = $shapeMap;
-        if (isset($definition['contextParam'])) {
-            $this->contextParam = $definition['contextParam'];
+        if (isset($this->definition['contextParam'])) {
+            $this->contextParam = $this->definition['contextParam'];
         }
     }
 
@@ -39,15 +31,11 @@ abstract class AbstractModel implements \ArrayAccess
     #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
-        return isset($this->definition[$offset])
-            ? $this->definition[$offset] : null;
+        return $this->definition[$offset] ?? null;
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->definition[$offset] = $value;
     }
@@ -61,16 +49,13 @@ abstract class AbstractModel implements \ArrayAccess
         return isset($this->definition[$offset]);
     }
 
-    /**
-     * @return void
-     */
     #[\ReturnTypeWillChange]
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->definition[$offset]);
     }
 
-    protected function shapeAt($key)
+    protected function shapeAt(string $key)
     {
         if (!isset($this->definition[$key])) {
             throw new \InvalidArgumentException('Expected shape definition at '

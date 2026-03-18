@@ -19,7 +19,6 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
     /**
      * Standard middleware wrapper function with CSM options passed in.
      *
-     * @param callable $credentialProvider
      * @param mixed  $options
      * @param string $region
      * @param string $service
@@ -31,26 +30,19 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         $region,
         $service
     ) {
-        return function (callable $handler) use (
+        return fn(callable $handler) => new static(
+            $handler,
             $credentialProvider,
             $options,
             $region,
             $service
-        ) {
-            return new static(
-                $handler,
-                $credentialProvider,
-                $options,
-                $region,
-                $service
-            );
-        };
+        );
     }
 
     /**
      * {@inheritdoc}
      */
-    public static function getRequestData(RequestInterface $request)
+    public static function getRequestData(RequestInterface $request): array
     {
         return [
             'Fqdn' => $request->getUri()->getHost(),
@@ -77,12 +69,12 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
             return [
                 'AttemptLatency' => self::getAwsExceptionAttemptLatency($klass),
                 'AwsException' => substr(
-                    self::getAwsExceptionErrorCode($klass),
+                    (string) self::getAwsExceptionErrorCode($klass),
                     0,
                     128
                 ),
                 'AwsExceptionMessage' => substr(
-                    self::getAwsExceptionMessage($klass),
+                    (string) self::getAwsExceptionMessage($klass),
                     0,
                     512
                 ),
@@ -104,12 +96,12 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
             return [
                 'HttpStatusCode' => self::getExceptionHttpStatusCode($klass),
                 'SdkException' => substr(
-                    self::getExceptionCode($klass),
+                    (string) self::getExceptionCode($klass),
                     0,
                     128
                 ),
                 'SdkExceptionMessage' => substr(
-                    self::getExceptionMessage($klass),
+                    (string) self::getExceptionMessage($klass),
                     0,
                     512
                 ),
@@ -122,7 +114,7 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         throw new \InvalidArgumentException('Parameter must be an instance of ResultInterface, AwsException or Exception.');
     }
 
-    private static function getResultAttemptLatency(ResultInterface $result)
+    private static function getResultAttemptLatency(ResultInterface $result): ?int
     {
         if (isset($result['@metadata']['transferStats']['http'])) {
             $attempt = end($result['@metadata']['transferStats']['http']);
@@ -144,7 +136,7 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         return null;
     }
 
-    private static function getResultDnsLatency(ResultInterface $result)
+    private static function getResultDnsLatency(ResultInterface $result): ?int
     {
         if (isset($result['@metadata']['transferStats']['http'])) {
             $attempt = end($result['@metadata']['transferStats']['http']);
@@ -160,7 +152,7 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         return $result['@metadata']['statusCode'];
     }
 
-    private static function getAwsExceptionAttemptLatency(AwsException $e) {
+    private static function getAwsExceptionAttemptLatency(AwsException $e): ?int {
         $attempt = $e->getTransferInfo();
         if (isset($attempt['total_time'])) {
             return (int) floor($attempt['total_time'] * 1000);
@@ -178,13 +170,10 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
 
     private static function getAwsExceptionDestinationIp(AwsException $e) {
         $attempt = $e->getTransferInfo();
-        if (isset($attempt['primary_ip'])) {
-            return $attempt['primary_ip'];
-        }
-        return null;
+        return $attempt['primary_ip'] ?? null;
     }
 
-    private static function getAwsExceptionDnsLatency(AwsException $e) {
+    private static function getAwsExceptionDnsLatency(AwsException $e): ?int {
         $attempt = $e->getTransferInfo();
         if (isset($attempt['namelookup_time'])) {
             return (int) floor($attempt['namelookup_time'] * 1000);
@@ -210,14 +199,14 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         return null;
     }
 
-    private static function getExceptionCode(\Exception $e) {
+    private static function getExceptionCode(\Exception $e): ?string {
         if (!($e instanceof AwsException)) {
-            return get_class($e);
+            return $e::class;
         }
         return null;
     }
 
-    private static function getExceptionMessage(\Exception $e) {
+    private static function getExceptionMessage(\Exception $e): ?string {
         if (!($e instanceof AwsException)) {
             return $e->getMessage();
         }

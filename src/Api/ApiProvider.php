@@ -38,18 +38,15 @@ use Aws\Exception\UnresolvedApiException;
 class ApiProvider
 {
     /** @var array A map of public API type names to their file suffix. */
-    private static $typeMap = [
+    private static array $typeMap = [
         'api'       => 'api-2',
         'paginator' => 'paginators-1',
         'waiter'    => 'waiters-2',
         'docs'      => 'docs-2',
     ];
 
-    /** @var array API manifest */
-    private $manifest;
-
     /** @var string The directory containing service models. */
-    private $modelsDir;
+    private readonly string $modelsDir;
 
     /**
      * Resolves an API provider and ensures a non-null return value.
@@ -89,10 +86,8 @@ class ApiProvider
      * Default SDK API provider.
      *
      * This provider loads pre-built manifest data from the `data` directory.
-     *
-     * @return self
      */
-    public static function defaultProvider()
+    public static function defaultProvider(): self
     {
         return new self(__DIR__ . '/../data', \Aws\manifest());
     }
@@ -120,10 +115,8 @@ class ApiProvider
      *
      * @param string $dir      Directory containing service models.
      * @param array  $manifest The API version manifest data.
-     *
-     * @return self
      */
-    public static function manifest($dir, array $manifest)
+    public static function manifest($dir, array $manifest): self
     {
         return new self($dir, $manifest);
     }
@@ -136,10 +129,9 @@ class ApiProvider
      *
      * @param string $dir Directory containing service models.
      *
-     * @return self
      * @throws \InvalidArgumentException if the provided `$dir` is invalid.
      */
-    public static function filesystem($dir)
+    public static function filesystem($dir): self
     {
         return new self($dir);
     }
@@ -148,10 +140,8 @@ class ApiProvider
      * Retrieves a list of valid versions for the specified service.
      *
      * @param string $service Service name
-     *
-     * @return array
      */
-    public function getVersions($service)
+    public function getVersions($service): array
     {
         if (!isset($this->manifest)) {
             $this->buildVersionsList($service);
@@ -196,7 +186,7 @@ class ApiProvider
 
         try {
             return \Aws\load_compiled_json($path);
-        } catch (\InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException) {
             return null;
         }
     }
@@ -205,9 +195,8 @@ class ApiProvider
      * @param string $modelsDir Directory containing service models.
      * @param array  $manifest  The API version manifest data.
      */
-    private function __construct($modelsDir, ?array $manifest = null)
+    private function __construct($modelsDir, private ?array $manifest = null)
     {
-        $this->manifest = $manifest;
         $this->modelsDir = rtrim($modelsDir, '/');
         if (!is_dir($this->modelsDir)) {
             throw new \InvalidArgumentException(
@@ -219,7 +208,7 @@ class ApiProvider
     /**
      * Build the versions list for the specified service by globbing the dir.
      */
-    private function buildVersionsList($service)
+    private function buildVersionsList($service): void
     {
         $dir = "{$this->modelsDir}/{$service}/";
 

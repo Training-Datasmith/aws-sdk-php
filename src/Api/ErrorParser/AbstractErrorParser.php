@@ -14,16 +14,10 @@ abstract class AbstractErrorParser
     use PayloadParserTrait;
 
     /**
-     * @var Service
-     */
-    protected $api;
-
-    /**
      * @param Service $api
      */
-    public function __construct(?Service $api = null)
+    public function __construct(protected ?\Aws\Api\Service $api = null)
     {
-        $this->api = $api;
     }
 
     abstract protected function payload(
@@ -38,7 +32,7 @@ abstract class AbstractErrorParser
     ) {
         $data['body'] = [];
 
-        if (!empty($command) && !empty($this->api)) {
+        if ($command instanceof \Aws\CommandInterface && !empty($this->api)) {
 
             // If modeled error code is indicated, check for known error shape
             if (!empty($data['code'])) {
@@ -77,7 +71,7 @@ abstract class AbstractErrorParser
         return $data;
     }
 
-    private function errorCodeMatches(array $data, $error): bool
+    private function errorCodeMatches(array $data, array $error): bool
     {
         return $data['code'] == $error['name']
             || (isset($error['error']['code']) && $data['code'] === $error['error']['code']);

@@ -24,8 +24,7 @@ final class RpcV2CborSerializer extends AbstractRpcV2Serializer
         self::HEADER_ACCEPT => 'application/cbor',
     ];
 
-    /** @var CborEncoder  */
-    private CborEncoder $encoder;
+    private readonly CborEncoder $encoder;
 
     /**
      * @param Service $api Service API description
@@ -38,10 +37,7 @@ final class RpcV2CborSerializer extends AbstractRpcV2Serializer
     }
 
     /**
-     * @param StructureShape $inputShape
-     * @param array $commandArgs
      *
-     * @return string
      * @throws RpcV2CborException
      */
     public function serialize(
@@ -66,7 +62,6 @@ final class RpcV2CborSerializer extends AbstractRpcV2Serializer
      * Wraps blob values in order to be encoded properly into
      * byte strings.
      *
-     * @param mixed $value
      *
      * @return string[]
      * @throws RpcV2CborException

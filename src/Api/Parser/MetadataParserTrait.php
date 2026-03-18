@@ -14,7 +14,7 @@ trait MetadataParserTrait
         $name,
         Shape $shape,
         ResponseInterface $response,
-        &$result
+        array &$result
     ) {
         $value = $response->getHeaderLine($shape['locationName'] ?: $name);
         // Empty values should not be deserialized
@@ -44,7 +44,7 @@ trait MetadataParserTrait
                         !empty($shape['timestampFormat']) ? $shape['timestampFormat'] : null
                     );
                     break;
-                } catch (\Exception $e) {
+                } catch (\Exception) {
                     // If the value cannot be parsed, then do not add it to the
                     // output structure.
                     return;
@@ -66,17 +66,17 @@ trait MetadataParserTrait
         $name,
         Shape $shape,
         ResponseInterface $response,
-        &$result
+        array &$result
     ) {
         // Check if the headers are prefixed by a location name
         $result[$name] = [];
         $prefix = $shape['locationName'];
-        $prefixLen = strlen($prefix);
+        $prefixLen = strlen((string) $prefix);
 
         foreach ($response->getHeaders() as $k => $values) {
             if (!$prefixLen) {
                 $result[$name][$k] = implode(', ', $values);
-            } elseif (stripos($k, $prefix) === 0) {
+            } elseif (stripos($k, (string) $prefix) === 0) {
                 $result[$name][substr($k, $prefixLen)] = implode(', ', $values);
             }
         }

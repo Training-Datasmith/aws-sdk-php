@@ -10,14 +10,11 @@ class MultipartUploadException extends \RuntimeException implements
 {
     use HasMonitoringEventsTrait;
 
-    /** @var UploadState State of the erroneous transfer */
-    private $state;
-
     /**
      * @param UploadState      $state Upload state at time of the exception.
      * @param \Exception|array $prev  Exception being thrown.
      */
-    public function __construct(UploadState $state, $prev = null) {
+    public function __construct(private UploadState $state, $prev = null) {
         $msg = 'An exception occurred while performing a multipart upload';
 
         if (is_array($prev)) {
@@ -48,7 +45,6 @@ class MultipartUploadException extends \RuntimeException implements
         }
 
         parent::__construct($msg, 0, $prev);
-        $this->state = $state;
     }
 
     /**

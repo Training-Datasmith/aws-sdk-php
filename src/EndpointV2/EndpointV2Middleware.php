@@ -23,7 +23,7 @@ class EndpointV2Middleware
 {
     const ACCOUNT_ID_PARAM = 'AccountId';
     const ACCOUNT_ID_ENDPOINT_MODE_PARAM = 'AccountIdEndpointMode';
-    private static $validAuthSchemes = [
+    private static array $validAuthSchemes = [
         'sigv4' => 'v4',
         'sigv4a' => 'v4a',
         'none' => 'anonymous',
@@ -34,27 +34,13 @@ class EndpointV2Middleware
     /** @var callable */
     private $nextHandler;
 
-    /** @var EndpointProviderV2 */
-    private $endpointProvider;
-
-    /** @var Service */
-    private $api;
-
-    /** @var array */
-    private $clientArgs;
-
     /** @var Closure */
     private $credentialProvider;
 
     /**
      * Create a middleware wrapper function
      *
-     * @param EndpointProviderV2 $endpointProvider
-     * @param Service $api
-     * @param array $args
-     * @param callable $credentialProvider
      *
-     * @return Closure
      */
     public static function wrap(
         EndpointProviderV2 $endpointProvider,
@@ -63,35 +49,22 @@ class EndpointV2Middleware
         callable $credentialProvider
     ) : Closure
     {
-        return function (callable $handler) use ($endpointProvider, $api, $args, $credentialProvider) {
-            return new self($handler, $endpointProvider, $api, $args, $credentialProvider);
-        };
+        return fn(callable $handler) => new self($handler, $endpointProvider, $api, $args, $credentialProvider);
     }
 
-    /**
-     * @param callable $nextHandler
-     * @param EndpointProviderV2 $endpointProvider
-     * @param Service $api
-     * @param array $args
-     */
     public function __construct(
         callable $nextHandler,
-        EndpointProviderV2 $endpointProvider,
-        Service $api,
-        array $args,
+        private readonly EndpointProviderV2 $endpointProvider,
+        private readonly Service $api,
+        private array $clientArgs,
         ?callable $credentialProvider = null
     )
     {
         $this->nextHandler = $nextHandler;
-        $this->endpointProvider = $endpointProvider;
-        $this->api = $api;
-        $this->clientArgs = $args;
         $this->credentialProvider = $credentialProvider;
     }
 
     /**
-     * @param CommandInterface $command
-     *
      * @return Promise
      */
     public function __invoke(CommandInterface $command)
@@ -119,10 +92,7 @@ class EndpointV2Middleware
      * Resolves client, context params, static context params and endpoint provider
      * arguments provided at the command level.
      *
-     * @param array $commandArgs
-     * @param Operation $operation
      *
-     * @return array
      */
     private function resolveArgs(array $commandArgs, Operation $operation): array
     {
@@ -161,10 +131,6 @@ class EndpointV2Middleware
      * Compares Ruleset parameters against Command arguments
      * to create a mapping of arguments to pass into the
      * endpoint provider for endpoint resolution.
-     *
-     * @param array $rulesetParams
-     * @param array $commandArgs
-     * @return array
      */
     private function filterEndpointCommandArgs(
         array $rulesetParams,
@@ -203,8 +169,6 @@ class EndpointV2Middleware
      * Binds static context params to their corresponding values.
      *
      * @param $staticContextParams
-     *
-     * @return array
      */
     private function bindStaticContextParams($staticContextParams): array
     {
@@ -221,10 +185,7 @@ class EndpointV2Middleware
      * Binds context params to their corresponding values found in
      * command arguments.
      *
-     * @param array $commandArgs
-     * @param array $contextParams
      *
-     * @return array
      */
     private function bindContextParams(
         array $commandArgs,
@@ -246,10 +207,8 @@ class EndpointV2Middleware
      * Binds context params to their corresponding values found in
      * command arguments.
      *
-     * @param array $commandArgs
      * @param array $contextParams
      *
-     * @return array
      */
     private function bindOperationContextParams(
         array $commandArgs,
@@ -274,8 +233,6 @@ class EndpointV2Middleware
      *
      * @param $authSchemes
      * @param $command
-     *
-     * @return void
      */
     private function applyAuthScheme(
         array $authSchemes,
@@ -301,9 +258,7 @@ class EndpointV2Middleware
      * Returns the first compatible auth scheme in an endpoint object's
      * auth schemes.
      *
-     * @param array $authSchemes
      *
-     * @return array
      */
     private function resolveAuthScheme(array $authSchemes): array
     {
@@ -334,9 +289,6 @@ class EndpointV2Middleware
     /**
      * Normalizes an auth scheme's name, signing region or signing region set
      * to the auth keys recognized by the SDK.
-     *
-     * @param array $authScheme
-     * @return array
      */
     private function normalizeAuthScheme(array $authScheme): array
     {
@@ -380,8 +332,6 @@ class EndpointV2Middleware
      * This method tries to resolve an `AccountId` parameter from a resolved identity.
      * We will just perform this operation if the parameter `AccountId` is part of the ruleset parameters and
      * `AccountIdEndpointMode` is not disabled, otherwise, we will ignore it.
-     *
-     * @return null|string
      */
     private function resolveAccountId(): ?string
     {

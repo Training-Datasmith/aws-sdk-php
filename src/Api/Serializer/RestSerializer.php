@@ -32,14 +32,10 @@ abstract class RestSerializer
         'glacier' => true
     ];
 
-    /** @var Service */
-    private Service $api;
-
     /** @var Uri */
     private $endpoint;
 
-    /** @var bool */
-    private $isUseEndpointV2;
+    private ?bool $isUseEndpointV2 = null;
 
     use EndpointV2SerializerTrait;
 
@@ -47,9 +43,8 @@ abstract class RestSerializer
      * @param Service $api Service API description
      * @param string $endpoint Endpoint to connect to
      */
-    public function __construct(Service $api, $endpoint)
+    public function __construct(private Service $api, $endpoint)
     {
-        $this->api = $api;
         $this->endpoint = Psr7\Utils::uriFor($endpoint);
     }
 
@@ -96,7 +91,10 @@ abstract class RestSerializer
         array &$opts
     );
 
-    private function serialize(Operation $operation, array $args)
+    /**
+     * @return mixed[]
+     */
+    private function serialize(Operation $operation, array $args): array
     {
         $opts = [];
         $input = $operation->getInput();
@@ -117,7 +115,7 @@ abstract class RestSerializer
                 } elseif ($location === 'querystring') {
                     $this->applyQuery($name, $member, $value, $opts);
                 } elseif ($location === 'headers') {
-                    $this->applyHeaderMap($name, $member, $value, $opts);
+                    $this->applyHeaderMap($member, $value, $opts);
                 }
             }
         }
@@ -131,7 +129,7 @@ abstract class RestSerializer
         return $opts;
     }
 
-    private function applyPayload(StructureShape $input, $name, array $args, array &$opts)
+    private function applyPayload(StructureShape $input, $name, array $args, array &$opts): void
     {
         if (!isset($args[$name])) {
             return;
@@ -171,7 +169,7 @@ abstract class RestSerializer
         $this->payload($m, $args[$name], $opts);
     }
 
-    private function applyHeader($name, Shape $member, $value, array &$opts)
+    private function applyHeader(int|string $name, Shape $member, $value, array &$opts): void
     {
         // Handle lists by recursively applying header logic to each element
         if ($member instanceof ListShape) {
@@ -214,7 +212,7 @@ abstract class RestSerializer
     /**
      * Note: This is currently only present in the Amazon S3 model.
      */
-    private function applyHeaderMap($name, Shape $member, array $value, array &$opts)
+    private function applyHeaderMap(Shape $member, array $value, array &$opts): void
     {
         $prefix = $member['locationName'];
         foreach ($value as $k => $v) {
@@ -222,7 +220,7 @@ abstract class RestSerializer
         }
     }
 
-    private function applyQuery($name, Shape $member, $value, array &$opts)
+    private function applyQuery(int|string $name, Shape $member, $value, array &$opts): void
     {
         if ($member instanceof MapShape) {
             $opts['query'] = isset($opts['query']) && is_array($opts['query'])
@@ -281,10 +279,7 @@ abstract class RestSerializer
     /**
      * Expands `requestUri` members
      *
-     * @param Operation $operation
-     * @param array $args
      *
-     * @return string
      */
     private function expandUriTemplate(Operation $operation, array $args): string
     {
@@ -292,9 +287,9 @@ abstract class RestSerializer
 
         return preg_replace_callback(
             self::TEMPLATE_STRING_REGEX,
-            static function (array $matches) use ($varDefinitions) {
-                $isGreedy = str_ends_with($matches[1], '+');
-                $varName = $isGreedy ? substr($matches[1], 0, -1) : $matches[1];
+            static function (array $matches) use ($varDefinitions): string {
+                $isGreedy = str_ends_with((string) $matches[1], '+');
+                $varName = $isGreedy ? substr((string) $matches[1], 0, -1) : $matches[1];
 
                 if (!isset($varDefinitions[$varName])) {
                     return '';
@@ -308,16 +303,13 @@ abstract class RestSerializer
 
                 return rawurlencode($value);
             },
-            $operation['http']['requestUri']
+            (string) $operation['http']['requestUri']
         );
     }
 
     /**
      * Checks for path-like key names. If detected, traditional
      * URI resolution is bypassed.
-     *
-     * @param string $key
-     * @return bool
      */
     private function shouldPreservePath(string $key): bool
     {
@@ -339,12 +331,6 @@ abstract class RestSerializer
         return false;
     }
 
-    /**
-     * @param string $relativeUri
-     * @param array $opts
-     *
-     * @return UriInterface
-     */
     private function resolveUri(string $relativeUri, array $opts): UriInterface
     {
         $basePath = $this->endpoint->getPath();
@@ -354,7 +340,7 @@ abstract class RestSerializer
             // if relative is just '/', we want just the base path without trailing slash
             if ($relativeUri === '/' || empty($relativeUri)) {
                 // Remove trailing slash if present
-                return $this->endpoint->withPath(rtrim($basePath, '/'));
+                return $this->endpoint->withPath(rtrim((string) $basePath, '/'));
             }
 
             // if relative is '/?query', we want base path without trailing slash + query
@@ -367,7 +353,7 @@ abstract class RestSerializer
             }
 
             // Ensure base path has trailing slash
-            if (!str_ends_with($basePath, '/')) {
+            if (!str_ends_with((string) $basePath, '/')) {
                 $this->endpoint = $this->endpoint->withPath($basePath . '/');
             }
 
@@ -381,12 +367,10 @@ abstract class RestSerializer
     }
 
     /**
-     * @param StructureShape $input
      * @param $payload
      *
-     * @return bool
      */
-    private function hasPayloadParam(StructureShape $input, $payload)
+    private function hasPayloadParam(StructureShape $input, $payload): bool
     {
         if ($payload) {
             $potentiallyEmptyTypes = ['blob','string'];
@@ -415,10 +399,8 @@ abstract class RestSerializer
     /**
      * @param $query
      * @param $relativeUri
-     *
-     * @return string
      */
-    private function appendQuery($query, $relativeUri): string
+    private function appendQuery($query, string $relativeUri): string
     {
         $append = Psr7\Query::build($query);
         return $relativeUri
@@ -427,9 +409,7 @@ abstract class RestSerializer
 
     /**
      * @param CommandInterface $command
-     * @param array $args
      *
-     * @return array
      */
     private function getVarDefinitions(
         Operation $operation,
@@ -460,12 +440,6 @@ abstract class RestSerializer
         return $varDefinitions;
     }
 
-    /**
-     * @param DateTimeInterface|string|int $value
-     * @param string $timestampFormat
-     *
-     * @return string
-     */
     private function formatTimestamp(
         DateTimeInterface|string|int $value,
         string $timestampFormat
@@ -476,8 +450,6 @@ abstract class RestSerializer
 
     /**
      * @param $value
-     *
-     * @return string
      */
     private function formatBoolean($value): string
     {

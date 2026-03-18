@@ -31,11 +31,10 @@ class CloudSearchDomainClient extends AwsClient
     {
         $args = parent::getArguments();
         $args['endpoint']['required'] = true;
-        $args['region']['default'] = function (array $args) {
+        $args['region']['default'] = 
             // Determine the region from the provided endpoint.
             // (e.g. http://search-blah.{region}.cloudsearch.amazonaws.com)
-            return explode('.', new Uri($args['endpoint']))[1];
-        };
+            (fn(array $args) => explode('.', new Uri($args['endpoint']))[1]);
         unset($args['endpoint']['default']);
 
         return $args;
@@ -48,16 +47,14 @@ class CloudSearchDomainClient extends AwsClient
      */
     private function searchByPost()
     {
-        return static function (callable $handler) {
-            return function (
-                CommandInterface $c,
-                ?RequestInterface $r = null
-            ) use ($handler) {
-                if ($c->getName() !== 'Search') {
-                    return $handler($c, $r);
-                }
-                return $handler($c, self::convertGetToPost($r));
-            };
+        return static fn(callable $handler) => function (
+            CommandInterface $c,
+            ?RequestInterface $r = null
+        ) use ($handler) {
+            if ($c->getName() !== 'Search') {
+                return $handler($c, $r);
+            }
+            return $handler($c, self::convertGetToPost($r));
         };
     }
 
@@ -76,11 +73,10 @@ class CloudSearchDomainClient extends AwsClient
         }
 
         $query = $r->getUri()->getQuery();
-        $req = $r->withMethod('POST')
+        return $r->withMethod('POST')
             ->withBody(Psr7\Utils::streamFor($query))
-            ->withHeader('Content-Length', strlen($query))
+            ->withHeader('Content-Length', strlen((string) $query))
             ->withHeader('Content-Type', 'application/x-www-form-urlencoded')
             ->withUri($r->getUri()->withQuery(''));
-        return $req;
     }
 }

@@ -18,10 +18,7 @@ trait RpcV2ParserTrait
     /**
      * Resolves output shape fields that are present in the response
      *
-     * @param Shape $shape
-     * @param mixed $value
      *
-     * @return mixed
      */
     protected function resolveOutputShape(Shape $shape, mixed $value): mixed
     {
@@ -78,10 +75,7 @@ trait RpcV2ParserTrait
     /**
      * Parses CBOR-encoded response data from RPC V2 CBOR services.
      *
-     * @param StreamInterface $stream
-     * @param ResponseInterface $response
      *
-     * @return mixed
      */
     protected function parseCbor(
         StreamInterface $stream,

@@ -15,14 +15,11 @@ use Aws\ResultInterface;
  */
 class WriteRequestBatch
 {
-    /** @var DynamoDbClient DynamoDB client used to perform write operations. */
-    private $client;
-
     /** @var array Configuration options for the batch. */
-    private $config;
+    private array $config;
 
     /** @var array Queue of pending put/delete requests in the batch. */
-    private $queue;
+    private array $queue;
 
     /**
      * Creates a WriteRequestBatch object that is capable of efficiently sending
@@ -53,7 +50,7 @@ class WriteRequestBatch
      *
      * @throws \InvalidArgumentException if the batch size is not between 2 and 25.
      */
-    public function __construct(DynamoDbClient $client, array $config = [])
+    public function __construct(private readonly DynamoDbClient $client, array $config = [])
     {
         // Apply defaults
         $config += [
@@ -82,8 +79,6 @@ class WriteRequestBatch
         if ($config['autoflush']) {
             $config['threshold'] = $config['batch_size'] * $config['pool_size'];
         }
-
-        $this->client = $client;
         $this->config = $config;
         $this->queue = [];
     }
@@ -103,7 +98,7 @@ class WriteRequestBatch
      *
      * @return $this
      */
-    public function put(array $item, $table = null)
+    public function put(array $item, $table = null): static
     {
         $this->queue[] = [
             'table' => $this->determineTable($table),
@@ -129,7 +124,7 @@ class WriteRequestBatch
      *
      * @return $this
      */
-    public function delete(array $key, $table = null)
+    public function delete(array $key, $table = null): static
     {
         $this->queue[] = [
             'table' => $this->determineTable($table),
@@ -152,7 +147,7 @@ class WriteRequestBatch
      *
      * @return $this
      */
-    public function flush($untilEmpty = true)
+    public function flush($untilEmpty = true): static
     {
         // Send BatchWriteItem requests until the queue is empty
         $keepFlushing = true;
@@ -161,13 +156,13 @@ class WriteRequestBatch
             $pool = new CommandPool($this->client, $commands, [
                 'before' => $this->config['before'],
                 'concurrency' => $this->config['pool_size'],
-                'fulfilled'   => function (ResultInterface $result) {
+                'fulfilled'   => function (ResultInterface $result): void {
                     // Re-queue any unprocessed items
                     if ($result->hasKey('UnprocessedItems')) {
                         $this->retryUnprocessed($result['UnprocessedItems']);
                     }
                 },
-                'rejected' => function ($reason) {
+                'rejected' => function ($reason): void {
                     if ($reason instanceof AwsException) {
                         $code = $reason->getAwsErrorCode();
                         if ($code === 'ProvisionedThroughputExceededException') {
@@ -190,7 +185,7 @@ class WriteRequestBatch
      *
      * @return CommandInterface[]
      */
-    private function prepareCommands()
+    private function prepareCommands(): array
     {
         // Chunk the queue into batches
         $batches = array_chunk($this->queue, $this->config['batch_size']);
@@ -220,7 +215,7 @@ class WriteRequestBatch
      *
      * @param array $unprocessed Unprocessed items from a result.
      */
-    private function retryUnprocessed(array $unprocessed)
+    private function retryUnprocessed(array $unprocessed): void
     {
         foreach ($unprocessed as $table => $requests) {
             foreach ($requests as $request) {
@@ -235,7 +230,7 @@ class WriteRequestBatch
     /**
      * If autoflush is enabled and the threshold is met, flush the batch
      */
-    private function autoFlush()
+    private function autoFlush(): void
     {
         if ($this->config['autoflush']
             && count($this->queue) >= $this->config['threshold']

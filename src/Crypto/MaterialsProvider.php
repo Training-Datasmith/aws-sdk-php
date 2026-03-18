@@ -3,7 +3,7 @@ namespace Aws\Crypto;
 
 abstract class MaterialsProvider implements MaterialsProviderInterface
 {
-    private static $supportedKeySizes = [
+    private static array $supportedKeySizes = [
         128 => true,
         192 => true,
         256 => true,

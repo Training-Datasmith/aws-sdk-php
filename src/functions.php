@@ -18,7 +18,7 @@ use GuzzleHttp\Promise\FulfilledPromise;
  */
 function constantly($value)
 {
-    return function () use ($value) { return $value; };
+    return fn() => $value;
 }
 
 /**
@@ -167,7 +167,7 @@ function load_compiled_json($path)
 /**
  * No-op
  */
-function clear_compiled_json()
+function clear_compiled_json(): void
 {
     // pass
 }
@@ -184,7 +184,7 @@ function clear_compiled_json()
  *
  * @return \Generator Yields relative filename strings.
  */
-function dir_iterator($path, $context = null)
+function dir_iterator(string $path, $context = null)
 {
     $dh = $context ? opendir($path, $context) : opendir($path);
     if (!$dh) {
@@ -218,7 +218,7 @@ function recursive_dir_iterator($path, $context = null)
         while ($iterator->valid()) {
             $file = $iterator->current();
             $iterator->next();
-            if (isset($invalid[basename($file)])) {
+            if (isset($invalid[basename((string) $file)])) {
                 continue;
             }
             $fullPath = "{$path}/{$file}";
@@ -227,9 +227,7 @@ function recursive_dir_iterator($path, $context = null)
                 $queue[] = $iterator;
                 $iterator = map(
                     dir_iterator($fullPath, $context),
-                    function ($file) use ($fullPath, $pathLen) {
-                        return substr("{$fullPath}/{$file}", $pathLen);
-                    }
+                    fn($file) => substr("{$fullPath}/{$file}", $pathLen)
                 );
                 continue;
             }
@@ -250,11 +248,11 @@ function recursive_dir_iterator($path, $context = null)
  * @return string Returns a string containing the type of the variable and
  *                if a class is provided, the class name.
  */
-function describe_type($input)
+function describe_type($input): string
 {
     switch (gettype($input)) {
         case 'object':
-            return 'object(' . get_class($input) . ')';
+            return 'object(' . $input::class . ')';
         case 'array':
             return 'array(' . count($input) . ')';
         default:
@@ -270,7 +268,7 @@ function describe_type($input)
  *
  * @return callable
  */
-function default_http_handler()
+function default_http_handler(): \Aws\Handler\Guzzle\GuzzleHandler
 {
     return new \Aws\Handler\Guzzle\GuzzleHandler();
 }
@@ -302,7 +300,7 @@ function serialize(CommandInterface $command)
 
     // Return a mock result.
     $handlerList->setHandler(
-        function (CommandInterface $_, RequestInterface $r) use (&$request) {
+        function (CommandInterface $_, RequestInterface $r) use (&$request): \GuzzleHttp\Promise\FulfilledPromise {
             $request = $r;
             return new FulfilledPromise(new Result([]));
         }
@@ -338,7 +336,7 @@ function manifest($service = null)
     if (empty($manifest)) {
         $manifest = load_compiled_json(__DIR__ . '/data/manifest.json');
         foreach ($manifest as $endpoint => $info) {
-            $alias = strtolower($info['namespace']);
+            $alias = strtolower((string) $info['namespace']);
             if ($alias !== $endpoint) {
                 $aliases[$alias] = $endpoint;
             }
@@ -369,9 +367,8 @@ function manifest($service = null)
  * Checks if supplied parameter is a valid hostname
  *
  * @param string $hostname
- * @return bool
  */
-function is_valid_hostname($hostname)
+function is_valid_hostname($hostname): bool
 {
     return (
         preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*\.?$/i", $hostname)
@@ -384,11 +381,10 @@ function is_valid_hostname($hostname)
  * Checks if supplied parameter is a valid host label
  *
  * @param $label
- * @return bool
  */
-function is_valid_hostlabel($label)
+function is_valid_hostlabel($label): int|false
 {
-    return preg_match("/^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)$/", $label);
+    return preg_match("/^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)$/", (string) $label);
 }
 
 /**
@@ -398,15 +394,14 @@ function is_valid_hostlabel($label)
  * @param $filename
  * @param bool $process_sections
  * @param int $scanner_mode
- * @return array|bool
  */
 function parse_ini_file(
     $filename,
     $process_sections = false,
-    $scanner_mode = INI_SCANNER_NORMAL)
+    $scanner_mode = INI_SCANNER_NORMAL): array|false
 {
     return parse_ini_string(
-        preg_replace('/^#.*\\n/m', "", file_get_contents($filename)),
+        (string) preg_replace('/^#.*\\n/m', "", file_get_contents($filename)),
         $process_sections,
         $scanner_mode
     );
@@ -417,9 +412,8 @@ function parse_ini_file(
  * null otherwise
  *
  * @param $input
- * @return bool|null
  */
-function boolean_value($input)
+function boolean_value($input): ?bool
 {
     if (is_bool($input)) {
         return $input;
@@ -439,13 +433,11 @@ function boolean_value($input)
             case "on":
             case "1":
                 return true;
-                break;
 
             case "false":
             case "off":
             case "0":
                 return false;
-                break;
         }
     }
     return null;
@@ -456,9 +448,8 @@ function boolean_value($input)
  *
  * @param $filename
  * @param $filename
- * @return array
  */
-function parse_ini_section_with_subsections($filename, $section_name) {
+function parse_ini_section_with_subsections($filename, $section_name): array {
     $config = [];
     $stream = fopen($filename, 'r');
 
@@ -470,8 +461,10 @@ function parse_ini_section_with_subsections($filename, $section_name) {
 
     while (!feof($stream)) {
         $line = trim(fgets($stream));
-
-        if (empty($line) || in_array($line[0], [';', '#'])) {
+        if (empty($line)) {
+            continue;
+        }
+        if (in_array($line[0], [';', '#'])) {
             continue;
         }
 
@@ -480,21 +473,23 @@ function parse_ini_section_with_subsections($filename, $section_name) {
         {
             while (!feof($stream)) {
                 $line = trim(fgets($stream));
-
-                if (empty($line) || in_array($line[0], [';', '#'])) {
+                if (empty($line)) {
+                    continue;
+                }
+                if (in_array($line[0], [';', '#'])) {
+                    continue;
+                }
+                if (preg_match('/^\[.*\]$/', $line)
+                    && trim($line, '[]') === $section_name) {
                     continue;
                 }
 
-                if (preg_match('/^\[.*\]$/', $line)
-                    && trim($line, '[]') === $section_name)
-                {
-                    continue;
-                } elseif (strpos($line, '[') === 0) {
+                if (str_starts_with($line, '[')) {
                     break;
                 }
 
-                if (strpos($line, ' = ') !== false) {
-                    list($key, $value) = explode(' = ', $line, 2);
+                if (str_contains($line, ' = ')) {
+                    [$key, $value] = explode(' = ', $line, 2);
                     if (empty($current_subsection)) {
                         $config[$key] = $value;
                     } else {
@@ -516,9 +511,8 @@ function parse_ini_section_with_subsections($filename, $section_name) {
  * Checks if an input is a valid epoch time
  *
  * @param $input
- * @return bool
  */
-function is_valid_epoch($input)
+function is_valid_epoch($input): bool
 {
     if (is_string($input) || is_numeric($input)) {
         if (is_string($input) && !preg_match("/^-?[0-9]+\.?[0-9]*$/", $input)) {
@@ -533,11 +527,10 @@ function is_valid_epoch($input)
  * Checks if an input is a fips pseudo region
  *
  * @param $region
- * @return bool
  */
-function is_fips_pseudo_region($region)
+function is_fips_pseudo_region($region): bool
 {
-    return strpos($region, 'fips-') !== false || strpos($region, '-fips') !== false;
+    return str_contains((string) $region, 'fips-') || str_contains((string) $region, '-fips');
 }
 
 /**
@@ -546,7 +539,7 @@ function is_fips_pseudo_region($region)
  * @param $region
  * @return string
  */
-function strip_fips_pseudo_regions($region)
+function strip_fips_pseudo_regions($region): string|array
 {
     return str_replace(['fips-', '-fips'], ['', ''], $region);
 }
@@ -554,9 +547,7 @@ function strip_fips_pseudo_regions($region)
 /**
  * Checks if an array is associative
  *
- * @param array $array
  *
- * @return bool
  */
 function is_associative(array $array): bool
 {

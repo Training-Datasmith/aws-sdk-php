@@ -16,8 +16,7 @@ abstract class AbstractRule
     public function __construct(array $definition)
     {
         $this->conditions = $definition['conditions'];
-        $this->documentation = isset($definition['documentation']) ?
-            $definition['documentation'] : null;
+        $this->documentation = $definition['documentation'] ?? null;
     }
 
     /**

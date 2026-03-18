@@ -841,35 +841,29 @@ class Sdk
 {
     const VERSION = '3.373.4';
 
-    /** @var array Arguments for creating clients */
-    private $args;
-
     /**
      * Constructs a new SDK object with an associative array of default
      * client settings.
      *
-     * @param array $args
      *
      * @throws \InvalidArgumentException
      * @see Aws\AwsClient::__construct for a list of available options.
      */
-    public function __construct(array $args = [])
+    public function __construct(private array $args = [])
     {
-        $this->args = $args;
-
-        if (!isset($args['handler']) && !isset($args['http_handler'])) {
+        if (!isset($this->args['handler']) && !isset($this->args['http_handler'])) {
             $this->args['http_handler'] = default_http_handler();
         }
     }
 
-    public function __call($name, array $args)
+    public function __call(string $name, array $args)
     {
-        $args = isset($args[0]) ? $args[0] : [];
-        if (strpos($name, 'createMultiRegion') === 0) {
+        $args = $args[0] ?? [];
+        if (str_starts_with($name, 'createMultiRegion')) {
             return $this->createMultiRegionClient(substr($name, 17), $args);
         }
 
-        if (strpos($name, 'create') === 0) {
+        if (str_starts_with($name, 'create')) {
             return $this->createClient(substr($name, 6), $args);
         }
 
@@ -914,11 +908,9 @@ class Sdk
      * Clone existing SDK instance with ability to pass an associative array
      * of extra client settings.
      *
-     * @param array $args
      *
-     * @return self
      */
-    public function copy(array $args = [])
+    public function copy(array $args = []): self
     {
         return new self($args + $this->args);
     }

@@ -20,12 +20,6 @@ namespace Aws\DynamoDb;
  */
 class SessionHandler implements \SessionHandlerInterface
 {
-    /** @var SessionConnectionInterface Session save logic.*/
-    private $connection;
-
-    /** @var string Session save path. */
-    private $savePath;
-
     /** @var string Session name. */
     private $sessionName;
 
@@ -62,7 +56,7 @@ class SessionHandler implements \SessionHandlerInterface
      *
      * @return SessionHandler
      */
-    public static function fromClient(DynamoDbClient $client, array $config = [])
+    public static function fromClient(DynamoDbClient $client, array $config = []): static
     {
         $config += ['locking' => false];
         if ($config['locking']) {
@@ -74,12 +68,8 @@ class SessionHandler implements \SessionHandlerInterface
         return new static($connection);
     }
 
-    /**
-     * @param SessionConnectionInterface $connection
-     */
-    public function __construct(SessionConnectionInterface $connection)
+    public function __construct(private readonly SessionConnectionInterface $connection)
     {
-        $this->connection = $connection;
     }
 
     /**
@@ -88,7 +78,7 @@ class SessionHandler implements \SessionHandlerInterface
      * @return bool Whether or not the handler was registered.
      * @codeCoverageIgnore
      */
-    public function register()
+    public function register(): bool
     {
          return session_set_save_handler($this, true);
     }
@@ -104,7 +94,6 @@ class SessionHandler implements \SessionHandlerInterface
      #[\ReturnTypeWillChange]
     public function open($savePath, $sessionName)
     {
-        $this->savePath = $savePath;
         $this->sessionName = $sessionName;
 
         return true;
@@ -222,7 +211,7 @@ class SessionHandler implements \SessionHandlerInterface
      * Triggers garbage collection on expired sessions.
      * @codeCoverageIgnore
      */
-    public function garbageCollect()
+    public function garbageCollect(): void
     {
         $this->connection->deleteExpired();
     }
@@ -234,7 +223,7 @@ class SessionHandler implements \SessionHandlerInterface
      *
      * @return string Prepared session ID.
      */
-    private function formatId($id)
+    private function formatId(string $id): string
     {
         return trim($this->sessionName . '_' . $id, '_');
     }

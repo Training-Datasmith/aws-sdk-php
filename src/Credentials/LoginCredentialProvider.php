@@ -51,15 +51,12 @@ final class LoginCredentialProvider
         self::KEY_ACCOUNT_ID,
         self::KEY_EXPIRES_AT
     ];
-
-    /** @var string The profile name used for login session configuration */
-    private string $profileName;
     
     /** @var SigninClient The Signin service client used for token refresh operations */
-    private SigninClient $client;
+    private readonly SigninClient $client;
     
     /** @var string The file path to the cached token location */
-    private string $tokenLocation;
+    private readonly string $tokenLocation;
     
     /** @var array|null The cached token data including access token, refresh token, and DPoP key */
     private ?array $token = null;
@@ -71,7 +68,7 @@ final class LoginCredentialProvider
      *                            `AWS_REGION`, then the profile specified for `login`.
      */
     public function __construct(
-        string $profileName,
+        private readonly string $profileName,
         ?string $region = null
     ) {
         if (!extension_loaded(self::EXT_OPENSSL)) {
@@ -80,10 +77,8 @@ final class LoginCredentialProvider
                 . 'Please install or enable the `openssl` extension.'
             );
         }
-
-        $this->profileName = $profileName;
-        $this->client = $this->createSigninClient($profileName, $region);
-        $this->tokenLocation = $this->resolveTokenLocation($profileName);
+        $this->client = $this->createSigninClient($this->profileName, $region);
+        $this->tokenLocation = $this->resolveTokenLocation($this->profileName);
     }
 
     /**
@@ -216,7 +211,7 @@ final class LoginCredentialProvider
             }
 
             return $latestToken;
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return null;
         }
     }
@@ -285,7 +280,7 @@ final class LoginCredentialProvider
             )
         ) {
             // Convert expiresAt to Unix timestamp
-            $expiresAt = strtotime($cached[self::KEY_ACCESS_TOKEN][self::KEY_EXPIRES_AT]);
+            $expiresAt = strtotime((string) $cached[self::KEY_ACCESS_TOKEN][self::KEY_EXPIRES_AT]);
             if ($expiresAt === false) {
                 throw new CredentialsException(
                     'Invalid expiration date format in cached token `'
@@ -336,7 +331,7 @@ final class LoginCredentialProvider
      * 
      * @return \Exception The exception to be thrown (either transformed or original)
      */
-    private function handleRefreshException(\Exception $e): \Exception
+    private function handleRefreshException(\Throwable $e): \Exception
     {
         if ($e instanceof SigninException) {
             trigger_error(
@@ -345,7 +340,7 @@ final class LoginCredentialProvider
             );
             
             if ($e->getAwsErrorCode() === 'AccessDeniedException') {
-                $error = strtolower($e->get('error'));
+                $error = strtolower((string) $e->get('error'));
                 switch ($error) {
                     case 'token_expired':
                         return new CredentialsException(
@@ -432,7 +427,7 @@ final class LoginCredentialProvider
         // Resolve location and ensure it exists
         $cacheDirectory = getenv(self::ENV_CACHE_DIRECTORY)
             ?: CredentialProvider::getHomeDir() . self::DEFAULT_CACHE_DIRECTORY;
-        $cacheFile = $cacheDirectory . DIRECTORY_SEPARATOR . hash('sha256', trim($session)) . '.json';
+        $cacheFile = $cacheDirectory . DIRECTORY_SEPARATOR . hash('sha256', trim((string) $session)) . '.json';
         if (!@is_readable($cacheFile)) {
             throw new CredentialsException(
                 "Failed to load cached credentials for profile "
@@ -446,9 +441,7 @@ final class LoginCredentialProvider
     /**
      * Creates a SigninClient configured for DPoP authentication
      *
-     * @param string $profile
      * @param string|null $region The AWS region for the Signin service
-     *
      * @return SigninClient A configured SigninClient instance with DPoP signature version
      */
     private function createSigninClient(string $profile, ?string $region): SigninClient

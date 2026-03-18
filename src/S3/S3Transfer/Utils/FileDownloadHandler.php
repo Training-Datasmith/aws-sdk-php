@@ -10,58 +10,33 @@ final class FileDownloadHandler extends AbstractDownloadHandler
     private const IDENTIFIER_LENGTH = 8;
     private const TEMP_INFIX = '.s3tmp.';
 
-    /** @var string */
-    private string $destination;
-
-    /**
-     * @var bool
-     */
-    private bool $failsWhenDestinationExists;
-
-    /** @var string */
     private string $temporaryDestination;
 
-    /**
-     * @param string $destination
-     * @param bool $failsWhenDestinationExists
-     */
     public function __construct(
-        string $destination,
-        bool $failsWhenDestinationExists
+        private readonly string $destination,
+        private readonly bool $failsWhenDestinationExists
     ) {
-        $this->destination = $destination;
-        $this->failsWhenDestinationExists = $failsWhenDestinationExists;
         $this->temporaryDestination = "";
     }
 
-    /**
-     * @return string
-     */
     public function getDestination(): string
     {
         return $this->destination;
     }
 
-    /**
-     * @return bool
-     */
     public function isFailsWhenDestinationExists(): bool
     {
         return $this->failsWhenDestinationExists;
     }
 
-    /**
-     * @param array $context
-     *
-     * @return void
-     */
     public function transferInitiated(array $context): void
     {
         if ($this->failsWhenDestinationExists && file_exists($this->destination)) {
             throw new FileDownloadException(
                 "The destination '$this->destination' already exists."
             );
-        } elseif (is_dir($this->destination)) {
+        }
+        if (is_dir($this->destination)) {
             throw new FileDownloadException(
                 "The destination '$this->destination' can't be a directory."
             );
@@ -85,11 +60,6 @@ final class FileDownloadHandler extends AbstractDownloadHandler
         $this->temporaryDestination = $temporaryName;
     }
 
-    /**
-     * @param array $context
-     *
-     * @return void
-     */
     public function bytesTransferred(array $context): bool
     {
         $snapshot = $context[AbstractTransferListener::PROGRESS_SNAPSHOT_KEY];
@@ -108,11 +78,6 @@ final class FileDownloadHandler extends AbstractDownloadHandler
         return true;
     }
 
-    /**
-     * @param array $context
-     *
-     * @return void
-     */
     public function transferComplete(array $context): void
     {
         // Make sure the file is deleted if exists
@@ -121,9 +86,8 @@ final class FileDownloadHandler extends AbstractDownloadHandler
                 throw new FileDownloadException(
                     "The destination '$this->destination' already exists."
                 );
-            } else {
-                unlink($this->destination);
             }
+            unlink($this->destination);
         }
 
         if (!rename($this->temporaryDestination, $this->destination)) {
@@ -133,42 +97,29 @@ final class FileDownloadHandler extends AbstractDownloadHandler
         }
     }
 
-    /**
-     * @param array $context
-     *
-     * @return void
-     */
     public function transferFail(array $context): void
     {
         if (file_exists($this->temporaryDestination)) {
             unlink($this->temporaryDestination);
         } elseif (file_exists($this->destination)
             && !str_contains(
-                $context[self::REASON_KEY],
+                (string) $context[self::REASON_KEY],
                 "The destination '$this->destination' already exists.")
         ) {
             unlink($this->destination);
         }
     }
 
-    /**
-     * @return string
-     */
     private static function getUniqueIdentifier(): string
     {
         $uniqueId = uniqid();
         if (strlen($uniqueId) > self::IDENTIFIER_LENGTH) {
-            $uniqueId = substr($uniqueId, 0, self::IDENTIFIER_LENGTH);
-        } else {
-            $uniqueId = str_pad($uniqueId, self::IDENTIFIER_LENGTH, "0");
+            return substr($uniqueId, 0, self::IDENTIFIER_LENGTH);
         }
 
-        return $uniqueId;
+        return str_pad($uniqueId, self::IDENTIFIER_LENGTH, "0");
     }
 
-    /**
-     * @return string
-     */
     public function getHandlerResult(): string
     {
         return $this->destination;

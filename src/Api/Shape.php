@@ -9,8 +9,6 @@ class Shape extends AbstractModel
     /**
      * Get a concrete shape for the given definition.
      *
-     * @param array    $definition
-     * @param ShapeMap $shapeMap
      *
      * @return mixed
      * @throws \RuntimeException if the type is invalid
