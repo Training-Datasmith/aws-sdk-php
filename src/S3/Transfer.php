@@ -214,7 +214,7 @@ class Transfer implements PromisorInterface
      */
     private function determineScheme($path): string
     {
-        return !strpos($path, '://') ? 'file' : explode('://', $path)[0];
+        return strpos($path, '://') === false ? 'file' : explode('://', $path)[0];
     }
 
     /**
@@ -264,6 +264,15 @@ class Transfer implements PromisorInterface
         foreach ($this->getDownloadsIterator() as $object) {
             // Prepare the sink.
             $objectKey = preg_replace('/^' . preg_quote($prefix, '/') . '/', '', (string) $object);
+
+            // Reject S3 keys containing path traversal sequences before constructing local paths.
+            if (str_contains($objectKey, '../') || str_contains($objectKey, '/..')) {
+                throw new \RuntimeException(
+                    'Cannot download key ' . $objectKey
+                    . ', it contains a path traversal sequence'
+                );
+            }
+
             $sink = $this->destination['path'] . '/' . $objectKey;
 
             $command = $this->client->getCommand(

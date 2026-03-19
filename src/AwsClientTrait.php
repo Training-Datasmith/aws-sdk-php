@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws;
 
 use Aws\Api\Service;
@@ -23,7 +26,8 @@ trait AwsClientTrait
         if (!$config['result_key']) {
             throw new \UnexpectedValueException(sprintf(
                 'There are no resources to iterate for the %s operation of %s',
-                $name, $this->getApi()['serviceFullName']
+                $name,
+                $this->getApi()['serviceFullName']
             ));
         }
 

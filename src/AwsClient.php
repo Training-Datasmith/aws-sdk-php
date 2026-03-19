@@ -1,11 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws;
 
 use Aws\Api\ApiProvider;
 use Aws\Api\DocModel;
 use Aws\Api\Service;
-use Aws\Auth\AuthSelectionMiddleware;
 use Aws\Auth\AuthSchemeResolverInterface;
+use Aws\Auth\AuthSelectionMiddleware;
 use Aws\EndpointDiscovery\EndpointDiscoveryMiddleware;
 use Aws\EndpointV2\EndpointProviderV2;
 use Aws\EndpointV2\EndpointV2Middleware;
@@ -309,7 +312,6 @@ class AwsClient implements AwsClientInterface
         return $fn();
     }
 
-
     public function getEndpoint()
     {
         return $this->endpoint;
@@ -403,7 +405,7 @@ class AwsClient implements AwsClientInterface
 
         return [
             strtolower($service),
-            "Aws\\{$service}\\Exception\\{$service}Exception"
+            "Aws\\{$service}\\Exception\\{$service}Exception",
         ];
     }
 
@@ -456,13 +458,13 @@ class AwsClient implements AwsClientInterface
         $resolver = static function (
             CommandInterface $command
         ) use (
-                $api,
-                $provider,
-                $name,
-                $region,
-                $signatureVersion,
-                $configuredSignatureVersion,
-                $signingRegionSet
+            $api,
+            $provider,
+            $name,
+            $region,
+            $signatureVersion,
+            $configuredSignatureVersion,
+            $signingRegionSet
         ) {
             if (!$configuredSignatureVersion) {
                 if (!empty($command['@context']['signing_region'])) {
@@ -476,7 +478,7 @@ class AwsClient implements AwsClientInterface
                 }
 
                 $authType = $api->getOperation($command->getName())['authtype'];
-                switch ($authType){
+                switch ($authType) {
                     case 'none':
                         $signatureVersion = 'anonymous';
                         break;
@@ -508,7 +510,8 @@ class AwsClient implements AwsClientInterface
             return SignatureProvider::resolve($provider, $signatureVersion, $name, $region);
         };
         $this->handlerList->appendSign(
-            Middleware::signer($this->credentialProvider,
+            Middleware::signer(
+                $this->credentialProvider,
                 $resolver,
                 $this->tokenProvider,
                 $this->getConfig()
@@ -530,20 +533,20 @@ class AwsClient implements AwsClientInterface
 
     private function addQueryCompatibleInputMiddleware(Service $api): void
     {
-            $list = $this->getHandlerList();
-            $list->appendValidate(
-                QueryCompatibleInputMiddleware::wrap($api),
-                'query-compatible-input'
-            );
+        $list = $this->getHandlerList();
+        $list->appendValidate(
+            QueryCompatibleInputMiddleware::wrap($api),
+            'query-compatible-input'
+        );
     }
 
     private function addQueryModeHeader(): void
     {
         $list = $this->getHandlerList();
         $list->appendBuild(
-            Middleware::mapRequest(fn(RequestInterface $r) => $r->withHeader(
+            Middleware::mapRequest(fn (RequestInterface $r) => $r->withHeader(
                 'x-amzn-query-mode',
-                "true"
+                'true'
             )),
             'x-amzn-query-mode-header'
         );
@@ -593,7 +596,8 @@ class AwsClient implements AwsClientInterface
         // Add recursion detection header to requests
         // originating in supported Lambda runtimes
         $this->handlerList->appendBuild(
-            Middleware::recursionDetection(), 'recursion-detection'
+            Middleware::recursionDetection(),
+            'recursion-detection'
         );
     }
 
@@ -651,7 +655,7 @@ class AwsClient implements AwsClientInterface
     {
         $this->getHandlerList()
             -> appendInit(
-                fn(callable $handler) => function (CommandInterface $command, $request = null) use ($handler) {
+                fn (callable $handler) => function (CommandInterface $command, $request = null) use ($handler) {
                     $operation = $this->getApi()->getOperation($command->getName());
                     $output = $operation->getOutput();
                     foreach ($output->getMembers() as $memberProps) {
@@ -677,10 +681,10 @@ class AwsClient implements AwsClientInterface
         $api = $this->getApi();
         $resolvedParams = [];
         if (!empty($paramDefinitions = $api->getClientContextParams())) {
-            foreach($paramDefinitions as $paramName => $paramValue) {
+            foreach ($paramDefinitions as $paramName => $paramValue) {
                 if (isset($args[$paramName])) {
-                   $resolvedParams[$paramName] = $args[$paramName];
-               }
+                    $resolvedParams[$paramName] = $args[$paramName];
+                }
             }
         }
         return $resolvedParams;
@@ -704,7 +708,7 @@ class AwsClient implements AwsClientInterface
         $builtIns['AWS::Region'] = $this->getRegion();
         $builtIns['AWS::UseFIPS'] = $config['use_fips_endpoint']->isUseFipsEndpoint();
         $builtIns['AWS::UseDualStack'] = $config['use_dual_stack_endpoint']->isUseDualstackEndpoint();
-        if ($service === 's3' || $service === 's3control'){
+        if ($service === 's3' || $service === 's3control') {
             $builtIns['AWS::S3::UseArnRegion'] = $config['use_arn_region']->isUseArnRegion();
         }
         if ($service === 's3') {
@@ -737,7 +741,7 @@ class AwsClient implements AwsClientInterface
     {
         $normalizedBuiltIns = [];
 
-        foreach($this->clientBuiltIns as $name => $value) {
+        foreach ($this->clientBuiltIns as $name => $value) {
             $normalizedName = explode('::', (string) $name);
             $normalizedName = $normalizedName[count($normalizedName) - 1];
             $normalizedBuiltIns[$normalizedName] = $value;
@@ -750,7 +754,6 @@ class AwsClient implements AwsClientInterface
     {
         return $this->endpointProvider instanceof EndpointProviderV2;
     }
-
 
     /**
      * Returns a service model and doc model with any necessary changes
@@ -782,7 +785,7 @@ class AwsClient implements AwsClientInterface
 
         return [
             new Service($api, ApiProvider::defaultProvider()),
-            new DocModel($docs)
+            new DocModel($docs),
         ];
     }
 

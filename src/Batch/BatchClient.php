@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Batch;
 
 use Aws\AwsClient;
@@ -84,4 +87,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateServiceEnvironment(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateServiceEnvironmentAsync(array $args = [])
  */
-class BatchClient extends AwsClient {}
+class BatchClient extends AwsClient
+{
+}

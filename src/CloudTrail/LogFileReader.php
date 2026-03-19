@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudTrail;
 
 use Aws\S3\S3Client;
@@ -35,7 +38,7 @@ class LogFileReader
         $command = $this->s3Client->getCommand('GetObject', [
             'Bucket' => (string) $s3BucketName,
             'Key' => (string) $logFileKey,
-            'ResponseContentEncoding' => 'x-gzip'
+            'ResponseContentEncoding' => 'x-gzip',
         ]);
 
         // Make sure gzip encoding header is sent and accepted in order to

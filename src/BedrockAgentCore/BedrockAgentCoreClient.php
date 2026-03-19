@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BedrockAgentCore;
 
 use Aws\AwsClient;
@@ -80,4 +83,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateBrowserStream(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBrowserStreamAsync(array $args = [])
  */
-class BedrockAgentCoreClient extends AwsClient {}
+class BedrockAgentCoreClient extends AwsClient
+{
+}

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AppMesh;
 
 use Aws\AwsClient;
@@ -82,4 +85,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateVirtualService(array $args = []) (supported in versions 2019-01-25)
  * @method \GuzzleHttp\Promise\Promise updateVirtualServiceAsync(array $args = []) (supported in versions 2019-01-25)
  */
-class AppMeshClient extends AwsClient {}
+class AppMeshClient extends AwsClient
+{
+}

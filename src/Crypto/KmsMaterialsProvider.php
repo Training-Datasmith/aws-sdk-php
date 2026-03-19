@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use Aws\Kms\KmsClient;
@@ -15,7 +18,7 @@ use Aws\Kms\KmsClient;
  */
 class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProviderInterface
 {
-    const WRAP_ALGORITHM_NAME = 'kms';
+    public const WRAP_ALGORITHM_NAME = 'kms';
 
     /**
      * @param KmsClient $kmsClient A KMS Client for use encrypting and
@@ -80,7 +83,7 @@ class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProvide
         $encryptedDataKey = $this->kmsClient->encrypt([
             'Plaintext' => $unencryptedCek,
             'KeyId' => $this->kmsKeyId,
-            'EncryptionContext' => $materialDescription
+            'EncryptionContext' => $materialDescription,
         ]);
         return base64_encode((string) $encryptedDataKey['CiphertextBlob']);
     }
@@ -100,7 +103,7 @@ class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProvide
     {
         $result = $this->kmsClient->decrypt([
             'CiphertextBlob' => $encryptedCek,
-            'EncryptionContext' => $materialDescription
+            'EncryptionContext' => $materialDescription,
         ]);
 
         return $result['Plaintext'];

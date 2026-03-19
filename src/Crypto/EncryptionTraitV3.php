@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use Aws\Crypto\Cipher\CipherMethod;
@@ -6,7 +9,6 @@ use Aws\Exception\CryptoException;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\AppendStream;
 use GuzzleHttp\Psr7\Stream;
-use Psr\Http\Message\StreamInterface;
 
 trait EncryptionTraitV3
 {
@@ -17,7 +19,7 @@ trait EncryptionTraitV3
     ];
 
     private static array $encryptClasses = [
-        'gcm' => AesGcmEncryptingStream::class
+        'gcm' => AesGcmEncryptingStream::class,
     ];
 
     /**
@@ -65,8 +67,7 @@ trait EncryptionTraitV3
         array $options,
         MaterialsProviderV3 $provider,
         MetadataEnvelope $envelope
-    ): AppendStream 
-    {
+    ): AppendStream {
         $options = array_change_key_case($options);
         $cipherOptions = array_intersect_key(
             $options['@cipheroptions'],
@@ -77,8 +78,8 @@ trait EncryptionTraitV3
         //# The client MUST validate that the length of the plaintext bytes does not exceed
         //# the algorithm suite's cipher's maximum content length in bytes.
         if (strlen($plaintext) > $algorithmSuite->getCipherMaxContentLengthBytes()) {
-            throw new \InvalidArgumentException("The contentLength of the object you are attempting"
-                . " to encrypt exceeds the maximum length allowed for GCM encryption.");
+            throw new \InvalidArgumentException('The contentLength of the object you are attempting'
+                . ' to encrypt exceeds the maximum length allowed for GCM encryption.');
         }
         $cipherOptions['Cipher'] = strtolower((string) $cipherOptions['Cipher']);
 
@@ -148,8 +149,7 @@ trait EncryptionTraitV3
         string $aesName,
         MaterialsProviderV3 $provider,
         MetadataEnvelope $envelope
-    ): AppendStream
-    {
+    ): AppendStream {
         //= ../specification/s3-encryption/encryption.md#content-encryption
         //# The generated IV or Message ID MUST be set or returned from the
         //# encryption process such that it can be included in the content metadata.
@@ -192,10 +192,10 @@ trait EncryptionTraitV3
                 (string) (strlen((string) $cipherOptions['Tag']) * 8);
         }
         if (!MetadataEnvelope::isV2Envelope($envelope)) {
-            throw new CryptoException("Error while writing metadata envelope."
-                . " Not all required fields were set.");
+            throw new CryptoException('Error while writing metadata envelope.'
+                . ' Not all required fields were set.');
         }
-        
+
         return $encryptingStream;
     }
 
@@ -207,8 +207,7 @@ trait EncryptionTraitV3
         array $materialsDescription,
         MaterialsProviderV3 $provider,
         MetadataEnvelope $envelope
-    ): AppendStream
-    {
+    ): AppendStream {
         //= ../specification/s3-encryption/encryption.md#content-encryption
         //# The generated IV or Message ID MUST be set or returned from the
         //# encryption process such that it can be included in the content metadata.
@@ -232,7 +231,7 @@ trait EncryptionTraitV3
         );
         // Some providers modify materials description based on options
         if (isset($keys['UpdatedContext'])) {
-            $materialsDescription["aws:x-amz-cek-alg"] = (string) $algorithmSuite->getId();
+            $materialsDescription['aws:x-amz-cek-alg'] = (string) $algorithmSuite->getId();
         }
         $commitingEncryptingArray = $this->getCommitingEncryptionStream(
             $plaintext,
@@ -263,8 +262,8 @@ trait EncryptionTraitV3
         $envelope[MetadataEnvelope::KEY_COMMITMENT_V3] = $commitmentKey;
         $envelope[MetadataEnvelope::MESSAGE_ID_V3] = base64_encode($messageId);
         if (!MetadataEnvelope::isV3Envelope($envelope)) {
-            throw new CryptoException("Error while writing metadata envelope."
-                . " Not all required fields were set.");
+            throw new CryptoException('Error while writing metadata envelope.'
+                . ' Not all required fields were set.');
         }
 
         return $encryptionStream;
@@ -289,8 +288,7 @@ trait EncryptionTraitV3
         Stream $plaintext,
         string $cek,
         array &$cipherOptions
-    ): AppendStream
-    {
+    ): AppendStream {
         // Only 'gcm' is supported for encryption currently
         switch ($cipherOptions['Cipher']) {
             //= ../specification/s3-encryption/encryption.md#content-encryption
@@ -315,14 +313,14 @@ trait EncryptionTraitV3
 
                 if (!empty($cipherOptions['Aad'])) {
                     trigger_error("'Aad' has been supplied for content encryption"
-                        . " with " . $cipherTextStream->getAesName() . ". The"
-                        . " PHP SDK encryption client can decrypt an object"
-                        . " encrypted in this way, but other AWS SDKs may not be"
-                        . " able to.", E_USER_WARNING);
+                        . ' with ' . $cipherTextStream->getAesName() . '. The'
+                        . ' PHP SDK encryption client can decrypt an object'
+                        . ' encrypted in this way, but other AWS SDKs may not be'
+                        . ' able to.', E_USER_WARNING);
                 }
 
                 $appendStream = new AppendStream([
-                    $cipherTextStream->createStream()
+                    $cipherTextStream->createStream(),
                 ]);
                 //= ../specification/s3-encryption/encryption.md#alg-aes-256-gcm-iv12-tag16-no-kdf
                 //= type=implication
@@ -332,9 +330,9 @@ trait EncryptionTraitV3
                 $appendStream->addStream(Psr7\Utils::streamFor($cipherOptions['Tag']));
 
                 return $appendStream;
-            default: 
-                throw new CryptoException("Unsupported Cipher used for key commitment messages."
-                    . " Found {$cipherOptions["Cipher"]}. Only 'gcm' is supported.");
+            default:
+                throw new CryptoException('Unsupported Cipher used for key commitment messages.'
+                    . " Found {$cipherOptions['Cipher']}. Only 'gcm' is supported.");
         }
     }
 
@@ -362,24 +360,23 @@ trait EncryptionTraitV3
         array &$cipherOptions,
         string $messageId,
         AlgorithmSuite $algorithmSuite
-    ): array
-    {
+    ): array {
         $algorithmSuiteIdAsBytes = pack('n', $algorithmSuite->getId());
         //= ../specification/s3-encryption/key-derivation.md#hkdf-operation
         //= type=implication
         //# - The input info MUST be a concatenation of the algorithm suite ID as bytes followed by the string DERIVEKEY as UTF8 encoded bytes.
-        $derivedEncryptionKeyInfo = $algorithmSuiteIdAsBytes . "DERIVEKEY";
+        $derivedEncryptionKeyInfo = $algorithmSuiteIdAsBytes . 'DERIVEKEY';
         //= ../specification/s3-encryption/key-derivation.md#hkdf-operation
         //= type=implication
         //# - The input info MUST be a concatenation of the algorithm suite ID as bytes followed by the string COMMITKEY as UTF8 encoded bytes.
-        $commitmentKeyInfo = $algorithmSuiteIdAsBytes . "COMMITKEY";
+        $commitmentKeyInfo = $algorithmSuiteIdAsBytes . 'COMMITKEY';
         //= ../specification/s3-encryption/key-derivation.md#hkdf-operation
         //= type=implication
         //# - The length of the input keying material MUST equal the key derivation
         //# input length specified by the algorithm suite commit key derivation setting.
         if (strlen($dek) !== $algorithmSuite->getDerivationInputKeyLengthBytes()) {
-            throw new CryptoException("Input Key Material length exceeds "
-                . "key derivation input length specified by the algorithm suite.");
+            throw new CryptoException('Input Key Material length exceeds '
+                . 'key derivation input length specified by the algorithm suite.');
         }
         //= ../specification/s3-encryption/encryption.md#alg-aes-256-gcm-hkdf-sha512-commit-key
         //= type=implication
@@ -429,10 +426,10 @@ trait EncryptionTraitV3
 
                 if (!empty($cipherOptions['Aad'])) {
                     trigger_error("'Aad' has been supplied for content encryption"
-                        . " with " . $encryptClass->getAesName() . ". The"
-                        . " PHP SDK encryption client can decrypt an object"
-                        . " encrypted in this way, but other AWS SDKs may not be"
-                        . " able to.", E_USER_NOTICE);
+                        . ' with ' . $encryptClass->getAesName() . '. The'
+                        . ' PHP SDK encryption client can decrypt an object'
+                        . ' encrypted in this way, but other AWS SDKs may not be'
+                        . ' able to.', E_USER_NOTICE);
                 }
                 $cipherOptions['Aad'] = isset($cipherOptions['Aad'])
                     ? $cipherOptions['Aad'] + $algorithmSuiteIdAsBytes
@@ -453,7 +450,7 @@ trait EncryptionTraitV3
                 );
 
                 $appendStream = new AppendStream([
-                    $cipherTextStream->createStream()
+                    $cipherTextStream->createStream(),
                 ]);
                 //= ../specification/s3-encryption/encryption.md#alg-aes-256-gcm-hkdf-sha512-commit-key
                 //= type=implication
@@ -461,10 +458,10 @@ trait EncryptionTraitV3
                 //# crypto provider does not do so automatically.
                 $cipherOptions['Tag'] = $cipherTextStream->getTag();
                 $appendStream->addStream(Psr7\Utils::streamFor($cipherOptions['Tag']));
-                
+
                 return [base64_encode($commitmentKey), $appendStream];
-            default: 
-                throw new CryptoException("Unsupported Cipher used for content encryption");
+            default:
+                throw new CryptoException('Unsupported Cipher used for content encryption');
         }
     }
 }

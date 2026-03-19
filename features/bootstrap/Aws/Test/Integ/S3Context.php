@@ -1,13 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws\S3\Exception\S3Exception;
+use Aws\S3\PostObjectV4;
+use Aws\S3\S3Client;
 use Aws\Sts\StsClient;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Gherkin\Node\TableNode;
-use Aws\S3\S3Client;
-use Aws\S3\PostObjectV4;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7;
 use PHPUnit\Framework\Assert;
@@ -18,7 +21,7 @@ class S3Context implements Context, SnippetAcceptingContext
 {
     use IntegUtils;
 
-    const INTEG_LOG_BUCKET_PREFIX = 'aws-php-sdk-test-integ-logs';
+    public const INTEG_LOG_BUCKET_PREFIX = 'aws-php-sdk-test-integ-logs';
 
     /** @var RequestInterface */
     private $presignedRequest;
@@ -121,7 +124,7 @@ class S3Context implements Context, SnippetAcceptingContext
         // Use account number to generate a unique bucket name
         $sts = new StsClient([
             'version' => 'latest',
-            'region' => 'us-east-1'
+            'region' => 'us-east-1',
         ]);
         $identity = $sts->getCallerIdentity([]);
         $logBucket = self::INTEG_LOG_BUCKET_PREFIX . "-{$identity['Account']}";
@@ -129,13 +132,13 @@ class S3Context implements Context, SnippetAcceptingContext
         // Log bucket deletion result
         if (!($client->doesBucketExistV2($logBucket))) {
             $client->createBucket([
-                'Bucket' => $logBucket
+                'Bucket' => $logBucket,
             ]);
         }
         $client->putObject([
             'Bucket' => $logBucket,
             'Key' => self::getResourceName() . '-' . date('Y-M-d__H_i_s'),
-            'Body' => print_r($result->toArray(), true)
+            'Body' => print_r($result->toArray(), true),
         ]);
 
         // Wait until bucket is no longer available
@@ -192,7 +195,7 @@ class S3Context implements Context, SnippetAcceptingContext
      */
     public function iSendThePreSignedRequest()
     {
-        (new Client)->send($this->presignedRequest);
+        (new Client())->send($this->presignedRequest);
     }
 
     /**
@@ -229,8 +232,8 @@ class S3Context implements Context, SnippetAcceptingContext
     public function iProvideAnArrayOfPolicyConditionsAsFollowing(TableNode $table)
     {
         $this->options = [
-            ["bucket" => self::getResourceName()],
-            ["starts-with", '$key', ""],
+            ['bucket' => self::getResourceName()],
+            ['starts-with', '$key', ''],
         ];
         foreach ($table as $row) {
             $this->options[] = [$row['key'] => $row['value']];
@@ -267,7 +270,7 @@ class S3Context implements Context, SnippetAcceptingContext
     public function iMakeAHttpPostRequest()
     {
         try {
-            (new Client)->request(
+            (new Client())->request(
                 $this->attributes['method'],
                 $this->attributes['action'],
                 [
@@ -311,7 +314,7 @@ class S3Context implements Context, SnippetAcceptingContext
                 'Key' => 'test.dat',
                 'Body' => 'foo',
                 'BucketKeyEnabled' => true,
-                'ServerSideEncryption' => 'aws:kms'
+                'ServerSideEncryption' => 'aws:kms',
             ]);
     }
 

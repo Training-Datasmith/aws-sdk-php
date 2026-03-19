@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ApiGatewayManagementApi;
 
 use Aws\AwsClient;
@@ -12,4 +15,6 @@ use Aws\AwsClient;
  * @method \Aws\Result postToConnection(array $args = [])
  * @method \GuzzleHttp\Promise\Promise postToConnectionAsync(array $args = [])
  */
-class ApiGatewayManagementApiClient extends AwsClient {}
+class ApiGatewayManagementApiClient extends AwsClient
+{
+}

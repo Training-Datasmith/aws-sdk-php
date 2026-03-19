@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 trait IntegUtils
@@ -10,7 +13,7 @@ trait IntegUtils
         return new \Aws\Sdk($args + [
             'region'  => 'us-east-1',
             'version' => 'latest',
-            'ua_append' => 'PHPUnit/Integration'
+            'ua_append' => 'PHPUnit/Integration',
         ]);
     }
 
@@ -43,7 +46,8 @@ trait IntegUtils
         self::$originalCsmEnabled = getenv(
             \Aws\ClientSideMonitoring\ConfigurationProvider::ENV_ENABLED
         );
-        putenv(\Aws\ClientSideMonitoring\ConfigurationProvider::ENV_ENABLED
+        putenv(
+            \Aws\ClientSideMonitoring\ConfigurationProvider::ENV_ENABLED
             . '=false'
         );
     }
@@ -55,7 +59,8 @@ trait IntegUtils
      */
     public static function restoreCsmConfig()
     {
-        putenv(\Aws\ClientSideMonitoring\ConfigurationProvider::ENV_ENABLED .
+        putenv(
+            \Aws\ClientSideMonitoring\ConfigurationProvider::ENV_ENABLED .
             '=' . self::$originalCsmEnabled
         );
     }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws;
 
 /**
@@ -29,8 +32,7 @@ class Command implements CommandInterface
         array $args = [],
         ?HandlerList $list = null,
         ?MetricsBuilder $metricsBuilder = null
-    )
-    {
+    ) {
         $this->data = $args;
         $this->handlerList = $list ?: new HandlerList();
 
@@ -76,10 +78,11 @@ class Command implements CommandInterface
      */
     public function setAuthSchemes(array $authSchemes): void
     {
-        trigger_error(__METHOD__ . ' is deprecated.  Auth schemes '
+        trigger_error(
+            __METHOD__ . ' is deprecated.  Auth schemes '
             . 'resolved using the service `auth` trait or via endpoint resolution '
-            . 'are now set in the command `@context` property.`'
-            , E_USER_WARNING
+            . 'are now set in the command `@context` property.`',
+            E_USER_WARNING
         );
 
         $this->authSchemes = $authSchemes;
@@ -97,10 +100,11 @@ class Command implements CommandInterface
      */
     public function getAuthSchemes()
     {
-        trigger_error(__METHOD__ . ' is deprecated.  Auth schemes '
+        trigger_error(
+            __METHOD__ . ' is deprecated.  Auth schemes '
         . 'resolved using the service `auth` trait or via endpoint resolution '
-        . 'can now be found in the command `@context` property.`'
-        , E_USER_WARNING
+        . 'can now be found in the command `@context` property.`',
+            E_USER_WARNING
         );
 
         return $this->authSchemes ?: [];

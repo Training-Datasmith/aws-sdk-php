@@ -1,15 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws\CommandInterface;
 use Aws\CommandPool;
 use Aws\Result;
 use Aws\S3\S3Client;
-use Behat\Behat\Hook\Scope\AfterFeatureScope;
-use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
+use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use Behat\Gherkin\Node\TableNode;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -169,7 +171,7 @@ class ConcurrencyContext implements
     public function thereShouldBeValueAt($count, $path)
     {
         Assert::assertCount((int) $count, array_unique(
-                JmesPath\search($path, $this->result)
+            JmesPath\search($path, $this->result)
         ));
     }
 }

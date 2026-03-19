@@ -1,10 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\ErrorParser;
 
 use Aws\Api\Parser\AbstractParser;
 use Aws\Api\Parser\JsonParser;
 use Aws\Api\Service;
-use Aws\Api\StructureShape;
 use Aws\CommandInterface;
 use Psr\Http\Message\ResponseInterface;
 

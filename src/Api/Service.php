@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api;
 
 /**
@@ -41,7 +44,7 @@ class Service extends AbstractModel
             'operations' => [],
             'shapes'     => [],
             'metadata'   => [],
-            'clientContextParams' => []
+            'clientContextParams' => [],
         ], $defaultMeta = [
             'apiVersion'       => null,
             'serviceFullName'  => null,
@@ -50,7 +53,7 @@ class Service extends AbstractModel
             'signingName'      => null,
             'signatureVersion' => null,
             'protocol'         => null,
-            'uid'              => null
+            'uid'              => null,
         ];
 
         $definition += $defaults;
@@ -66,7 +69,7 @@ class Service extends AbstractModel
         }
         $this->apiVersion = $this->getApiVersion();
         if (isset($definition['clientContextParams'])) {
-           $this->clientContextParams = $definition['clientContextParams'];
+            $this->clientContextParams = $definition['clientContextParams'];
         }
 
         $this->protocol = $this->selectProtocol($definition);
@@ -88,7 +91,7 @@ class Service extends AbstractModel
             'query'     => Serializer\QuerySerializer::class,
             'rest-json' => Serializer\RestJsonSerializer::class,
             'rest-xml'  => Serializer\RestXmlSerializer::class,
-            'smithy-rpc-v2-cbor' => Serializer\RpcV2CborSerializer::class
+            'smithy-rpc-v2-cbor' => Serializer\RpcV2CborSerializer::class,
         ];
 
         $proto = $api->getProtocol();
@@ -124,7 +127,7 @@ class Service extends AbstractModel
             'rest-json' => ErrorParser\RestJsonErrorParser::class,
             'rest-xml'  => ErrorParser\XmlErrorParser::class,
             'ec2'       => ErrorParser\XmlErrorParser::class,
-            'smithy-rpc-v2-cbor' => ErrorParser\RpcV2CborErrorParser::class
+            'smithy-rpc-v2-cbor' => ErrorParser\RpcV2CborErrorParser::class,
         ];
 
         if (isset($mapping[$protocol])) {
@@ -148,7 +151,7 @@ class Service extends AbstractModel
             'query'     => Parser\QueryParser::class,
             'rest-json' => Parser\RestJsonParser::class,
             'rest-xml'  => Parser\RestXmlParser::class,
-            'smithy-rpc-v2-cbor' => Parser\RpcV2CborParser::class
+            'smithy-rpc-v2-cbor' => Parser\RpcV2CborParser::class,
         ];
 
         $proto = $api->getProtocol();
@@ -530,7 +533,7 @@ class Service extends AbstractModel
     {
         $modeledProtocols = $definition['metadata']['protocols'] ?? null;
         if (!empty($modeledProtocols)) {
-            foreach(SupportedProtocols::cases() as $protocol) {
+            foreach (SupportedProtocols::cases() as $protocol) {
                 if (in_array($protocol->value, $modeledProtocols)) {
                     return $protocol->value;
                 }

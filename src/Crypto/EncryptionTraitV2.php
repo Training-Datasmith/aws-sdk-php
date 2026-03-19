@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use GuzzleHttp\Psr7;
@@ -15,7 +18,7 @@ trait EncryptionTraitV2
     ];
 
     private static $encryptClasses = [
-        'gcm' => AesGcmEncryptingStream::class
+        'gcm' => AesGcmEncryptingStream::class,
     ];
 
     /**
@@ -175,14 +178,14 @@ trait EncryptionTraitV2
 
                 if (!empty($cipherOptions['Aad'])) {
                     trigger_error("'Aad' has been supplied for content encryption"
-                        . " with " . $cipherTextStream->getAesName() . ". The"
-                        . " PHP SDK encryption client can decrypt an object"
-                        . " encrypted in this way, but other AWS SDKs may not be"
-                        . " able to.", E_USER_WARNING);
+                        . ' with ' . $cipherTextStream->getAesName() . '. The'
+                        . ' PHP SDK encryption client can decrypt an object'
+                        . ' encrypted in this way, but other AWS SDKs may not be'
+                        . ' able to.', E_USER_WARNING);
                 }
 
                 $appendStream = new AppendStream([
-                    $cipherTextStream->createStream()
+                    $cipherTextStream->createStream(),
                 ]);
                 $cipherOptions['Tag'] = $cipherTextStream->getTag();
                 $appendStream->addStream(Psr7\Utils::streamFor($cipherOptions['Tag']));

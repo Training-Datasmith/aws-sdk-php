@@ -1,3 +1,5 @@
 <?php
+
+declare(strict_types=1);
 // This file was auto-generated from sdk-root/src/data/application-signals/2024-04-15/examples-1.json
 return [ 'version' => '1.0', 'examples' => [],];

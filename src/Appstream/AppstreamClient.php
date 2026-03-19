@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Appstream;
 
 use Aws\AwsClient;
@@ -182,4 +185,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateThemeForStack(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateThemeForStackAsync(array $args = [])
  */
-class AppstreamClient extends AwsClient {}
+class AppstreamClient extends AwsClient
+{
+}

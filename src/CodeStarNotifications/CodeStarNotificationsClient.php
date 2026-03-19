@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CodeStarNotifications;
 
 use Aws\AwsClient;
@@ -32,4 +35,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateNotificationRule(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateNotificationRuleAsync(array $args = [])
  */
-class CodeStarNotificationsClient extends AwsClient {}
+class CodeStarNotificationsClient extends AwsClient
+{
+}

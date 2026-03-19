@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ControlCatalog;
 
 use Aws\AwsClient;
@@ -18,4 +21,6 @@ use Aws\AwsClient;
  * @method \Aws\Result listObjectives(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listObjectivesAsync(array $args = [])
  */
-class ControlCatalogClient extends AwsClient {}
+class ControlCatalogClient extends AwsClient
+{
+}

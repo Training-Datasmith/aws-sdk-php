@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ARCRegionSwitch;
 
 use Aws\AwsClient;
@@ -48,4 +51,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updatePlanExecutionStep(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updatePlanExecutionStepAsync(array $args = [])
  */
-class ARCRegionSwitchClient extends AwsClient {}
+class ARCRegionSwitchClient extends AwsClient
+{
+}

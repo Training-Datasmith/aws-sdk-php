@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Account;
 
 use Aws\AwsClient;
@@ -36,4 +39,6 @@ use Aws\AwsClient;
  * @method \Aws\Result startPrimaryEmailUpdate(array $args = [])
  * @method \GuzzleHttp\Promise\Promise startPrimaryEmailUpdateAsync(array $args = [])
  */
-class AccountClient extends AwsClient {}
+class AccountClient extends AwsClient
+{
+}

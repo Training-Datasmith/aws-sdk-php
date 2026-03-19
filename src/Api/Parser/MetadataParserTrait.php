@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\DateTimeResult;

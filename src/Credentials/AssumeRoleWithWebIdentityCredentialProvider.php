@@ -1,9 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Credentials;
 
 use Aws\Exception\AwsException;
 use Aws\Exception\CredentialsException;
-use Aws\Result;
 use Aws\Sts\StsClient;
 use GuzzleHttp\Promise;
 
@@ -13,8 +15,8 @@ use GuzzleHttp\Promise;
  */
 class AssumeRoleWithWebIdentityCredentialProvider
 {
-    const ERROR_MSG = "Missing required 'AssumeRoleWithWebIdentityCredentialProvider' configuration option: ";
-    const ENV_RETRIES = 'AWS_METADATA_SERVICE_NUM_ATTEMPTS';
+    public const ERROR_MSG = "Missing required 'AssumeRoleWithWebIdentityCredentialProvider' configuration option: ";
+    public const ENV_RETRIES = 'AWS_METADATA_SERVICE_NUM_ATTEMPTS';
 
     /** @var string */
     private $tokenFile;
@@ -100,8 +102,8 @@ class AssumeRoleWithWebIdentityCredentialProvider
                 try {
                     $token = @file_get_contents($this->tokenFile);
                     if (false === $token) {
-                        clearstatcache(true, dirname($this->tokenFile) . "/" . readlink($this->tokenFile));
-                        clearstatcache(true, dirname($this->tokenFile) . "/" . dirname(readlink($this->tokenFile)));
+                        clearstatcache(true, dirname($this->tokenFile) . '/' . readlink($this->tokenFile));
+                        clearstatcache(true, dirname($this->tokenFile) . '/' . dirname(readlink($this->tokenFile)));
                         clearstatcache(true, $this->tokenFile);
                         if (!@is_readable($this->tokenFile)) {
                             throw new CredentialsException(
@@ -121,7 +123,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
                     }
                 } catch (\Exception $exception) {
                     throw new CredentialsException(
-                        "Error reading WebIdentityTokenFile from " . $this->tokenFile,
+                        'Error reading WebIdentityTokenFile from ' . $this->tokenFile,
                         0,
                         $exception
                     );
@@ -130,7 +132,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
                 $assumeParams = [
                     'RoleArn' => $this->arn,
                     'RoleSessionName' => $this->session,
-                    'WebIdentityToken' => $token
+                    'WebIdentityToken' => $token,
                 ];
 
                 try {
@@ -141,20 +143,20 @@ class AssumeRoleWithWebIdentityCredentialProvider
                             sleep((int) 1.2 ** $this->authenticationAttempts);
                         } else {
                             throw new CredentialsException(
-                                "InvalidIdentityToken, retries exhausted"
+                                'InvalidIdentityToken, retries exhausted'
                             );
                         }
                     } else {
                         throw new CredentialsException(
-                            "Error assuming role from web identity credentials",
+                            'Error assuming role from web identity credentials',
                             0,
                             $e
                         );
                     }
                 } catch (\Exception $e) {
                     throw new CredentialsException(
-                        "Error retrieving web identity credentials: " . $e->getMessage()
-                        . " (" . $e->getCode() . ")"
+                        'Error retrieving web identity credentials: ' . $e->getMessage()
+                        . ' (' . $e->getCode() . ')'
                     );
                 }
                 $this->authenticationAttempts++;
@@ -169,8 +171,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
 
     private function createDefaultStsClient(
         ?string $region
-    ): StsClient
-    {
+    ): StsClient {
         if (empty($region)) {
             $region = CredentialProvider::FALLBACK_REGION;
             trigger_error(
@@ -188,7 +189,7 @@ class AssumeRoleWithWebIdentityCredentialProvider
 
         return new StsClient([
             'credentials' => false,
-            'region' => $region
+            'region' => $region,
         ]);
     }
 }

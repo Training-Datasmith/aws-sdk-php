@@ -1,14 +1,17 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
 use Aws\Api\AbstractModel;
 use Aws\Api\ApiProvider;
+use Aws\Api\DocModel;
 use Aws\Api\ListShape;
 use Aws\Api\MapShape;
 use Aws\Api\Operation;
 use Aws\Api\Service as Api;
 use Aws\Api\StructureShape;
-use Aws\Api\DocModel;
 use GuzzleHttp\Client;
 use TokenReflection\Broker;
 use TokenReflection\ReflectionBase;
@@ -55,7 +58,7 @@ class DocsBuilder
     private $guzzleClient;
 
     /** @var array Printable error names for build-issues.log file */
-    private static $ERROR_PRINT_NAMES =[
+    private static $ERROR_PRINT_NAMES = [
         E_ERROR              => 'Error',
         E_WARNING            => 'Warning',
         E_PARSE              => 'Parse Error',
@@ -68,7 +71,7 @@ class DocsBuilder
         E_USER_WARNING       => 'User Warning',
         E_USER_NOTICE        => 'User Notice',
         E_STRICT             => 'Strict Notice',
-        E_RECOVERABLE_ERROR  => 'Recoverable Error'
+        E_RECOVERABLE_ERROR  => 'Recoverable Error',
     ];
 
     public function __construct(
@@ -118,7 +121,7 @@ class DocsBuilder
                     if (empty($aliases[$title][$version])) {
                         $aliases[$title][$version] = [];
                     }
-                    $aliases[$title][$version] []= $alias;
+                    $aliases[$title][$version] [] = $alias;
                     continue;
                 }
                 $examples = $this->loadExamples($name, $version);
@@ -133,7 +136,7 @@ class DocsBuilder
             }
         }
 
-        uasort($services, function($a, $b) {
+        uasort($services, function ($a, $b) {
             $serviceA = current($a);
             $serviceB = current($b);
             return strcasecmp($serviceA->namespace, $serviceB->namespace);
@@ -167,13 +170,13 @@ class DocsBuilder
             $service = reset($versions);
             $servicesTable .= "<tr><td><a href=\"{$service->serviceLink}\">{$service->title}</a></td>";
             $servicesTable .= "<td><a title=\"{$service->client}\" href=\"{$service->clientLink}\">{$service->client}</a></td>";
-            $servicesTable .= "<td class=\"nowrap\"><ul>";
+            $servicesTable .= '<td class="nowrap"><ul>';
             $latest = count($versions) > 1 ? ' (latest)' : '';
             foreach ($versions as $sv) {
                 $servicesTable .= "<li><a href=\"{$sv->serviceLink}\">{$sv->version} {$latest}</a></li>";
                 $latest = '';
             }
-            $servicesTable .= "</ul></td></tr>";
+            $servicesTable .= '</ul></td></tr>';
         }
 
         $this->replaceInner('index', $servicesTable, ':services:');
@@ -186,8 +189,8 @@ class DocsBuilder
         // Determine which services in the provided array should have a quick link
         $services = array_filter($services, function (array $versions) {
             return 0 < count(array_filter($versions, function (Service $service) {
-                    return in_array($service->name, $this->quickLinks);
-                }));
+                return in_array($service->name, $this->quickLinks);
+            }));
         });
 
         // Drop all but the latest version of each service from the array
@@ -243,7 +246,7 @@ EOT;
                             ? DocsBuilder::$ERROR_PRINT_NAMES[$level]
                             : 'Unknown';
 
-                        $text .= '[' . date("Y-m-d H:i:s (T)") . '] '
+                        $text .= '[' . date('Y-m-d H:i:s (T)') . '] '
                             . '[' . $levelName . '] '
                             . $serviceName . '-' . $serviceVersion
                             . ': ' . $message;
@@ -257,7 +260,7 @@ EOT;
 
     private function renderService(Service $service, $examples)
     {
-        $html = new HtmlDocument;
+        $html = new HtmlDocument();
         $html->open('div', 'page-header');
         $html->elem('h1', 'phpdocumentor-content__title', "$service->title <small>{$service->version}</small>");
         $html->close();
@@ -327,7 +330,8 @@ EOT;
 
         $this->writeThemeFile(
             $service->serviceLink,
-            "<section><article class=\"phpdocumentor-element\">{$html->render()}</article></section>");
+            "<section><article class=\"phpdocumentor-element\">{$html->render()}</article></section>"
+        );
     }
 
     private function createHtmlForToc(Service $service, array $operations)
@@ -385,8 +389,10 @@ EOT;
         // Standardize file name to be capitalized and without .html
         $normalizedName = implode(
             '-',
-            array_map('ucfirst',
-                explode('-',
+            array_map(
+                'ucfirst',
+                explode(
+                    '-',
                     str_replace(
                         '.',
                         '-',
@@ -467,7 +473,7 @@ EOT;
             $response = $this->guzzleClient->get(self::EXAMPLES_URL);
             $html = (string) $response->getBody();
         } catch (\Exception $e) {
-            fwrite(STDERR, "Failed to fetch examples from docs: " . $e->getMessage() . "\n");
+            fwrite(STDERR, 'Failed to fetch examples from docs: ' . $e->getMessage() . "\n");
             return [];
         }
 
@@ -498,7 +504,7 @@ EOT;
             $services[$serviceId] = $fullUrl;
         }
 
-        fwrite(STDOUT, "Fetched " . count($services) . " service examples from AWS docs\n");
+        fwrite(STDOUT, 'Fetched ' . count($services) . " service examples from AWS docs\n");
 
         return $services;
     }
@@ -529,16 +535,16 @@ EOT;
             $html .= '<article class="api-version-list element-summary article-container"><ul>';
             $latest = count($versions) > 1 ? ' (latest)' : '';
             foreach ($versions as $sv) {
-                $html .= "<li>";
+                $html .= '<li>';
                 $html .= "<p><a href=\"{$sv->serviceLink}\"><strong>{$sv->version} {$latest}</strong></a></p>";
                 $html .= "<ul class='supported-api-versions-methods my-container'>";
                 foreach (array_keys($sv->api->getOperations()) as $operation) {
                     $html .= "<li class='my-col-full my-col-half my-col-third'>";
                     $html .= "<a href=\"{$sv->serviceLink}#" . strtolower($operation) . "\" style='white-space: nowrap;'>$operation</a>";
-                    $html .= "</li>";
+                    $html .= '</li>';
                 }
-                $html .= "</ul>";
-                $html .= "</li>";
+                $html .= '</ul>';
+                $html .= '</li>';
                 $latest = '';
             }
             $html .= '</ul></article>';
@@ -583,7 +589,7 @@ EOT;
             $service = reset($versions);
             $shapes = $service->api->getErrorShapes();
             if (count($shapes) > 0) {
-                $html = new HtmlDocument;
+                $html = new HtmlDocument();
                 $html->section(2, 'Expected Exception Codes');
                 $desc = <<<EOT
 The following are the known exception codes and corresponding data shapes that 
@@ -679,11 +685,11 @@ EOHTML;
             foreach ($service->api->getOperations() as $operation => $def) {
                 $summary = $service->docs->getOperationDocs($operation);
 
-                $autoComplete []= [
+                $autoComplete [] = [
                     'fqsen' => $service->namespace . '::' . lcfirst($operation),
                     'name' => $operation,
                     'url' => $service->serviceLink . '#' . strtolower($operation),
-                    'summary' => $summary ? strip_tags($summary) : null
+                    'summary' => $summary ? strip_tags($summary) : null,
                 ];
             }
         }
@@ -702,7 +708,7 @@ EOHTML;
         );
         foreach ($classes as $class) {
             // Add class to autocomplete index
-            $autoComplete []= [
+            $autoComplete [] = [
                 'name' => $class->getName(),
                 'match' => $class->getShortName(),
                 'link' => 'class-' . str_replace('\\', '.', $class->getName()) . '.html',
@@ -710,7 +716,7 @@ EOHTML;
             ];
 
             $methods = array_filter(
-                $class->getOwnMethods(\ReflectionMethod::IS_PUBLIC|\ReflectionMethod::IS_PROTECTED),
+                $class->getOwnMethods(\ReflectionMethod::IS_PUBLIC | \ReflectionMethod::IS_PROTECTED),
                 [$this, 'filterVisible']
             );
 
@@ -723,7 +729,7 @@ EOHTML;
             });
 
             foreach ($methods as $method) {
-                $autoComplete []= [
+                $autoComplete [] = [
                     'name' => $class->getName() . '::' . $method->getName(),
                     'match' => $method->getName(),
                     'link' => 'class-' . str_replace('\\', '.', $class->getName()) . '.html'
@@ -746,7 +752,6 @@ EOHTML;
             '\\JsonSerializable',
             '\\Serializable',
         ];
-
 
         $methodsToSkip = [];
         foreach ($interfacesToSkip as $interfaceToSkip) {
@@ -873,7 +878,7 @@ EOT;
 
     private function createHtmlForOperation(Service $service, $name, Operation $operation, $examples)
     {
-        $html = new HtmlDocument;
+        $html = new HtmlDocument();
         $html->open('article', 'phpdocumentor-element -method -public');
 
         // Name
@@ -970,9 +975,10 @@ EOT;
                         [
                             'href' => $service->exceptionLink . '#shape-'
                                 . strtolower($error->getName()),
-                            'aria-label' => strtolower($error->getName())
+                            'aria-label' => strtolower($error->getName()),
                         ],
-                        '<strong>' . $error['name'] . ': ' . '</strong>')
+                        '<strong>' . $error['name'] . ': ' . '</strong>'
+                    )
                     ->elem('dd', 'phpdocumentor-summary', $desc)
                     ->close();
             }
@@ -1037,7 +1043,7 @@ EOT;
             $this->issues[$serviceName][$serviceVersion] = [];
         }
 
-        foreach ($issuesToLog as $shapeName=>$shapeIssues) {
+        foreach ($issuesToLog as $shapeName => $shapeIssues) {
             foreach ($shapeIssues as $level => $messages) {
                 foreach ($messages as $message => $exampleName) {
                     $this->issues[$level][$serviceName][$serviceVersion][
@@ -1151,13 +1157,14 @@ EOT;
     private function getEventStreamMemberText(StructureShape $member)
     {
         return 'EventParsingIterator supplying the following structures: '
-            . implode(', ',
+            . implode(
+                ', ',
                 array_map(
                     [$this, 'memberLink'],
                     array_reduce(
                         $member->getMembers(),
                         function ($carry, $item) {
-                            $carry []= $item['name'];
+                            $carry [] = $item['name'];
                             return $carry;
                         },
                         []
@@ -1181,9 +1188,10 @@ EOT;
             case 'char': return 'char (string)';
             case 'timestamp': return 'timestamp (string|DateTime or anything parsable by strtotime)';
             case 'string':
-                if ($member['jsonvalue']){
+                if ($member['jsonvalue']) {
                     return 'string (string|number|array|map or anything parsable by json_encode)';
                 }
+                // no break
             default: return $member['type'];
         }
     }
@@ -1207,8 +1215,8 @@ EOT;
     {
         fwrite(STDOUT, "Updating sitemap\n");
 
-        $writer = new \SimpleXMLElement("<urlset></urlset>");
-        $writer->addAttribute('xmlns', "http://www.sitemaps.org/schemas/sitemap/0.9");
+        $writer = new \SimpleXMLElement('<urlset></urlset>');
+        $writer->addAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
         $linksToIndex = new \GlobIterator("{$this->outputDir}/*.html", \FilesystemIterator::CURRENT_AS_FILEINFO);
         foreach ($linksToIndex as $link) {

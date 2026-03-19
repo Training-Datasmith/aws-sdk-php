@@ -1,11 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\DateTimeResult;
 use Aws\Api\Shape;
 use Aws\Api\StructureShape;
-use Aws\Result;
 use Aws\CommandInterface;
+use Aws\Result;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -188,7 +191,7 @@ abstract class AbstractRestParser extends AbstractParser
 
                 $items = array_map(trim(...), explode(',', $value));
                 $value = array_map(
-                    static fn($item): bool => filter_var($item, FILTER_VALIDATE_BOOLEAN),
+                    static fn ($item): bool => filter_var($item, FILTER_VALIDATE_BOOLEAN),
                     $items
                 );
 

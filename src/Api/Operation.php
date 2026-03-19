@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api;
 
 /**
@@ -146,11 +149,11 @@ class Operation extends AbstractModel
         $members = $this->getInput()->getMembers();
         $contextParams = [];
 
-        foreach($members as $name => $shape) {
+        foreach ($members as $name => $shape) {
             if (!empty($contextParam = $shape->getContextParam())) {
                 $contextParams[$contextParam['name']] = [
                     'shape' => $name,
-                    'type' => $shape->getType()
+                    'type' => $shape->getType(),
                 ];
             }
         }

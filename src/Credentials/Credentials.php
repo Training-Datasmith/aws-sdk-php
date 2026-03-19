@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Credentials;
 
 use Aws\Identity\AwsCredentialIdentity;
@@ -31,8 +34,7 @@ class Credentials extends AwsCredentialIdentity implements
         private $expires = null,
         private $accountId = null,
         $source = CredentialSources::STATIC
-    )
-    {
+    ) {
         $this->key = trim((string) $key);
         $this->secret = trim((string) $secret);
         $this->source = $source ?? CredentialSources::STATIC;
@@ -93,7 +95,7 @@ class Credentials extends AwsCredentialIdentity implements
             'token'   => $this->token,
             'expires' => $this->expires,
             'accountId' =>  $this->accountId,
-            'source' => $this->source
+            'source' => $this->source,
         ];
     }
 
@@ -130,7 +132,8 @@ class Credentials extends AwsCredentialIdentity implements
      *
      * @internal
      */
-    public function extendExpiration(): void {
+    public function extendExpiration(): void
+    {
         $extension = mt_rand(5, 10);
         $this->expires = time() + $extension * 60;
 

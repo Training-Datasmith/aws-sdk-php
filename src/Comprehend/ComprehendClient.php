@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Comprehend;
 
 use Aws\AwsClient;
@@ -176,4 +179,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateFlywheel(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateFlywheelAsync(array $args = [])
  */
-class ComprehendClient extends AwsClient {}
+class ComprehendClient extends AwsClient
+{
+}

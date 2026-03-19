@@ -1,10 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\Service;
 use Aws\Api\StructureShape;
-use Aws\Result;
 use Aws\CommandInterface;
+use Aws\Result;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 

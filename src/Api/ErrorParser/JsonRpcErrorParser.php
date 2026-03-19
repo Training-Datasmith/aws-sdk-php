@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\ErrorParser;
 
 use Aws\Api\Parser\AbstractParser;

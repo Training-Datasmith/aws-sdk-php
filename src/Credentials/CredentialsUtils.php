@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Credentials;
 
 final class CredentialsUtils

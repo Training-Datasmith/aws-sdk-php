@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Changelog;
 
 /**
@@ -18,11 +21,11 @@ class ChangelogBuilder
     /** @var boolean */
     private $newServiceFlag = false;
 
-    const CHANGELOG_FEATURE = 'feature';
-    const CHANGELOG_API_CHANGE = 'api-change';
-    const CHANGELOG_ENHANCEMENT = 'enhancement';
-    const CHANGELOG_BUGFIX = 'bugfix';
-    const CHANGELOG_DOCUMENTATION = 'documentation';
+    public const CHANGELOG_FEATURE = 'feature';
+    public const CHANGELOG_API_CHANGE = 'api-change';
+    public const CHANGELOG_ENHANCEMENT = 'enhancement';
+    public const CHANGELOG_BUGFIX = 'bugfix';
+    public const CHANGELOG_DOCUMENTATION = 'documentation';
 
     /**
      *  The constructor requires following configure parameters:
@@ -66,8 +69,8 @@ class ChangelogBuilder
         closedir($dh);
 
         $this->newServiceFlag = count(array_filter($changelogEntries, function ($change) {
-                return $change->type === self::CHANGELOG_FEATURE;
-            })) > 0;
+            return $change->type === self::CHANGELOG_FEATURE;
+        })) > 0;
 
         return $changelogEntries;
     }
@@ -87,7 +90,7 @@ class ChangelogBuilder
             throw new \RuntimeException('Changelog File Not Found', 2);
         }
         $lines = file($changelogFile);
-        $tag = explode(".", explode(" ", $lines[2])[1]);
+        $tag = explode('.', explode(' ', $lines[2])[1]);
         if ($tag[0] == 'next') {
             throw new \InvalidArgumentException('Untagged changes exits in CHANGELOG.md', 1);
         }
@@ -99,7 +102,7 @@ class ChangelogBuilder
             ++$tag[2];
         }
 
-        return implode(".", $tag);
+        return implode('.', $tag);
     }
 
     private function createChangelogJson($changelog, $tag)
@@ -108,7 +111,7 @@ class ChangelogBuilder
             throw new \InvalidArgumentException('Invalid tag value.');
         }
 
-        $fp = fopen($this->releaseNotesOutputDir . ".changes/" . $tag, 'w');
+        $fp = fopen($this->releaseNotesOutputDir . '.changes/' . $tag, 'w');
         fwrite($fp, json_encode($changelog, JSON_PRETTY_PRINT) . PHP_EOL);
         fclose($fp);
     }
@@ -140,9 +143,9 @@ class ChangelogBuilder
         usort($changelog, function ($a, $b) {
             return strcmp($a->category, $b->category);
         });
-        $str = "";
+        $str = '';
         foreach ($changelog as $log) {
-            $str .= "* `Aws\\" . $log->category . "` - " . $log->description . "\n";
+            $str .= '* `Aws\\' . $log->category . '` - ' . $log->description . "\n";
         }
         return $str;
     }

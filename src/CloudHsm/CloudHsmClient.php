@@ -1,9 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudHsm;
 
-use Aws\Api\ApiProvider;
-use Aws\Api\DocModel;
-use Aws\Api\Service;
 use Aws\AwsClient;
 
 /**
@@ -50,4 +50,6 @@ use Aws\AwsClient;
  * @method \Aws\Result removeTagsFromResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise removeTagsFromResourceAsync(array $args = [])
  */
-class CloudHsmClient extends AwsClient {}
+class CloudHsmClient extends AwsClient
+{
+}

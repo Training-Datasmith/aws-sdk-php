@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use Aws\Crypto\Cipher\CipherMethod;
@@ -9,14 +12,14 @@ use GuzzleHttp\Psr7\Stream;
  */
 abstract class AbstractCryptoClientV2
 {
-    const KEY_COMMITMENT_POLICIES = [
-        'FORBID_ENCRYPT_ALLOW_DECRYPT'
+    public const KEY_COMMITMENT_POLICIES = [
+        'FORBID_ENCRYPT_ALLOW_DECRYPT',
     ];
 
     public static $supportedCiphers = ['gcm'];
 
     public static $supportedKeyWraps = [
-        KmsMaterialsProviderV2::WRAP_ALGORITHM_NAME
+        KmsMaterialsProviderV2::WRAP_ALGORITHM_NAME,
     ];
 
     public static $supportedSecurityProfiles = ['V2', 'V2_AND_LEGACY'];

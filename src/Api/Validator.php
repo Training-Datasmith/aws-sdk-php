@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api;
 
 use Aws;
@@ -17,7 +20,7 @@ class Validator
         'required' => true,
         'min'      => true,
         'max'      => false,
-        'pattern'  => false
+        'pattern'  => false,
     ];
 
     /**
@@ -32,7 +35,7 @@ class Validator
             'required' => false,
             'min'      => false,
             'max'      => false,
-            'pattern'  => false
+            'pattern'  => false,
         ];
         $this->constraints = empty($constraints)
             ? self::$defaultConstraints
@@ -54,7 +57,7 @@ class Validator
 
         if ($this->errors) {
             $message = sprintf(
-                "Found %d error%s while validating the input provided for the "
+                'Found %d error%s while validating the input provided for the '
                     . "%s operation:\n%s",
                 count($this->errors),
                 count($this->errors) > 1 ? 's' : '',
@@ -80,7 +83,7 @@ class Validator
             'long'      => 'check_numeric',
             'string'    => 'check_string',
             'byte'      => 'check_string',
-            'char'      => 'check_string'
+            'char'      => 'check_string',
         ];
 
         $type = $shape->getType();
@@ -95,12 +98,12 @@ class Validator
         $isUnion = (isset($shape['union']) && $shape['union']);
         if ($isDocument) {
             if (!$this->checkDocumentType($value)) {
-                $this->addError("is not a valid document type");
+                $this->addError('is not a valid document type');
                 return;
             }
         } elseif ($isUnion) {
             if (!$this->checkUnion($value)) {
-                $this->addError("is a union type and must have exactly one non null value");
+                $this->addError('is a union type and must have exactly one non null value');
                 return;
             }
         } elseif (!$this->checkAssociativeArray($value)) {
@@ -138,7 +141,7 @@ class Validator
             return;
         }
 
-        $this->validateRange($shape, count($value), "list element count");
+        $this->validateRange($shape, count($value), 'list element count');
 
         $items = $shape->getMember();
         foreach ($value as $index => $v) {
@@ -168,7 +171,7 @@ class Validator
             'string' => true,
             'integer' => true,
             'double' => true,
-            'resource' => true
+            'resource' => true,
         ];
 
         $type = gettype($value);
@@ -190,7 +193,7 @@ class Validator
             return;
         }
 
-        $this->validateRange($shape, $value, "numeric value");
+        $this->validateRange($shape, $value, 'numeric value');
     }
 
     private function check_boolean($value): void
@@ -218,7 +221,7 @@ class Validator
         }
 
         $value ??= '';
-        $this->validateRange($shape, strlen($value), "string length");
+        $this->validateRange($shape, strlen($value), 'string length');
 
         if ($this->constraints['pattern']) {
             $pattern = $shape['pattern'];
@@ -302,9 +305,9 @@ class Validator
         if (is_array($value)) {
             $typeOfFirstKey = gettype(key($value));
             foreach ($value as $key => $val) {
-               if (!$this->checkDocumentType($val) || gettype($key) != $typeOfFirstKey) {
-                   return false;
-               }
+                if (!$this->checkDocumentType($val) || gettype($key) != $typeOfFirstKey) {
+                    return false;
+                }
             }
             return $this->checkArray($value);
         }
@@ -319,7 +322,7 @@ class Validator
         if (is_array($value)) {
             $nonNullCount = 0;
             foreach ($value as $key => $val) {
-                if (!is_null($val) && !(str_starts_with((string) $key, "@"))) {
+                if (!is_null($val) && !(str_starts_with((string) $key, '@'))) {
                     $nonNullCount++;
                 }
             }
@@ -331,7 +334,7 @@ class Validator
     private function addError(string $message): void
     {
         $this->errors[] =
-            implode('', array_map(fn($s) => "[{$s}]", $this->path))
+            implode('', array_map(fn ($s) => "[{$s}]", $this->path))
             . ' '
             . $message;
     }

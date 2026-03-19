@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
 use Aws\Api\ListShape;
@@ -23,7 +26,7 @@ class CodeSnippetGenerator
         $this->service = $service;
     }
 
-    private function logIssue($shapeName, $message, $level=E_WARNING)
+    private function logIssue($shapeName, $message, $level = E_WARNING)
     {
         if (!isset($this->issues[$shapeName])) {
             $this->issues[$shapeName] = [];
@@ -44,7 +47,7 @@ class CodeSnippetGenerator
         $messageShape = $this->service->getOperation($operation)->getInput();
         $code = $this->visit($messageShape, $params, '', [], $comments);
 
-        return "\$result = \$client->" . lcfirst($operation) . "($code);";
+        return '$result = $client->' . lcfirst($operation) . "($code);";
     }
 
     public function generateOutput($operation, $params, $comments)
@@ -60,7 +63,8 @@ class CodeSnippetGenerator
             : $this->generateOutput($operation, $params, $comments);
     }
 
-    private static function isTraversableShapeValue($value) {
+    private static function isTraversableShapeValue($value)
+    {
         return is_array($value) || $value instanceof \Traversable;
     }
 
@@ -79,9 +83,9 @@ class CodeSnippetGenerator
                 }
                 return "'{$value}'";
             case 'timestamp':
-                return "<DateTimeInterface>";
+                return '<DateTimeInterface>';
             case 'blob':
-                return "&lt;BLOB&gt;";
+                return '&lt;BLOB&gt;';
             default:
                 return $value;
         }
@@ -118,7 +122,7 @@ class CodeSnippetGenerator
 
         $lines = ['['];
         foreach ($value as $ind => $val) {
-            $path[] = "[{ind}]";
+            $path[] = '[{ind}]';
             $comment = $this->getCommentFor($path, $comments);
             $shapeVal = $this->visit($shape->getMember(), $val, "{$indent}    ", $path, $comments);
             $lines[] = rtrim("{$indent}    {$shapeVal}, {$comment}");

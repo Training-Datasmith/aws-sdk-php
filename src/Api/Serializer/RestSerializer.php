@@ -1,10 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
 use Aws\Api\ListShape;
 use Aws\Api\MapShape;
-use Aws\Api\Service;
 use Aws\Api\Operation;
+use Aws\Api\Service;
 use Aws\Api\Shape;
 use Aws\Api\StructureShape;
 use Aws\Api\TimestampShape;
@@ -25,19 +28,18 @@ use Psr\Http\Message\UriInterface;
  */
 abstract class RestSerializer
 {
+    use EndpointV2SerializerTrait;
     private const TEMPLATE_STRING_REGEX = '/\{([^\}]+)\}/';
 
     private static array $excludeContentType = [
         's3' => true,
-        'glacier' => true
+        'glacier' => true,
     ];
 
     /** @var Uri */
     private $endpoint;
 
     private ?bool $isUseEndpointV2 = null;
-
-    use EndpointV2SerializerTrait;
 
     /**
      * @param Service $api Service API description
@@ -56,8 +58,7 @@ abstract class RestSerializer
     public function __invoke(
         CommandInterface $command,
         mixed $endpoint = null
-    )
-    {
+    ) {
         $operation = $this->api->getOperation($command->getName());
         $commandArgs = $command->toArray();
         $opts = $this->serialize($operation, $commandArgs);
@@ -122,7 +123,7 @@ abstract class RestSerializer
 
         if (isset($bodyMembers)) {
             $this->payload($input, $bodyMembers, $opts);
-        } else if (!isset($opts['body']) && $this->hasPayloadParam($input, $payload)) {
+        } elseif (!isset($opts['body']) && $this->hasPayloadParam($input, $payload)) {
             $this->payload($input, [], $opts);
         }
 
@@ -255,8 +256,7 @@ abstract class RestSerializer
         Operation $operation,
         array $args,
         array $opts
-    ): UriInterface
-    {
+    ): UriInterface {
         // Expand `requestUri` field members
         $relativeUri = $this->expandUriTemplate($operation, $args);
 
@@ -414,8 +414,7 @@ abstract class RestSerializer
     private function getVarDefinitions(
         Operation $operation,
         array $args
-    ): array
-    {
+    ): array {
         $varDefinitions = [];
 
         foreach ($operation->getInput()->getMembers() as $name => $member) {
@@ -443,8 +442,7 @@ abstract class RestSerializer
     private function formatTimestamp(
         DateTimeInterface|string|int $value,
         string $timestampFormat
-    ): string
-    {
+    ): string {
         return TimestampShape::format($value, $timestampFormat);
     }
 

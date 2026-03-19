@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AmplifyBackend;
 
 use Aws\AwsClient;
@@ -68,4 +71,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateBackendStorage(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBackendStorageAsync(array $args = [])
  */
-class AmplifyBackendClient extends AwsClient {}
+class AmplifyBackendClient extends AwsClient
+{
+}

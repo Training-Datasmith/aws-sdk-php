@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Adds and removes annotations to a class.
  *
@@ -96,14 +98,14 @@ class ClassAnnotationUpdater
 
         // add a padding line if needed
         if (' *' !== end($docBlockLines)) {
-            $docLines []= ' *';
+            $docLines [] = ' *';
         }
 
         // append API @method annotations
         $docBlockLines = array_merge($docBlockLines, $this->linesToAppend);
 
         // add back the closing line
-        $docBlockLines []= $lastLine;
+        $docBlockLines [] = $lastLine;
 
         // send everything back as a string
         return implode(PHP_EOL, $docBlockLines);

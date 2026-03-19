@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Chime;
 
 use Aws\AwsClient;
@@ -130,4 +133,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateUserSettings(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateUserSettingsAsync(array $args = [])
  */
-class ChimeClient extends AwsClient {}
+class ChimeClient extends AwsClient
+{
+}

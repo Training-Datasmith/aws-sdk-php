@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudWatchEvents;
 
 use Aws\AwsClient;
@@ -109,4 +112,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateConnection(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateConnectionAsync(array $args = [])
  */
-class CloudWatchEventsClient extends AwsClient {}
+class CloudWatchEventsClient extends AwsClient
+{
+}

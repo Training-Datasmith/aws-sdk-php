@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Bedrock;
 
 use Aws\AwsClient;
@@ -202,4 +205,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateProvisionedModelThroughput(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateProvisionedModelThroughputAsync(array $args = [])
  */
-class BedrockClient extends AwsClient {}
+class BedrockClient extends AwsClient
+{
+}

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Billing;
 
 use Aws\AwsClient;
@@ -30,4 +33,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateBillingView(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBillingViewAsync(array $args = [])
  */
-class BillingClient extends AwsClient {}
+class BillingClient extends AwsClient
+{
+}

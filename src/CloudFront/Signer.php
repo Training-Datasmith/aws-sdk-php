@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudFront;
 
 /**
@@ -19,7 +22,7 @@ class Signer
      * @throws \RuntimeException if the openssl extension is missing
      * @throws \InvalidArgumentException if the private key cannot be found.
      */
-    public function __construct(private $keyPairId, $privateKey, $passphrase = "")
+    public function __construct(private $keyPairId, $privateKey, $passphrase = '')
     {
         if (!extension_loaded('openssl')) {
             //@codeCoverageIgnoreStart
@@ -36,10 +39,10 @@ class Signer
             $this->pkHandle = openssl_pkey_get_private("file://$privateKey", $passphrase);
             if (!$this->pkHandle) {
                 $errorMessages = [];
-                while(($newMessage = openssl_error_string()) !== false){
+                while (($newMessage = openssl_error_string()) !== false) {
                     $errorMessages[] = $newMessage;
                 }
-                throw new \InvalidArgumentException(implode("\n",$errorMessages));
+                throw new \InvalidArgumentException(implode("\n", $errorMessages));
             }
         }
     }
@@ -113,14 +116,14 @@ class Signer
     private function sign($policy)
     {
         $signature = '';
-        
-        if(!openssl_sign($policy, $signature, $this->pkHandle)) {
+
+        if (!openssl_sign($policy, $signature, $this->pkHandle)) {
             $errorMessages = [];
-            while(($newMessage = openssl_error_string()) !== false) {
+            while (($newMessage = openssl_error_string()) !== false) {
                 $errorMessages[] = $newMessage;
             }
-            
-            $exceptionMessage = "An error has occurred when signing the policy";
+
+            $exceptionMessage = 'An error has occurred when signing the policy';
             if (count($errorMessages) > 0) {
                 $exceptionMessage = implode("\n", $errorMessages);
             }

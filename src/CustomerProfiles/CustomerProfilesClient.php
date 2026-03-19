@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CustomerProfiles;
 
 use Aws\AwsClient;
@@ -210,4 +213,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRecommender(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRecommenderAsync(array $args = [])
  */
-class CustomerProfilesClient extends AwsClient {}
+class CustomerProfilesClient extends AwsClient
+{
+}

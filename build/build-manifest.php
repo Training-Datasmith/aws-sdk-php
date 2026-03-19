@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /*
  * This file is responsible for building up the API manifest file, including
  * determining the latest API version and hooking up endpoint prefix names
@@ -18,7 +20,7 @@ $compatibleApiVersions = [
         ],
         '2015-07-27' => [
             '2015-04-17',
-            '2014-11-06'
+            '2014-11-06',
         ],
     ],
     'ec2' => [
@@ -34,7 +36,7 @@ $compatibleApiVersions = [
     'inspector' => [
         'latest' => [
             '2015-08-18',
-        ]
+        ],
     ],
 ];
 

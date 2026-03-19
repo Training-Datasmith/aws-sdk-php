@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ConnectContactLens;
 
 use Aws\AwsClient;
@@ -8,4 +11,6 @@ use Aws\AwsClient;
  * @method \Aws\Result listRealtimeContactAnalysisSegments(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listRealtimeContactAnalysisSegmentsAsync(array $args = [])
  */
-class ConnectContactLensClient extends AwsClient {}
+class ConnectContactLensClient extends AwsClient
+{
+}

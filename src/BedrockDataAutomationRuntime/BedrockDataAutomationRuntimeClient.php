@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BedrockDataAutomationRuntime;
 
 use Aws\AwsClient;
@@ -18,4 +21,6 @@ use Aws\AwsClient;
  * @method \Aws\Result untagResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
-class BedrockDataAutomationRuntimeClient extends AwsClient {}
+class BedrockDataAutomationRuntimeClient extends AwsClient
+{
+}

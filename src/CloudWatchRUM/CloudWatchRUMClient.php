@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudWatchRUM;
 
 use Aws\AwsClient;
@@ -46,4 +49,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRumMetricDefinition(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRumMetricDefinitionAsync(array $args = [])
  */
-class CloudWatchRUMClient extends AwsClient {}
+class CloudWatchRUMClient extends AwsClient
+{
+}

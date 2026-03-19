@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BCMDashboards;
 
 use Aws\AwsClient;
@@ -24,4 +27,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateDashboard(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateDashboardAsync(array $args = [])
  */
-class BCMDashboardsClient extends AwsClient {}
+class BCMDashboardsClient extends AwsClient
+{
+}

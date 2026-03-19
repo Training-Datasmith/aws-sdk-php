@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * A trait that provides a method for linting a PHP file. It will use
  * `opcache_compile` if available and fall back to shelling out to `php -l`

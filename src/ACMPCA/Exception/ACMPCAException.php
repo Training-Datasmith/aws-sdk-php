@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ACMPCA\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **AWS Certificate Manager Private Certificate Authority** service.
  */
-class ACMPCAException extends AwsException {}
+class ACMPCAException extends AwsException
+{
+}

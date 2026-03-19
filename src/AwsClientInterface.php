@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws;
 
-use Psr\Http\Message\UriInterface;
 use GuzzleHttp\Promise\PromiseInterface;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Represents an AWS client.

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BCMPricingCalculator;
 
 use Aws\AwsClient;
@@ -78,4 +81,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkloadEstimate(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkloadEstimateAsync(array $args = [])
  */
-class BCMPricingCalculatorClient extends AwsClient {}
+class BCMPricingCalculatorClient extends AwsClient
+{
+}

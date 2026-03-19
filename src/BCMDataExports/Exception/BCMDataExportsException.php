@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BCMDataExports\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **AWS Billing and Cost Management Data Exports** service.
  */
-class BCMDataExportsException extends AwsException {}
+class BCMDataExportsException extends AwsException
+{
+}

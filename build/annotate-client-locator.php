@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file updates the '@method' annotations on the Aws\Sdk class.
  */
@@ -13,11 +15,11 @@ sort($namespaces);
 $annotations = [];
 foreach ($namespaces as $namespace) {
     $mrClient = "\\Aws\\{$namespace}\\{$namespace}MultiRegionClient";
-    $mrClient = class_exists($mrClient) ? $mrClient : "\\Aws\\MultiRegionClient";
+    $mrClient = class_exists($mrClient) ? $mrClient : '\\Aws\\MultiRegionClient';
 
-    $annotations []= " * @method \\Aws\\{$namespace}\\{$namespace}Client"
+    $annotations [] = " * @method \\Aws\\{$namespace}\\{$namespace}Client"
         . " create{$namespace}(array \$args = [])";
-    $annotations []= " * @method $mrClient"
+    $annotations [] = " * @method $mrClient"
         . " createMultiRegion{$namespace}(array \$args = [])";
 }
 

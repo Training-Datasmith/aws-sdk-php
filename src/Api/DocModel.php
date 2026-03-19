@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api;
 
 /**
@@ -102,7 +105,6 @@ class DocModel
         return $this->clean($result);
     }
 
-
     private function clean($content): string
     {
         if (!$content) {
@@ -119,7 +121,7 @@ class DocModel
             'clean' => true,
             'drop-proprietary-attributes' => true,
             'hide-comments' => true,
-            'logical-emphasis' => true
+            'logical-emphasis' => true,
         ]);
         $tidy->cleanRepair();
 

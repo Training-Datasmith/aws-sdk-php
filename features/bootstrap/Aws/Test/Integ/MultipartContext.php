@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws\Exception\MultipartUploadException;
 use Aws\Glacier\MultipartUploader as GlacierMultipartUploader;
 use Aws\ResultInterface;
+use Aws\S3\BatchDelete;
 use Aws\S3\MultipartCopy;
 use Aws\S3\MultipartUploader as S3MultipartUploader;
 use Aws\S3\S3Client;
-use Aws\S3\BatchDelete;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use GuzzleHttp\Psr7;
@@ -23,8 +25,8 @@ class MultipartContext implements Context, SnippetAcceptingContext
 {
     use IntegUtils;
 
-    const MB = 1048576;
-    const RESOURCE_POSTFIX = 'php-integration-multipart-test';
+    public const MB = 1048576;
+    public const RESOURCE_POSTFIX = 'php-integration-multipart-test';
 
     private static $tempFile;
     /** @var StreamInterface */
@@ -54,9 +56,9 @@ class MultipartContext implements Context, SnippetAcceptingContext
         $this->s3Client->putObject([
             'Bucket' => self::getResourceName(),
             'Key' => $filename,
-            'Body' => 'foo'
+            'Body' => 'foo',
         ]);
-        $ex = $this->s3Client->getObject( [
+        $ex = $this->s3Client->getObject([
             'Bucket' => self::getResourceName(),
             'Key' => $filename])['Body'];
     }
@@ -127,7 +129,7 @@ class MultipartContext implements Context, SnippetAcceptingContext
         $copier = new MultipartCopy(
             $this->s3Client,
             $source,
-            ['bucket' => $bucketName, 'key' => $filename . "-copy"]
+            ['bucket' => $bucketName, 'key' => $filename . '-copy']
         );
 
         try {
@@ -163,7 +165,8 @@ class MultipartContext implements Context, SnippetAcceptingContext
                 'Bucket' => self::getResourceName(),
                 'Key' => $filename . '-copy',
             ])['Body']->getContents()
-        );    }
+        );
+    }
 
     /**
      * @Given I have a non-seekable read stream

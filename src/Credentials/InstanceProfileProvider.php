@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Credentials;
 
 use Aws\Configuration\ConfigurationResolver;
@@ -7,8 +10,8 @@ use Aws\Exception\InvalidJsonException;
 use Aws\Sdk;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Promise;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7\Request;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -16,22 +19,22 @@ use Psr\Http\Message\ResponseInterface;
  */
 class InstanceProfileProvider
 {
-    const CRED_PATH = 'meta-data/iam/security-credentials/';
-    const TOKEN_PATH = 'api/token';
-    const ENV_DISABLE = 'AWS_EC2_METADATA_DISABLED';
-    const ENV_TIMEOUT = 'AWS_METADATA_SERVICE_TIMEOUT';
-    const ENV_RETRIES = 'AWS_METADATA_SERVICE_NUM_ATTEMPTS';
-    const CFG_EC2_METADATA_V1_DISABLED = 'ec2_metadata_v1_disabled';
-    const CFG_EC2_METADATA_SERVICE_ENDPOINT = 'ec2_metadata_service_endpoint';
-    const CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE = 'ec2_metadata_service_endpoint_mode';
-    const DEFAULT_TIMEOUT = 1.0;
-    const DEFAULT_RETRIES = 3;
-    const DEFAULT_TOKEN_TTL_SECONDS = 21600;
-    const DEFAULT_AWS_EC2_METADATA_V1_DISABLED = false;
-    const ENDPOINT_MODE_IPv4 = 'IPv4';
-    const ENDPOINT_MODE_IPv6 = 'IPv6';
-    const DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT = 'http://169.254.169.254';
-    const DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT = 'http://[fd00:ec2::254]';
+    public const CRED_PATH = 'meta-data/iam/security-credentials/';
+    public const TOKEN_PATH = 'api/token';
+    public const ENV_DISABLE = 'AWS_EC2_METADATA_DISABLED';
+    public const ENV_TIMEOUT = 'AWS_METADATA_SERVICE_TIMEOUT';
+    public const ENV_RETRIES = 'AWS_METADATA_SERVICE_NUM_ATTEMPTS';
+    public const CFG_EC2_METADATA_V1_DISABLED = 'ec2_metadata_v1_disabled';
+    public const CFG_EC2_METADATA_SERVICE_ENDPOINT = 'ec2_metadata_service_endpoint';
+    public const CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE = 'ec2_metadata_service_endpoint_mode';
+    public const DEFAULT_TIMEOUT = 1.0;
+    public const DEFAULT_RETRIES = 3;
+    public const DEFAULT_TOKEN_TTL_SECONDS = 21600;
+    public const DEFAULT_AWS_EC2_METADATA_V1_DISABLED = false;
+    public const ENDPOINT_MODE_IPv4 = 'IPv4';
+    public const ENDPOINT_MODE_IPv6 = 'IPv6';
+    public const DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT = 'http://169.254.169.254';
+    public const DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT = 'http://[fd00:ec2::254]';
 
     /** @var string */
     private $profile;
@@ -111,7 +114,7 @@ class InstanceProfileProvider
                         self::TOKEN_PATH,
                         'PUT',
                         [
-                            'x-aws-ec2-metadata-token-ttl-seconds' => self::DEFAULT_TOKEN_TTL_SECONDS
+                            'x-aws-ec2-metadata-token-ttl-seconds' => self::DEFAULT_TOKEN_TTL_SECONDS,
                         ]
                     ));
                 } catch (TransferException $e) {
@@ -145,7 +148,7 @@ class InstanceProfileProvider
             $headers = [];
             if ($this->secureMode) {
                 $headers = [
-                    'x-aws-ec2-metadata-token' => $token
+                    'x-aws-ec2-metadata-token' => $token,
                 ];
             }
 
@@ -197,7 +200,7 @@ class InstanceProfileProvider
                     // 401 indicates insecure flow not supported, switch to
                     // attempting secure mode for subsequent calls
                     if (($this->getExceptionStatusCode($e) === 500
-                            || str_contains($e->getMessage(), "cURL error 28"))
+                            || str_contains($e->getMessage(), 'cURL error 28'))
                         && $previousCredentials instanceof Credentials
                     ) {
                         goto generateCredentials;
@@ -263,7 +266,7 @@ class InstanceProfileProvider
         }
 
         return $fn($request, ['timeout' => $this->timeout])
-            ->then(fn(ResponseInterface $response) => (string) $response->getBody())->otherwise(function (array $reason): void {
+            ->then(fn (ResponseInterface $response) => (string) $response->getBody())->otherwise(function (array $reason): void {
                 $reason = $reason['exception'];
                 if ($reason instanceof TransferException) {
                     throw $reason;
@@ -306,7 +309,7 @@ class InstanceProfileProvider
 
     private function createErrorMessage($previous): string
     {
-        return "Error retrieving credentials from the instance profile "
+        return 'Error retrieving credentials from the instance profile '
             . "metadata service. ({$previous})";
     }
 
@@ -407,7 +410,7 @@ class InstanceProfileProvider
         if (is_null($endpointMode)) {
             return ConfigurationResolver::resolve(
                 self::CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE,
-                    self::ENDPOINT_MODE_IPv4,
+                self::ENDPOINT_MODE_IPv4,
                 'string',
                 $this->config
             );
@@ -424,8 +427,7 @@ class InstanceProfileProvider
      */
     private function isValidEndpoint(
         $uri
-    ): bool
-    {
+    ): bool {
         // We make sure first the provided uri is a valid URL
         $isValidURL = filter_var($uri, FILTER_VALIDATE_URL) !== false;
         if (!$isValidURL) {

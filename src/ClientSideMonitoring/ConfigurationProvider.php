@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ClientSideMonitoring;
 
 use Aws\AbstractConfigurationProvider;
@@ -42,18 +45,17 @@ use GuzzleHttp\Promise\PromiseInterface;
  * $config = $promise->wait();
  * </code>
  */
-class ConfigurationProvider extends AbstractConfigurationProvider
-    implements ConfigurationProviderInterface
+class ConfigurationProvider extends AbstractConfigurationProvider implements ConfigurationProviderInterface
 {
-    const DEFAULT_CLIENT_ID = '';
-    const DEFAULT_ENABLED = false;
-    const DEFAULT_HOST = '127.0.0.1';
-    const DEFAULT_PORT = 31000;
-    const ENV_CLIENT_ID = 'AWS_CSM_CLIENT_ID';
-    const ENV_ENABLED = 'AWS_CSM_ENABLED';
-    const ENV_HOST = 'AWS_CSM_HOST';
-    const ENV_PORT = 'AWS_CSM_PORT';
-    const ENV_PROFILE = 'AWS_PROFILE';
+    public const DEFAULT_CLIENT_ID = '';
+    public const DEFAULT_ENABLED = false;
+    public const DEFAULT_HOST = '127.0.0.1';
+    public const DEFAULT_PORT = 31000;
+    public const ENV_CLIENT_ID = 'AWS_CSM_CLIENT_ID';
+    public const ENV_ENABLED = 'AWS_CSM_ENABLED';
+    public const ENV_HOST = 'AWS_CSM_HOST';
+    public const ENV_PORT = 'AWS_CSM_PORT';
+    public const ENV_PROFILE = 'AWS_PROFILE';
 
     public static $cacheKey = 'aws_cached_csm_config';
 
@@ -112,8 +114,8 @@ class ConfigurationProvider extends AbstractConfigurationProvider
                         $enabled,
                         getenv(self::ENV_HOST) ?: self::DEFAULT_HOST,
                         getenv(self::ENV_PORT) ?: self::DEFAULT_PORT,
-                        getenv(self:: ENV_CLIENT_ID) ?: self::DEFAULT_CLIENT_ID
-                     )
+                        getenv(self::ENV_CLIENT_ID) ?: self::DEFAULT_CLIENT_ID
+                    )
                 );
             }
 
@@ -130,7 +132,7 @@ class ConfigurationProvider extends AbstractConfigurationProvider
      */
     public static function fallback()
     {
-        return fn() => Promise\Create::promiseFor(
+        return fn () => Promise\Create::promiseFor(
             new Configuration(
                 self::DEFAULT_ENABLED,
                 self::DEFAULT_HOST,

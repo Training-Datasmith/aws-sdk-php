@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Arn\S3;
 
 use Aws\Arn\Arn;
@@ -57,7 +60,7 @@ class OutpostsBucketArn extends Arn implements
         Arn::validate($data);
 
         if (($data['service'] !== 's3-outposts')) {
-            throw new InvalidArnException("The 3rd component of an S3 Outposts"
+            throw new InvalidArnException('The 3rd component of an S3 Outposts'
                 . " bucket ARN represents the service and must be 's3-outposts'.");
         }
 
@@ -65,25 +68,25 @@ class OutpostsBucketArn extends Arn implements
         self::validateAccountId($data, 'S3 Outposts bucket ARN');
 
         if (($data['resource_type'] !== 'outpost')) {
-            throw new InvalidArnException("The 6th component of an S3 Outposts"
-                . " bucket ARN represents the resource type and must be"
+            throw new InvalidArnException('The 6th component of an S3 Outposts'
+                . ' bucket ARN represents the resource type and must be'
                 . " 'outpost'.");
         }
 
         if (!self::isValidHostLabel($data['outpost_id'])) {
-            throw new InvalidArnException("The 7th component of an S3 Outposts"
-                . " bucket ARN is required, represents the outpost ID, and"
-                . " must be a valid host label.");
+            throw new InvalidArnException('The 7th component of an S3 Outposts'
+                . ' bucket ARN is required, represents the outpost ID, and'
+                . ' must be a valid host label.');
         }
 
         if ($data['bucket_label'] !== 'bucket') {
-            throw new InvalidArnException("The 8th component of an S3 Outposts"
+            throw new InvalidArnException('The 8th component of an S3 Outposts'
                 . " bucket ARN must be 'bucket'");
         }
 
         if (empty($data['bucket_name'])) {
-            throw new InvalidArnException("The 9th component of an S3 Outposts"
-                . " bucket ARN represents the bucket name and must not be empty.");
+            throw new InvalidArnException('The 9th component of an S3 Outposts'
+                . ' bucket ARN represents the bucket name and must not be empty.');
         }
     }
 }

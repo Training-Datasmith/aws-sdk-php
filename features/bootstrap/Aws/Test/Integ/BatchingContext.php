@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws\DynamoDb\DynamoDbClient;
@@ -7,10 +9,10 @@ use Aws\DynamoDb\WriteRequestBatch;
 use Aws\Exception\AwsException;
 use Aws\Result;
 use Aws\Sqs\SqsClient;
-use Behat\Behat\Hook\Scope\AfterFeatureScope;
-use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
+use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use PHPUnit\Framework\Assert;
 
 class BatchingContext implements
@@ -52,15 +54,15 @@ class BatchingContext implements
         $client->createTable([
             'TableName' => self::$resource,
             'AttributeDefinitions' => [
-                ['AttributeName' => 'id', 'AttributeType' => 'N']
+                ['AttributeName' => 'id', 'AttributeType' => 'N'],
             ],
             'KeySchema' => [
-                ['AttributeName' => 'id', 'KeyType' => 'HASH']
+                ['AttributeName' => 'id', 'KeyType' => 'HASH'],
             ],
             'ProvisionedThroughput' => [
                 'ReadCapacityUnits'  => 1,
-                'WriteCapacityUnits' => 1
-            ]
+                'WriteCapacityUnits' => 1,
+            ],
         ]);
 
         $client->waitUntil('TableExists', ['TableName' => self::$resource]);
@@ -108,7 +110,7 @@ class BatchingContext implements
         $sqs->deleteQueue([
             'QueueUrl' => $sqs->getQueueUrl([
                 'QueueName' => self::$resource,
-            ])['QueueUrl']
+            ])['QueueUrl'],
         ]);
 
         self::$resource = null;
@@ -128,7 +130,7 @@ class BatchingContext implements
             },
             'error' => function (AwsException $e) {
                 trigger_error($e->getMessage(), E_USER_WARNING);
-            }
+            },
         ]);
     }
 

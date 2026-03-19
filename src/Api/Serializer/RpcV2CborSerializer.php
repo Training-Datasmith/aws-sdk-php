@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
 use Aws\Api\Cbor\CborEncoder;
@@ -43,8 +46,7 @@ final class RpcV2CborSerializer extends AbstractRpcV2Serializer
     public function serialize(
         StructureShape $inputShape,
         array $commandArgs
-    ): string
-    {
+    ): string {
         try {
             $resolvedInput = $this->resolveInputShape($inputShape, $commandArgs);
             return !empty($resolvedInput)
@@ -92,8 +94,7 @@ final class RpcV2CborSerializer extends AbstractRpcV2Serializer
      */
     protected function resolveTimestamp(
         int|float|string|DateTimeInterface $value
-    ): array
-    {
+    ): array {
         if (is_numeric($value)) {
             return ['__cbor_timestamp' => $value];
         }

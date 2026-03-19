@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use Aws\Exception\CryptoException;
@@ -11,7 +14,7 @@ use Aws\Kms\KmsClient;
  */
 class KmsMaterialsProviderV2 extends MaterialsProviderV2 implements MaterialsProviderInterfaceV2
 {
-    const WRAP_ALGORITHM_NAME = 'kms+context';
+    public const WRAP_ALGORITHM_NAME = 'kms+context';
 
     /**
      * @param KmsClient $kmsClient A KMS Client for use encrypting and
@@ -38,7 +41,7 @@ class KmsMaterialsProviderV2 extends MaterialsProviderV2 implements MaterialsPro
     {
         $params = [
             'CiphertextBlob' => $encryptedCek,
-            'EncryptionContext' => $materialDescription
+            'EncryptionContext' => $materialDescription,
         ];
         if (empty($options['@KmsAllowDecryptWithAnyCmk'])) {
             if (empty($this->kmsKeyId)) {
@@ -70,24 +73,24 @@ class KmsMaterialsProviderV2 extends MaterialsProviderV2 implements MaterialsPro
             || !is_array($options['@kmsencryptioncontext'])
         ) {
             throw new CryptoException("'@KmsEncryptionContext' is a"
-                . " required argument when using KmsMaterialsProviderV2, and"
-                . " must be an associative array (or empty array).");
+                . ' required argument when using KmsMaterialsProviderV2, and'
+                . ' must be an associative array (or empty array).');
         }
         if (isset($options['@kmsencryptioncontext']['aws:x-amz-cek-alg'])) {
-            throw new CryptoException("Conflict in reserved @KmsEncryptionContext"
-                . " key aws:x-amz-cek-alg. This value is reserved for the S3"
-                . " Encryption Client and cannot be set by the user.");
+            throw new CryptoException('Conflict in reserved @KmsEncryptionContext'
+                . ' key aws:x-amz-cek-alg. This value is reserved for the S3'
+                . ' Encryption Client and cannot be set by the user.');
         }
         $context = array_merge($options['@kmsencryptioncontext'], $context);
         $result = $this->kmsClient->generateDataKey([
             'KeyId' => $this->kmsKeyId,
             'KeySpec' => "AES_{$keySize}",
-            'EncryptionContext' => $context
+            'EncryptionContext' => $context,
         ]);
         return [
             'Plaintext' => $result['Plaintext'],
             'Ciphertext' => base64_encode((string) $result['CiphertextBlob']),
-            'UpdatedContext' => $context
+            'UpdatedContext' => $context,
         ];
     }
 }

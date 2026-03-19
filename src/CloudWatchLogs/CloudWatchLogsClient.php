@@ -1,8 +1,10 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudWatchLogs;
 
 use Aws\AwsClient;
-use Aws\CommandInterface;
 use Generator;
 
 /**
@@ -225,8 +227,8 @@ use Generator;
  * @method \Aws\Result updateScheduledQuery(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateScheduledQueryAsync(array $args = [])
  */
-class CloudWatchLogsClient extends AwsClient {
-
+class CloudWatchLogsClient extends AwsClient
+{
     /**
      * Helper method for 'startLiveTail' operation that checks for results.
      *

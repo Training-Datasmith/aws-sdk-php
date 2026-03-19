@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BedrockAgentCoreControl;
 
 use Aws\AwsClient;
@@ -178,4 +181,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkloadIdentity(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkloadIdentityAsync(array $args = [])
  */
-class BedrockAgentCoreControlClient extends AwsClient {}
+class BedrockAgentCoreControlClient extends AwsClient
+{
+}

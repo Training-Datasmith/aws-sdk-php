@@ -1,13 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Test;
 
+use Aws\Api\Service;
 use Aws\AwsClientInterface;
 use Aws\CommandInterface;
 use Aws\Exception\AwsException;
 use Aws\MockHandler;
 use Aws\Result;
 use Aws\Sdk;
-use Aws\Api\Service;
 
 /**
  * @internal
@@ -28,7 +31,7 @@ trait UsesServiceTrait
         return new Sdk($args + [
             'region'      => 'us-east-1',
             'version'     => 'latest',
-            'retries'     => 0
+            'retries'     => 0,
         ]);
     }
 
@@ -115,18 +118,21 @@ trait UsesServiceTrait
                     [
                         'metadata' => [
                             'endpointPrefix' => 'foo',
-                            'apiVersion' => 'version'
-                        ]
+                            'apiVersion' => 'version',
+                        ],
                     ],
-                    function () { return []; }
-                )));
+                    function () {
+                        return [];
+                    }
+                )
+            ));
 
         return new $type(
             $message ?: 'Test error',
             $this->getMockBuilder(CommandInterface::class)->getMock(),
             [
                 'message' => $message ?: 'Test error',
-                'code'    => $code
+                'code'    => $code,
             ]
         );
     }

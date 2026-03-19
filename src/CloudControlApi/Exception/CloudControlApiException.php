@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudControlApi\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **AWS Cloud Control API** service.
  */
-class CloudControlApiException extends AwsException {}
+class CloudControlApiException extends AwsException
+{
+}

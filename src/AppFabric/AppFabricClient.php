@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AppFabric;
 
 use Aws\AwsClient;
@@ -58,4 +61,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateIngestionDestination(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateIngestionDestinationAsync(array $args = [])
  */
-class AppFabricClient extends AwsClient {}
+class AppFabricClient extends AwsClient
+{
+}

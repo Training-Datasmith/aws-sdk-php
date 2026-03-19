@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use Aws\S3\Crypto\S3EncryptionClientV3;
@@ -35,7 +38,7 @@ enum AlgorithmSuite: int
         return match ($this) {
             self::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY,
             self::ALG_AES_256_GCM_IV12_TAG16_NO_KDF,
-            self::ALG_AES_256_CBC_IV16_NO_KDF => "AES",
+            self::ALG_AES_256_CBC_IV16_NO_KDF => 'AES',
         };
     }
 
@@ -44,7 +47,7 @@ enum AlgorithmSuite: int
         return match ($this) {
             self::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY,
             self::ALG_AES_256_GCM_IV12_TAG16_NO_KDF,
-            self::ALG_AES_256_CBC_IV16_NO_KDF => "256",
+            self::ALG_AES_256_CBC_IV16_NO_KDF => '256',
         };
     }
 
@@ -52,8 +55,8 @@ enum AlgorithmSuite: int
     {
         return match ($this) {
             self::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY,
-            self::ALG_AES_256_GCM_IV12_TAG16_NO_KDF => "gcm",
-            self::ALG_AES_256_CBC_IV16_NO_KDF => "cbc",
+            self::ALG_AES_256_GCM_IV12_TAG16_NO_KDF => 'gcm',
+            self::ALG_AES_256_CBC_IV16_NO_KDF => 'cbc',
         };
     }
 
@@ -116,8 +119,8 @@ enum AlgorithmSuite: int
     public function getHashingAlgorithm(): string
     {
         return match ($this) {
-            self::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY => "sha512",
-            default => "",
+            self::ALG_AES_256_GCM_HKDF_SHA512_COMMIT_KEY => 'sha512',
+            default => '',
         };
     }
 

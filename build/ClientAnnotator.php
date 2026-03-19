@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Aws\Api\ApiProvider;
 
 class ClientAnnotator
@@ -21,7 +23,6 @@ class ClientAnnotator
 
     /** @var array */
     private $aliases;
-
 
     public function __construct($clientClassName)
     {
@@ -74,7 +75,7 @@ class ClientAnnotator
                 "{$command}Async" => '\\GuzzleHttp\\Promise\\Promise',
             ];
             foreach ($commandMethods as $method => $returnType) {
-                $annotations []= $this->getAnnotationLine(
+                $annotations [] = $this->getAnnotationLine(
                     $method,
                     $returnType,
                     $apiVersions
@@ -125,7 +126,7 @@ class ClientAnnotator
                         $this->methods[$method] = [];
                     }
 
-                    $this->methods[$method] []= $version;
+                    $this->methods[$method] [] = $version;
                 }
             }
         }

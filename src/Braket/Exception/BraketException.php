@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Braket\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **Braket** service.
  */
-class BraketException extends AwsException {}
+class BraketException extends AwsException
+{
+}

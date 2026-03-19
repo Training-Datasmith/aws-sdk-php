@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Test;
 
 use Aws;
@@ -12,8 +14,8 @@ use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Behat\Hook\Scope\AfterScenarioScope;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use DomainException;
-use PHPUnit\Framework\Assert;
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\Assert;
 
 /**
  * Defines application features from the specific context.
@@ -146,7 +148,7 @@ class PerformanceContext implements Context, SnippetAcceptingContext
                     ->findOperationWithNoRequiredParameters($service);
                 $this->addMockResults(
                     $this->clients[$service],
-                    array_fill(0, $numCommands, new Result)
+                    array_fill(0, $numCommands, new Result())
                 );
 
                 for ($i = 0; $i < $numCommands; $i++) {
@@ -266,7 +268,7 @@ class PerformanceContext implements Context, SnippetAcceptingContext
         }
 
         throw new DomainException("The $service service has no operations"
-            . " without required parameters");
+            . ' without required parameters');
     }
 
     private function getOpenFileHandleCount()

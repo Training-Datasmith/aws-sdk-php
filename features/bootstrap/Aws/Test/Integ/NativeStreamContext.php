@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws\S3\S3Client;
-use Behat\Behat\Hook\Scope\AfterFeatureScope;
-use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
+use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use PHPUnit\Framework\Assert;
 
 /**

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 use Aws\Build\Docs\DocsBuilder;
 
 // Setup autoloading for SDK and build classes.
@@ -19,9 +21,11 @@ $ele->nodeValue = '{{ contents }}';
 //$template = str_replace('class="phpdocumentor"', 'class="generated-page"', $xml->saveHTML());
 $template = $xml->saveHTML();
 
-$sourceDirs = array_map(function ($dirRelativeToProjectRoot) {
-    return __DIR__ . '/../' . $dirRelativeToProjectRoot;
-}, is_array($config['version']['api']['source']['path'])
+$sourceDirs = array_map(
+    function ($dirRelativeToProjectRoot) {
+        return __DIR__ . '/../' . $dirRelativeToProjectRoot;
+    },
+    is_array($config['version']['api']['source']['path'])
     ? $config['version']['api']['source']['path']
     : [$config['version']['api']['source']['path']]
 );
@@ -40,7 +44,7 @@ foreach ($sourceDirs as $dir) {
 
 $issueLoggingEnabled = isset(getopt(
     '',
-    array('issue-logging-enabled::')
+    ['issue-logging-enabled::']
 )['issue-logging-enabled']);
 
 // Generate API docs

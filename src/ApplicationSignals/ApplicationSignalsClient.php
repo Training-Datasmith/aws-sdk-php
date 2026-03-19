@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ApplicationSignals;
 
 use Aws\AwsClient;
@@ -52,4 +55,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateServiceLevelObjective(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateServiceLevelObjectiveAsync(array $args = [])
  */
-class ApplicationSignalsClient extends AwsClient {}
+class ApplicationSignalsClient extends AwsClient
+{
+}

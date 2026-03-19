@@ -1,3 +1,5 @@
 <?php
+
+declare(strict_types=1);
 // This file was auto-generated from sdk-root/src/data/b2bi/2022-06-23/waiters-2.json
 return [ 'version' => 2, 'waiters' => [ 'TransformerJobSucceeded' => [ 'delay' => 10, 'maxAttempts' => 12, 'operation' => 'GetTransformerJob', 'acceptors' => [ [ 'matcher' => 'path', 'argument' => 'status', 'state' => 'success', 'expected' => 'succeeded', ], [ 'matcher' => 'path', 'argument' => 'status', 'state' => 'failure', 'expected' => 'failed', ], ], ], ],];

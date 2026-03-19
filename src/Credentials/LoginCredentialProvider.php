@@ -1,10 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Credentials;
 
 use Aws\Configuration\ConfigurationResolver;
 use Aws\Exception\CredentialsException;
-use Aws\Signin\SigninClient;
 use Aws\Signin\Exception\SigninException;
+use Aws\Signin\SigninClient;
 use GuzzleHttp\Promise;
 
 /**
@@ -42,22 +45,22 @@ final class LoginCredentialProvider
         self::KEY_ACCESS_TOKEN,
         self::REQUEST_KEY_CLIENT_ID,
         self::REQUEST_KEY_REFRESH_TOKEN,
-        self::KEY_DPOP_KEY
+        self::KEY_DPOP_KEY,
     ];
     private const REQUIRED_ACCESS_TOKEN_KEYS = [
         self::KEY_ACCESS_KEY_ID,
         self::KEY_SECRET_ACCESS_KEY,
         self::KEY_SESSION_TOKEN,
         self::KEY_ACCOUNT_ID,
-        self::KEY_EXPIRES_AT
+        self::KEY_EXPIRES_AT,
     ];
-    
+
     /** @var SigninClient The Signin service client used for token refresh operations */
     private readonly SigninClient $client;
-    
+
     /** @var string The file path to the cached token location */
     private readonly string $tokenLocation;
-    
+
     /** @var array|null The cached token data including access token, refresh token, and DPoP key */
     private ?array $token = null;
 
@@ -83,7 +86,7 @@ final class LoginCredentialProvider
 
     /**
      * Returns a promise that resolves to AWS credentials
-     * 
+     *
      * This method loads the cached token, refreshes it if necessary,
      * and returns AWS credentials sourced from the access token.
      *
@@ -96,7 +99,7 @@ final class LoginCredentialProvider
         return Promise\Coroutine::of(function () {
             $this->token ??= $this->loadToken();
             $credentials = $this->token[self::KEY_ACCESS_TOKEN];
-            
+
             if ($this->shouldRefresh($credentials)) {
                 try {
                     $credentials = yield from $this->refresh($credentials);
@@ -139,7 +142,7 @@ final class LoginCredentialProvider
         // Check for external refresh
         if ($refreshedToken = $this->getExternalRefresh($currentCredentials)) {
             $this->token = $refreshedToken;
-            
+
             return $refreshedToken[self::KEY_ACCESS_TOKEN];
         }
 
@@ -148,9 +151,9 @@ final class LoginCredentialProvider
                 self::REQUEST_KEY_TOKEN_INPUT => [
                     self::REQUEST_KEY_CLIENT_ID => $this->token[self::REQUEST_KEY_CLIENT_ID],
                     self::REQUEST_KEY_GRANT_TYPE => self::GRANT_TYPE,
-                    self::REQUEST_KEY_REFRESH_TOKEN => $this->token[self::REQUEST_KEY_REFRESH_TOKEN]
+                    self::REQUEST_KEY_REFRESH_TOKEN => $this->token[self::REQUEST_KEY_REFRESH_TOKEN],
                 ],
-                self::KEY_DPOP_KEY => $this->token[self::KEY_DPOP_KEY]
+                self::KEY_DPOP_KEY => $this->token[self::KEY_DPOP_KEY],
             ]))->get(self::RESULT_TOKEN_OUTPUT);
 
             $newCredentials = self::createCredentials(
@@ -174,14 +177,14 @@ final class LoginCredentialProvider
                 E_USER_NOTICE
             );
         }
-        
+
         return $newCredentials;
     }
 
     /**
      * Gets externally refreshed token if token has been refreshed from another source.
      * If the new token does not need refreshing, returns it.
-     * 
+     *
      * @param Credentials $currentCredentials Current credentials to compare against
      * @return array|null Returns the updated token array if externally refreshed, null otherwise
      */
@@ -190,21 +193,21 @@ final class LoginCredentialProvider
         try {
             $latestToken = $this->loadToken();
             $latestCredentials = $latestToken[self::KEY_ACCESS_TOKEN];
-            
+
             // Refresh token must be different
             if ($latestToken[self::REQUEST_KEY_REFRESH_TOKEN]
                 === $this->token[self::REQUEST_KEY_REFRESH_TOKEN]
             ) {
                 return null;
             }
-            
+
             // Expiration must be newer
             if ($latestCredentials->getExpiration()
                 <= $currentCredentials->getExpiration()
             ) {
                 return null;
             }
-            
+
             // New token should not need refresh itself
             if ($this->shouldRefresh($latestCredentials)) {
                 return null;
@@ -230,13 +233,16 @@ final class LoginCredentialProvider
                 self::KEY_SECRET_ACCESS_KEY => $credentials->getSecretKey(),
                 self::KEY_SESSION_TOKEN => $credentials->getSecurityToken(),
                 self::KEY_ACCOUNT_ID => $credentials->getAccountId(),
-                self::KEY_EXPIRES_AT => gmdate('Y-m-d\TH:i:s\Z', $credentials->getExpiration())
+                self::KEY_EXPIRES_AT => gmdate('Y-m-d\TH:i:s\Z', $credentials->getExpiration()),
             ],
-            self::REQUEST_KEY_REFRESH_TOKEN => $this->token[self::REQUEST_KEY_REFRESH_TOKEN]
+            self::REQUEST_KEY_REFRESH_TOKEN => $this->token[self::REQUEST_KEY_REFRESH_TOKEN],
         ];
-        
+
         $existing = json_decode(
-            file_get_contents($this->tokenLocation), true, 512, JSON_THROW_ON_ERROR
+            file_get_contents($this->tokenLocation),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
         );
         $merged = array_merge($existing, $updates);
 
@@ -263,7 +269,9 @@ final class LoginCredentialProvider
         try {
             $cached = json_decode(
                 file_get_contents($this->tokenLocation),
-                true, 512, JSON_THROW_ON_ERROR
+                true,
+                512,
+                JSON_THROW_ON_ERROR
             );
         } catch (\JsonException $e) {
             throw new CredentialsException(
@@ -293,7 +301,7 @@ final class LoginCredentialProvider
                 $expiresAt,
                 $cached[self::KEY_ACCESS_TOKEN][self::KEY_ACCOUNT_ID]
             );
-            
+
             // Load DPoP key
             $cached[self::KEY_DPOP_KEY] = openssl_pkey_get_private($cached[self::KEY_DPOP_KEY]);
             if ($cached[self::KEY_DPOP_KEY] === false) {
@@ -328,7 +336,7 @@ final class LoginCredentialProvider
      * Handles exceptions thrown during token refresh
      *
      * @param \Exception $e The exception thrown during refresh
-     * 
+     *
      * @return \Exception The exception to be thrown (either transformed or original)
      */
     private function handleRefreshException(\Throwable $e): \Exception
@@ -338,7 +346,7 @@ final class LoginCredentialProvider
                 'Failed to refresh login credentials: ' . $e->getAwsErrorMessage(),
                 E_USER_NOTICE
             );
-            
+
             if ($e->getAwsErrorCode() === 'AccessDeniedException') {
                 $error = strtolower((string) $e->get('error'));
                 switch ($error) {
@@ -364,16 +372,16 @@ final class LoginCredentialProvider
                         );
                 }
             }
-            
+
             return $e;
         }
-        
+
         // For all other exceptions
         trigger_error(
             'Unexpected error refreshing login credentials: ' . $e->getMessage(),
             E_USER_NOTICE
         );
-        
+
         return $e;
     }
 
@@ -404,22 +412,22 @@ final class LoginCredentialProvider
             $profileData = $profiles[$profileName] ?? null;
         } else {
             // Try without prefix first, then with prefix
-            $profileData = $profiles[$profileName] 
+            $profileData = $profiles[$profileName]
                         ?? $profiles[self::PROFILE_SECONDARY . $profileName]
                         ?? null;
         }
-        
+
         if (!$profileData) {
             throw new CredentialsException(
                 "Profile '{$profileName}' does not exist. "
                 . "Please ensure the specified profile is set at {$configFile}."
             );
         }
-        
+
         if (empty($session = $profileData[self::KEY_PROFILE_LOGIN_SESSION] ?? null)) {
             throw new CredentialsException(
                 "Profile '{$profileName}' did not contain a "
-                . self::KEY_PROFILE_LOGIN_SESSION . " value. "
+                . self::KEY_PROFILE_LOGIN_SESSION . ' value. '
                 . 're-authentication using `aws login` may be needed.'
             );
         }
@@ -430,7 +438,7 @@ final class LoginCredentialProvider
         $cacheFile = $cacheDirectory . DIRECTORY_SEPARATOR . hash('sha256', trim((string) $session)) . '.json';
         if (!@is_readable($cacheFile)) {
             throw new CredentialsException(
-                "Failed to load cached credentials for profile "
+                'Failed to load cached credentials for profile '
                 . "'{$profileName}'." . self::REAUTHENTICATE_MSG
             );
         }
@@ -467,7 +475,7 @@ final class LoginCredentialProvider
         return new SigninClient([
             self::KEY_CLIENT_REGION => $resolvedRegion,
             self::KEY_CLIENT_SIGNATURE_VERSION => self::CLIENT_SIGNATURE_DPOP,
-            self::KEY_CLIENT_CREDENTIALS => false
+            self::KEY_CLIENT_CREDENTIALS => false,
         ]);
     }
 
@@ -484,8 +492,7 @@ final class LoginCredentialProvider
         array $tokenData,
         int $expiration,
         string $accountId
-    ): Credentials
-    {
+    ): Credentials {
         return new Credentials(
             $tokenData[self::KEY_ACCESS_KEY_ID],
             $tokenData[self::KEY_SECRET_ACCESS_KEY],
@@ -507,8 +514,7 @@ final class LoginCredentialProvider
     private static function hasAllRequiredKeys(
         array $data,
         array $requiredKeys
-    ): bool
-    {
+    ): bool {
         foreach ($requiredKeys as $key) {
             if (empty($data[$key])) {
                 return false;

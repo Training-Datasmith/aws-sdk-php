@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is responsible for adding @method annotations to each client class.
  */
@@ -21,10 +23,11 @@ array_walk($options, function (&$value) {
     }
 });
 
-function get_client_classes($namespace) {
+function get_client_classes($namespace)
+{
     $clients = ["Aws\\{$namespace}\\{$namespace}Client"];
     if (class_exists("Aws\\{$namespace}\\{$namespace}MultiRegionClient")) {
-        $clients []= "Aws\\{$namespace}\\{$namespace}MultiRegionClient";
+        $clients [] = "Aws\\{$namespace}\\{$namespace}MultiRegionClient";
     }
 
     return $clients;
@@ -59,7 +62,9 @@ foreach ($options['tag'] as $tag) {
     });
     $options['class'] = \Aws\flatmap(
         [$options['class'], $clientsWithChangedApis],
-        function ($class) { return $class; }
+        function ($class) {
+            return $class;
+        }
     );
 }
 

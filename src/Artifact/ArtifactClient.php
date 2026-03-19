@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Artifact;
 
 use Aws\AwsClient;
@@ -22,4 +25,6 @@ use Aws\AwsClient;
  * @method \Aws\Result putAccountSettings(array $args = [])
  * @method \GuzzleHttp\Promise\Promise putAccountSettingsAsync(array $args = [])
  */
-class ArtifactClient extends AwsClient {}
+class ArtifactClient extends AwsClient
+{
+}

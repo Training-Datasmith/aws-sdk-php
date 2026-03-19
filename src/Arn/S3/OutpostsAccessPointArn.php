@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Arn\S3;
 
 use Aws\Arn\AccessPointArn as BaseAccessPointArn;
@@ -61,8 +64,8 @@ class OutpostsAccessPointArn extends BaseAccessPointArn implements
         Arn::validate($data);
 
         if (($data['service'] !== 's3-outposts')) {
-            throw new InvalidArnException("The 3rd component of an S3 Outposts"
-                . " access point ARN represents the service and must be"
+            throw new InvalidArnException('The 3rd component of an S3 Outposts'
+                . ' access point ARN represents the service and must be'
                 . " 's3-outposts'.");
         }
 
@@ -70,33 +73,33 @@ class OutpostsAccessPointArn extends BaseAccessPointArn implements
         self::validateAccountId($data, 'S3 Outposts access point ARN');
 
         if (($data['resource_type'] !== 'outpost')) {
-            throw new InvalidArnException("The 6th component of an S3 Outposts"
-                . " access point ARN represents the resource type and must be"
+            throw new InvalidArnException('The 6th component of an S3 Outposts'
+                . ' access point ARN represents the resource type and must be'
                 . " 'outpost'.");
         }
 
         if (!self::isValidHostLabel($data['outpost_id'])) {
-            throw new InvalidArnException("The 7th component of an S3 Outposts"
-                . " access point ARN is required, represents the outpost ID, and"
-                . " must be a valid host label.");
+            throw new InvalidArnException('The 7th component of an S3 Outposts'
+                . ' access point ARN is required, represents the outpost ID, and'
+                . ' must be a valid host label.');
         }
 
         if ($data['accesspoint_type'] !== 'accesspoint') {
-            throw new InvalidArnException("The 8th component of an S3 Outposts"
+            throw new InvalidArnException('The 8th component of an S3 Outposts'
                 . " access point ARN must be 'accesspoint'");
         }
 
         if (!self::isValidHostLabel($data['accesspoint_name'])) {
-            throw new InvalidArnException("The 9th component of an S3 Outposts"
-                . " access point ARN is required, represents the accesspoint name,"
-                . " and must be a valid host label.");
+            throw new InvalidArnException('The 9th component of an S3 Outposts'
+                . ' access point ARN is required, represents the accesspoint name,'
+                . ' and must be a valid host label.');
         }
 
         if (!empty($data['resource_extra'])) {
-            throw new InvalidArnException("An S3 Outposts access point ARN"
-                . " should only have 9 components, delimited by the characters"
+            throw new InvalidArnException('An S3 Outposts access point ARN'
+                . ' should only have 9 components, delimited by the characters'
                 . " ':' and '/'. '{$data['resource_extra']}' was found after the"
-                . " 9th component.");
+                . ' 9th component.');
         }
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AutoScalingPlans;
 
 use Aws\AwsClient;
@@ -18,4 +21,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateScalingPlan(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateScalingPlanAsync(array $args = [])
  */
-class AutoScalingPlansClient extends AwsClient {}
+class AutoScalingPlansClient extends AwsClient
+{
+}

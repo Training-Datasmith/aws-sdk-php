@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 // Setup autoloading for SDK and build classes.
 require __DIR__ . '/../vendor/autoload.php';
 

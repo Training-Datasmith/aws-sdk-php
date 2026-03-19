@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AccessAnalyzer\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **Access Analyzer** service.
  */
-class AccessAnalyzerException extends AwsException {}
+class AccessAnalyzerException extends AwsException
+{
+}

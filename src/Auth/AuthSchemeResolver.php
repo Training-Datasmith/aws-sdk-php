@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Auth;
 
 use Aws\Auth\Exception\UnresolvedAuthSchemeException;
@@ -15,7 +17,7 @@ use GuzzleHttp\Promise\PromiseInterface;
  */
 class AuthSchemeResolver implements AuthSchemeResolverInterface
 {
-    const UNSIGNED_BODY = '-unsigned-body';
+    public const UNSIGNED_BODY = '-unsigned-body';
 
     /**
      * @var string[] Default mapping of modeled auth trait auth schemes
@@ -25,7 +27,7 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
         'aws.auth#sigv4' => 'v4',
         'aws.auth#sigv4a' => 'v4a',
         'smithy.api#httpBearerAuth' => 'bearer',
-        'smithy.api#noAuth' => 'anonymous'
+        'smithy.api#noAuth' => 'anonymous',
     ];
 
     /**
@@ -36,12 +38,11 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
     private $tokenProvider;
     private $credentialProvider;
 
-
     public function __construct(
         callable $credentialProvider,
         ?callable $tokenProvider = null,
         array $authSchemeMap = []
-    ){
+    ) {
         $this->credentialProvider = $credentialProvider;
         $this->tokenProvider = $tokenProvider;
         $this->authSchemeMap = empty($authSchemeMap)
@@ -61,11 +62,10 @@ class AuthSchemeResolver implements AuthSchemeResolverInterface
     public function selectAuthScheme(
         array $authSchemes,
         array $args = []
-    ): string
-    {
+    ): string {
         $failureReasons = [];
 
-        foreach($authSchemes as $authScheme) {
+        foreach ($authSchemes as $authScheme) {
             $normalizedAuthScheme = $this->authSchemeMap[$authScheme] ?? $authScheme;
 
             if ($this->isCompatibleAuthScheme($normalizedAuthScheme)) {

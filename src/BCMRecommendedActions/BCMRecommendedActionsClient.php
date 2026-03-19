@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BCMRecommendedActions;
 
 use Aws\AwsClient;
@@ -8,4 +11,6 @@ use Aws\AwsClient;
  * @method \Aws\Result listRecommendedActions(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listRecommendedActionsAsync(array $args = [])
  */
-class BCMRecommendedActionsClient extends AwsClient {}
+class BCMRecommendedActionsClient extends AwsClient
+{
+}

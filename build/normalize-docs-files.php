@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 // Function to normalize and move files
-function normalizeAndMoveFiles($directory, $prefix) {
+function normalizeAndMoveFiles($directory, $prefix)
+{
     $files = glob($directory . '/*');
     foreach ($files as $file) {
         if (is_file($file)) {
@@ -9,7 +12,7 @@ function normalizeAndMoveFiles($directory, $prefix) {
             $basename = ucfirst(basename($file));
 
             // Replace all dashes in the basename with dots
-            $modifiedBasename = str_replace("-", ".", $basename);
+            $modifiedBasename = str_replace('-', '.', $basename);
 
             // Construct the new filename by prepending the prefix (which includes the dash)
             $newFilename = $prefix . $modifiedBasename;
@@ -23,7 +26,8 @@ function normalizeAndMoveFiles($directory, $prefix) {
 }
 
 // Function to update hrefs in HTML files
-function updateHtmlHrefs($directory) {
+function updateHtmlHrefs($directory)
+{
     $htmlFiles = glob($directory . '/*.html');
     foreach ($htmlFiles as $file) {
         $doc = new DOMDocument();
@@ -61,7 +65,7 @@ function updateHtmlHrefs($directory) {
                     '/(namespace-|class-|package-)([\w-]+)\.html/',
                     function ($matches) {
                         // Replace all dashes in the suffix part with dots
-                        $suffix = str_replace("-", ".", $matches[2]);
+                        $suffix = str_replace('-', '.', $matches[2]);
                         return $matches[1] . $suffix . '.html';
                     },
                     $href
@@ -109,7 +113,8 @@ function updateHtmlHrefs($directory) {
     }
 }
 
-function updateSearchIndex($filePath) {
+function updateSearchIndex($filePath)
+{
     // Read the content of the file
     $content = file_get_contents($filePath);
     if ($content === false) {
@@ -196,7 +201,8 @@ function insertSnsValidatorNotice($directory)
     echo "Added SNS validator notice to MessageValidator documentation\n";
 }
 
-function copyDirectory($src, $dst) {
+function copyDirectory($src, $dst)
+{
     if (!file_exists($dst)) {
         mkdir($dst, 0777, true);
     }
@@ -215,7 +221,8 @@ function copyDirectory($src, $dst) {
     closedir($dir);
 }
 
-function deleteDirectory($dir) {
+function deleteDirectory($dir)
+{
     if (!is_dir($dir)) {
         return false;
     }
@@ -245,9 +252,9 @@ $namespacesDirectory = "$parentDirectory/namespaces";
 $packagesDirectory = "$parentDirectory/packages";
 
 // Process classes and namespaces directories
-normalizeAndMoveFiles($namespacesDirectory, "namespace-");
-normalizeAndMoveFiles($classesDirectory, "class-");
-normalizeAndMoveFiles($packagesDirectory, "package-");
+normalizeAndMoveFiles($namespacesDirectory, 'namespace-');
+normalizeAndMoveFiles($classesDirectory, 'class-');
+normalizeAndMoveFiles($packagesDirectory, 'package-');
 
 // Update hrefs in HTML files
 updateHtmlHrefs($parentDirectory);

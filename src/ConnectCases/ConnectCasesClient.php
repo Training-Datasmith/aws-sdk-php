@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ConnectCases;
 
 use Aws\AwsClient;
@@ -90,4 +93,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateTemplate(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateTemplateAsync(array $args = [])
  */
-class ConnectCasesClient extends AwsClient {}
+class ConnectCasesClient extends AwsClient
+{
+}

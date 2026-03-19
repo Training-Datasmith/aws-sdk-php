@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Api;
 
 use Aws\Api\Parser\Exception\ParserException;
@@ -29,8 +31,8 @@ class DateTimeResult extends \DateTime implements \JsonSerializable, \Stringable
             throw new ParserException('Invalid timestamp value passed to DateTimeResult::fromEpoch');
         }
 
-        $decimalSeparator = localeconv()['decimal_point'] ?? ".";
-        $formatString = "U" . $decimalSeparator . "u";
+        $decimalSeparator = localeconv()['decimal_point'] ?? '.';
+        $formatString = 'U' . $decimalSeparator . 'u';
         $dateTime = DateTime::createFromFormat(
             $formatString,
             sprintf('%0.6f', $unixTimestamp),
@@ -87,13 +89,13 @@ class DateTimeResult extends \DateTime implements \JsonSerializable, \Stringable
                 } catch (Exception) {
                     return self::fromEpoch($timestamp);
                 }
-            } else if ($expectedFormat == 'unixTimestamp') {
+            } elseif ($expectedFormat == 'unixTimestamp') {
                 try {
                     return self::fromEpoch($timestamp);
                 } catch (Exception) {
                     return self::fromISO8601($timestamp);
                 }
-            } else if (\Aws\is_valid_epoch($timestamp)) {
+            } elseif (\Aws\is_valid_epoch($timestamp)) {
                 return self::fromEpoch($timestamp);
             }
             return self::fromISO8601($timestamp);

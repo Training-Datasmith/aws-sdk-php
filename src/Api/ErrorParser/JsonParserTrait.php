@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\ErrorParser;
 
 use Aws\Api\Parser\AbstractParser;
@@ -59,7 +62,7 @@ trait JsonParserTrait
             'code'        => $error_code ?? null,
             'message'     => null,
             'type'        => $error_type,
-            'parsed'      => $parsedBody
+            'parsed'      => $parsedBody,
         ];
     }
 
@@ -76,7 +79,7 @@ trait JsonParserTrait
         if (count($parts) === 2 && $parts[0] && $parts[1]) {
             return [
                 'code' => $parts[0],
-                'type' => $parts[1]
+                'type' => $parts[1],
             ];
         }
 

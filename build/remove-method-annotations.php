@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  *   This script removes `@method` annotations on service client classes prior to doc generation.
  *   Removing these annotations prevents phpDocumentor from generating documentation for service methods
  *   on the client class.
  */
 
-function removeMethodAnnotations($dir, $fileSuffix) {
+function removeMethodAnnotations($dir, $fileSuffix)
+{
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
 
     foreach ($iterator as $file) {

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /*
  * Creates a Github API release using the changelog contents. Attaches aws.zip
  * and aws.phar to the release.
@@ -10,8 +12,8 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\Uri;
 
 const MAX_ATTEMPTS = 3;
 
@@ -52,7 +54,7 @@ $client = new GuzzleHttp\Client([
 // Create a Github client with no retry middleware, to allow for custom retry handling
 $uploadClient = new GuzzleHttp\Client([
     'base_uri' => 'https://api.github.com/',
-    'headers' => ['Authorization' => "token $token"]
+    'headers' => ['Authorization' => "token $token"],
 ]);
 
 // Publish the release
@@ -61,7 +63,7 @@ $response = $client->post("repos/${owner}/${repo}/releases", [
         'tag_name'   => $tag,
         'name'       => "Version {$tag}",
         'body'       => $message,
-    ]
+    ],
 ]);
 $releaseBody = json_decode($response->getBody(), true);
 
@@ -76,7 +78,7 @@ $uploadUrl = $uploadUrl->withHost('uploads.github.com');
 // Upload aws.zip
 $zipAttempts = retryUpload($client, $uploadClient, $owner, $repo, $releaseBody, $uploadUrl, 'aws.zip');
 if ($zipAttempts === false) {
-    echo "aws.zip upload failed after " . MAX_ATTEMPTS . " attempts.\n";
+    echo 'aws.zip upload failed after ' . MAX_ATTEMPTS . " attempts.\n";
 } else {
     echo "aws.zip upload succeeded after {$zipAttempts} attempt(s).\n";
 }
@@ -84,7 +86,7 @@ if ($zipAttempts === false) {
 // Upload aws.phar
 $pharAttempts = retryUpload($client, $uploadClient, $owner, $repo, $releaseBody, $uploadUrl, 'aws.phar');
 if ($pharAttempts === false) {
-    echo "aws.phar upload failed after " . MAX_ATTEMPTS . " attempts.\n";
+    echo 'aws.phar upload failed after ' . MAX_ATTEMPTS . " attempts.\n";
 } else {
     echo "aws.phar upload succeeded after {$pharAttempts} attempt(s).\n";
 }
@@ -112,7 +114,7 @@ function retryUpload($client, $uploadClient, $owner, $repo, $releaseBody, $uploa
             $attempts++;
             $response = $uploadClient->post("{$uploadUrl}/assets?name={$filename}", [
                 'headers' => ['Content-Type' => "application/{$filetype}"],
-                'body'    => Psr7\Utils::tryFopen(__DIR__ . "/artifacts/{$filename}", 'r')
+                'body'    => Psr7\Utils::tryFopen(__DIR__ . "/artifacts/{$filename}", 'r'),
             ]);
             echo "{$filename} uploaded to: " . json_decode($response->getBody(), true)['browser_download_url'] . "\n";
             $isSuccessful = true;

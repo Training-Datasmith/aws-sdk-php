@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ChimeSDKVoice;
 
 use Aws\AwsClient;
@@ -198,4 +201,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validateE911Address(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validateE911AddressAsync(array $args = [])
  */
-class ChimeSDKVoiceClient extends AwsClient {}
+class ChimeSDKVoiceClient extends AwsClient
+{
+}

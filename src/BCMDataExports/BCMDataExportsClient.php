@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BCMDataExports;
 
 use Aws\AwsClient;
@@ -30,4 +33,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateExport(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateExportAsync(array $args = [])
  */
-class BCMDataExportsClient extends AwsClient {}
+class BCMDataExportsClient extends AwsClient
+{
+}

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CodeGuruProfiler;
 
 use Aws\AwsClient;
@@ -52,4 +55,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateProfilingGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateProfilingGroupAsync(array $args = [])
  */
-class CodeGuruProfilerClient extends AwsClient {}
+class CodeGuruProfilerClient extends AwsClient
+{
+}

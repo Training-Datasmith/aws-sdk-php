@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
 use Aws\Api\Service;
@@ -52,8 +55,7 @@ class JsonRpcSerializer
     public function __invoke(
         CommandInterface $command,
         $endpoint = null
-    )
-    {
+    ) {
         $operationName = $command->getName();
         $operation = $this->api->getOperation($operationName);
         $commandArgs = $command->toArray();
@@ -61,7 +63,7 @@ class JsonRpcSerializer
         $headers = [
                 'X-Amz-Target' => $this->api->getMetadata('targetPrefix') . '.' . $operationName,
                 'Content-Type' => $this->contentType,
-                'Content-Length' => strlen($body)
+                'Content-Length' => strlen($body),
         ];
 
         if ($endpoint instanceof RulesetEndpoint) {

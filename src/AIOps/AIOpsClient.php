@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AIOps;
 
 use Aws\AwsClient;
@@ -28,4 +31,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateInvestigationGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateInvestigationGroupAsync(array $args = [])
  */
-class AIOpsClient extends AwsClient {}
+class AIOpsClient extends AwsClient
+{
+}

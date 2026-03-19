@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AugmentedAIRuntime\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **Amazon Augmented AI Runtime** service.
  */
-class AugmentedAIRuntimeException extends AwsException {}
+class AugmentedAIRuntimeException extends AwsException
+{
+}

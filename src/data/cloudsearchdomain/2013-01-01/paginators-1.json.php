@@ -1,3 +1,5 @@
 <?php
+
+declare(strict_types=1);
 // This file was auto-generated from sdk-root/src/data/cloudsearchdomain/2013-01-01/paginators-1.json
 return [ 'pagination' => [],];

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BillingConductor;
 
 use Aws\AwsClient;
@@ -70,4 +73,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updatePricingRule(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updatePricingRuleAsync(array $args = [])
  */
-class BillingConductorClient extends AwsClient {}
+class BillingConductorClient extends AwsClient
+{
+}

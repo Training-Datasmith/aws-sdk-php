@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ApplicationInsights;
 
 use Aws\AwsClient;
@@ -72,4 +75,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkload(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkloadAsync(array $args = [])
  */
-class ApplicationInsightsClient extends AwsClient {}
+class ApplicationInsightsClient extends AwsClient
+{
+}

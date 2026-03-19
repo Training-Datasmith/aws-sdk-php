@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Arn;
 
 use Aws\Arn\Exception\InvalidArnException;
@@ -43,22 +46,22 @@ class AccessPointArn extends Arn implements AccessPointArnInterface
         self::validateAccountId($data, 'access point ARN');
 
         if ($data['resource_type'] !== 'accesspoint') {
-            throw new InvalidArnException("The 6th component of an access point ARN"
+            throw new InvalidArnException('The 6th component of an access point ARN'
                 . " represents the resource type and must be 'accesspoint'.");
         }
 
         if (empty($data['resource_id'])) {
-            throw new InvalidArnException("The 7th component of an access point ARN"
-                . " represents the resource ID and must not be empty.");
+            throw new InvalidArnException('The 7th component of an access point ARN'
+                . ' represents the resource ID and must not be empty.');
         }
         if (str_contains((string) $data['resource_id'], ':')) {
-            throw new InvalidArnException("The resource ID component of an access"
-                . " point ARN must not contain additional components"
+            throw new InvalidArnException('The resource ID component of an access'
+                . ' point ARN must not contain additional components'
                 . " (delimited by ':').");
         }
         if (!self::isValidHostLabel($data['resource_id'])) {
-            throw new InvalidArnException("The resource ID in an access point ARN"
-                . " must be a valid host label value.");
+            throw new InvalidArnException('The resource ID in an access point ARN'
+                . ' must be a valid host label value.');
         }
     }
 }

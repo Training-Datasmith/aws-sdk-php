@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
 /**
@@ -51,7 +54,7 @@ class EventStreamExampleBuilder
                 $this->tabLevel--;
                 $this->buffer .= $this->tab() . '}';
                 $this->elseRequired = true;
-            } else if ($this->tabLevel === 0) {
+            } elseif ($this->tabLevel === 0) {
                 $this->closed = true;
             }
             return;

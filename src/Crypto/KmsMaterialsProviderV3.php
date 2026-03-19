@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use Aws\Exception\CryptoException;
@@ -11,7 +14,7 @@ use Aws\Kms\KmsClient;
  */
 class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsProviderInterfaceV3
 {
-    const WRAP_ALGORITHM_NAME = 'kms+context';
+    public const WRAP_ALGORITHM_NAME = 'kms+context';
 
     /**
      * @param KmsClient $kmsClient A KMS Client for use encrypting and
@@ -38,8 +41,7 @@ class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsPro
         string $encryptedCek,
         array $materialDescription,
         array $options
-    ): string 
-    {
+    ): string {
         $options = array_change_key_case($options);
         $encryptionContext = null;
 
@@ -51,19 +53,19 @@ class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsPro
             // and that the reserved keywords were not used
             if (!is_array($options['@kmsencryptioncontext'])) {
                 throw new CryptoException("'When using @KmsMaterialsProviderV3, it"
-                    . " must be an associative array (or empty array).");
+                    . ' must be an associative array (or empty array).');
             }
 
             if (isset($options['@kmsencryptioncontext']['aws:x-amz-cek-alg'])) {
-                throw new CryptoException("Conflict in reserved @KmsEncryptionContext"
-                    . " key aws:x-amz-cek-alg. This value is reserved for the S3"
-                    . " Encryption Client and cannot be set by the user.");
+                throw new CryptoException('Conflict in reserved @KmsEncryptionContext'
+                    . ' key aws:x-amz-cek-alg. This value is reserved for the S3'
+                    . ' Encryption Client and cannot be set by the user.');
             }
 
             if (isset($options['@kmsencryptioncontext']['kms_cmk_id'])) {
-                throw new CryptoException("Conflict in reserved @KmsEncryptionContext"
-                    . " key kms_cmk_id. This value is reserved for the S3"
-                    . " Encryption Client and cannot be set by the user.");
+                throw new CryptoException('Conflict in reserved @KmsEncryptionContext'
+                    . ' key kms_cmk_id. This value is reserved for the S3'
+                    . ' Encryption Client and cannot be set by the user.');
             }
             //= specification/s3-encryption/materials/s3-kms-keyring.md#kms-context
             //= type=implication
@@ -71,8 +73,8 @@ class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsPro
             // We are validating the encryption context to match S3EC V2 behavior
             // Refer to KMSMaterialsHandler in the V2 client for details
             $materialsDescriptionContextCopy = $materialDescription;
-            unset($materialsDescriptionContextCopy["aws:x-amz-cek-alg"]);
-            unset($materialsDescriptionContextCopy["kms_cmk_id"]);
+            unset($materialsDescriptionContextCopy['aws:x-amz-cek-alg']);
+            unset($materialsDescriptionContextCopy['kms_cmk_id']);
 
             $requestEncryptionContext = $options['@kmsencryptioncontext'];
             //= specification/s3-encryption/materials/s3-kms-keyring.md#kms-context
@@ -82,13 +84,13 @@ class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsPro
                 //= specification/s3-encryption/materials/s3-kms-keyring.md#kms-context
                 //= type=implication
                 //# If the stored encryption context with the two reserved keys removed does not match the provided encryption context, the KmsKeyring MUST throw an exception.
-                throw new CryptoException("Provided encryption context does not match information retrieved from S3");
+                throw new CryptoException('Provided encryption context does not match information retrieved from S3');
             }
             $encryptionContext = $materialDescription;
         }
         $params = [
             'CiphertextBlob' => $encryptedCek,
-            'EncryptionContext' => $encryptionContext
+            'EncryptionContext' => $encryptionContext,
         ];
 
         if (empty($options['@kmsallowdecryptwithanycmk'])) {
@@ -122,32 +124,32 @@ class KmsMaterialsProviderV3 extends MaterialsProviderV3 implements MaterialsPro
             || !is_array($options['@kmsencryptioncontext'])
         ) {
             throw new CryptoException("'@KmsEncryptionContext' is a"
-                . " required argument when using KmsMaterialsProviderV3, and"
-                . " must be an associative array (or empty array).");
+                . ' required argument when using KmsMaterialsProviderV3, and'
+                . ' must be an associative array (or empty array).');
         }
 
         if (isset($options['@kmsencryptioncontext']['aws:x-amz-cek-alg'])) {
-            throw new CryptoException("Conflict in reserved @KmsEncryptionContext"
-                . " key aws:x-amz-cek-alg. This value is reserved for the S3"
-                . " Encryption Client and cannot be set by the user.");
+            throw new CryptoException('Conflict in reserved @KmsEncryptionContext'
+                . ' key aws:x-amz-cek-alg. This value is reserved for the S3'
+                . ' Encryption Client and cannot be set by the user.');
         }
 
         if (isset($options['@kmsencryptioncontext']['kms_cmk_id'])) {
-            throw new CryptoException("Conflict in reserved @KmsEncryptionContext"
-                . " key kms_cmk_id. This value is reserved for the S3"
-                . " Encryption Client and cannot be set by the user.");
+            throw new CryptoException('Conflict in reserved @KmsEncryptionContext'
+                . ' key kms_cmk_id. This value is reserved for the S3'
+                . ' Encryption Client and cannot be set by the user.');
         }
         $context = array_merge($options['@kmsencryptioncontext'], $context);
         $result = $this->kmsClient->generateDataKey([
             'KeyId' => $this->kmsKeyId,
             'KeySpec' => "AES_{$keySize}",
-            'EncryptionContext' => $context
+            'EncryptionContext' => $context,
         ]);
 
         return [
             'Plaintext' => $result['Plaintext'],
             'Ciphertext' => base64_encode((string) $result['CiphertextBlob']),
-            'UpdatedContext' => $context
+            'UpdatedContext' => $context,
         ];
     }
 }

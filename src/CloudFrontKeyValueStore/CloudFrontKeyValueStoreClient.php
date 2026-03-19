@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudFrontKeyValueStore;
 
 use Aws\AwsClient;
@@ -18,4 +21,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateKeys(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateKeysAsync(array $args = [])
  */
-class CloudFrontKeyValueStoreClient extends AwsClient {}
+class CloudFrontKeyValueStoreClient extends AwsClient
+{
+}

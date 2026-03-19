@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ChimeSDKMediaPipelines;
 
 use Aws\AwsClient;
@@ -68,4 +71,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateMediaPipelineKinesisVideoStreamPool(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateMediaPipelineKinesisVideoStreamPoolAsync(array $args = [])
  */
-class ChimeSDKMediaPipelinesClient extends AwsClient {}
+class ChimeSDKMediaPipelinesClient extends AwsClient
+{
+}

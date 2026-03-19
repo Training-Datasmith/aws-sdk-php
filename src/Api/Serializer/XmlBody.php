@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
+use Aws\Api\ListShape;
 use Aws\Api\MapShape;
-use Aws\Api\Service;
 use Aws\Api\Shape;
 use Aws\Api\StructureShape;
-use Aws\Api\ListShape;
 use Aws\Api\TimestampShape;
 use XMLWriter;
 
@@ -60,7 +62,7 @@ class XmlBody
             'add_timestamp' => true,
             'add_boolean'   => true,
             'add_map'       => true,
-            'add_string'    => true
+            'add_string'    => true,
         ];
 
         $type = 'add_' . $shape['type'];

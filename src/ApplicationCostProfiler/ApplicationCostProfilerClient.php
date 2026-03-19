@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ApplicationCostProfiler;
 
 use Aws\AwsClient;
@@ -18,4 +21,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateReportDefinition(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateReportDefinitionAsync(array $args = [])
  */
-class ApplicationCostProfilerClient extends AwsClient {}
+class ApplicationCostProfilerClient extends AwsClient
+{
+}

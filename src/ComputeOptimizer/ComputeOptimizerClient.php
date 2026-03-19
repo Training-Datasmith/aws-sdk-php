@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ComputeOptimizer;
 
 use Aws\AwsClient;
@@ -62,4 +65,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateEnrollmentStatus(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateEnrollmentStatusAsync(array $args = [])
  */
-class ComputeOptimizerClient extends AwsClient {}
+class ComputeOptimizerClient extends AwsClient
+{
+}

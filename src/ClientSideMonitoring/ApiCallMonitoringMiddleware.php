@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\ClientSideMonitoring;
 
 use Aws\CommandInterface;
@@ -38,7 +40,7 @@ class ApiCallMonitoringMiddleware extends AbstractMonitoringMiddleware
         $region,
         $service
     ) {
-        return fn(callable $handler) => new static(
+        return fn (callable $handler) => new static(
             $handler,
             $credentialProvider,
             $options,
@@ -77,14 +79,16 @@ class ApiCallMonitoringMiddleware extends AbstractMonitoringMiddleware
         return $data + self::getFinalAttemptData($klass);
     }
 
-    private static function getResultAttemptCount(ResultInterface $result): int {
+    private static function getResultAttemptCount(ResultInterface $result): int
+    {
         if (isset($result['@metadata']['transferStats']['http'])) {
             return count($result['@metadata']['transferStats']['http']);
         }
         return 1;
     }
 
-    private static function getExceptionAttemptCount(\Exception $e): int {
+    private static function getExceptionAttemptCount(\Exception $e): int
+    {
         $attemptCount = 0;
         if ($e instanceof MonitoringEventsInterface) {
             foreach ($e->getMonitoringEvents() as $event) {

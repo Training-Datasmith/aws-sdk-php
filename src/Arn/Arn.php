@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Arn;
 
 use Aws\Arn\Exception\InvalidArnException;
@@ -131,25 +134,25 @@ class Arn implements ArnInterface
     protected static function validate(array $data)
     {
         if ($data['arn'] !== 'arn') {
-            throw new InvalidArnException("The 1st component of an ARN must be"
+            throw new InvalidArnException('The 1st component of an ARN must be'
                 . " 'arn'.");
         }
 
         if (empty($data['partition'])) {
-            throw new InvalidArnException("The 2nd component of an ARN"
-                . " represents the partition and must not be empty.");
+            throw new InvalidArnException('The 2nd component of an ARN'
+                . ' represents the partition and must not be empty.');
         }
 
         if (empty($data['service'])) {
-            throw new InvalidArnException("The 3rd component of an ARN"
-                . " represents the service and must not be empty.");
+            throw new InvalidArnException('The 3rd component of an ARN'
+                . ' represents the service and must not be empty.');
         }
 
         if (empty($data['resource'])) {
-            throw new InvalidArnException("The 6th component of an ARN"
-                . " represents the resource information and must not be empty."
-                . " Individual service ARNs may include additional delimiters"
-                . " to further qualify resources.");
+            throw new InvalidArnException('The 6th component of an ARN'
+                . ' represents the resource information and must not be empty.'
+                . ' Individual service ARNs may include additional delimiters'
+                . ' to further qualify resources.');
         }
     }
 
@@ -157,8 +160,8 @@ class Arn implements ArnInterface
     {
         if (!self::isValidHostLabel($data['account_id'])) {
             throw new InvalidArnException("The 5th component of a {$arnName}"
-                . " is required, represents the account ID, and"
-                . " must be a valid host label.");
+                . ' is required, represents the account ID, and'
+                . ' must be a valid host label.');
         }
     }
 
@@ -166,7 +169,7 @@ class Arn implements ArnInterface
     {
         if (empty($data['region'])) {
             throw new InvalidArnException("The 4th component of a {$arnName}"
-                . " represents the region and must not be empty.");
+                . ' represents the region and must not be empty.');
         }
     }
 
@@ -180,7 +183,7 @@ class Arn implements ArnInterface
         if (empty($string) || strlen((string) $string) > 63) {
             return false;
         }
-        if ($value = preg_match("/^[a-zA-Z0-9-]+$/", (string) $string)) {
+        if ($value = preg_match('/^[a-zA-Z0-9-]+$/', (string) $string)) {
             return true;
         }
         return false;

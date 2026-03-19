@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CodeGuruSecurity;
 
 use Aws\AwsClient;
@@ -32,4 +35,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateAccountConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateAccountConfigurationAsync(array $args = [])
  */
-class CodeGuruSecurityClient extends AwsClient {}
+class CodeGuruSecurityClient extends AwsClient
+{
+}

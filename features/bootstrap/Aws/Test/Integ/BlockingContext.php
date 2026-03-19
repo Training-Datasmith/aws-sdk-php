@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws\AwsClient;
@@ -37,15 +39,15 @@ class BlockingContext implements Context, SnippetAcceptingContext
         $this->client->createTable([
             'TableName' => self::getResourcePrefix() . "-$table",
             'AttributeDefinitions' => [
-                ['AttributeName' => 'id', 'AttributeType' => 'N']
+                ['AttributeName' => 'id', 'AttributeType' => 'N'],
             ],
             'KeySchema' => [
-                ['AttributeName' => 'id', 'KeyType' => 'HASH']
+                ['AttributeName' => 'id', 'KeyType' => 'HASH'],
             ],
             'ProvisionedThroughput' => [
                 'ReadCapacityUnits'  => 20,
-                'WriteCapacityUnits' => 20
-            ]
+                'WriteCapacityUnits' => 20,
+            ],
         ]);
     }
 
@@ -107,18 +109,18 @@ class BlockingContext implements Context, SnippetAcceptingContext
      */
     public function iCreateAPromiseToCreateAndAwaitATableNamed($table)
     {
-        $this->promises []= $this->client->createTableAsync([
+        $this->promises [] = $this->client->createTableAsync([
             'TableName' => self::getResourcePrefix() . "-$table",
             'AttributeDefinitions' => [
-                ['AttributeName' => 'id', 'AttributeType' => 'N']
+                ['AttributeName' => 'id', 'AttributeType' => 'N'],
             ],
             'KeySchema' => [
-                ['AttributeName' => 'id', 'KeyType' => 'HASH']
+                ['AttributeName' => 'id', 'KeyType' => 'HASH'],
             ],
             'ProvisionedThroughput' => [
                 'ReadCapacityUnits'  => 20,
-                'WriteCapacityUnits' => 20
-            ]
+                'WriteCapacityUnits' => 20,
+            ],
         ])
             ->then(function () use ($table) {
                 return $this->client
@@ -142,7 +144,7 @@ class BlockingContext implements Context, SnippetAcceptingContext
      */
     public function iCreateAPromiseToDeleteAndAwaitThePurgingOfTheTableNamed($table)
     {
-        $this->promises []= $this->client
+        $this->promises [] = $this->client
             ->deleteTableAsync([
                 'TableName' => self::getResourcePrefix() . "-$table",
             ])->then(function () use ($table) {

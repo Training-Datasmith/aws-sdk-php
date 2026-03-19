@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AppRunner;
 
 use Aws\AwsClient;
@@ -80,4 +83,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateVpcIngressConnection(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateVpcIngressConnectionAsync(array $args = [])
  */
-class AppRunnerClient extends AwsClient {}
+class AppRunnerClient extends AwsClient
+{
+}

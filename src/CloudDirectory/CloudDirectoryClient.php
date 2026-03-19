@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudDirectory;
 
 use Aws\AwsClient;
@@ -138,4 +141,6 @@ use Aws\AwsClient;
  * @method \Aws\Result listManagedSchemaArns(array $args = []) (supported in versions 2017-01-11)
  * @method \GuzzleHttp\Promise\Promise listManagedSchemaArnsAsync(array $args = []) (supported in versions 2017-01-11)
  */
-class CloudDirectoryClient extends AwsClient {}
+class CloudDirectoryClient extends AwsClient
+{
+}

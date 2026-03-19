@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Appflow;
 
 use Aws\AwsClient;
@@ -56,4 +59,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateFlow(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateFlowAsync(array $args = [])
  */
-class AppflowClient extends AwsClient {}
+class AppflowClient extends AwsClient
+{
+}

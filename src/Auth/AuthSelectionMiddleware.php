@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Auth;
 
 use Aws\Api\Service;
@@ -31,9 +34,8 @@ class AuthSelectionMiddleware
         AuthSchemeResolverInterface $authResolver,
         Service $api,
         ?array $configuredAuthSchemes
-    ): Closure
-    {
-        return fn(callable $handler) => new self($handler, $authResolver, $api, $configuredAuthSchemes);
+    ): Closure {
+        return fn (callable $handler) => new self($handler, $authResolver, $api, $configuredAuthSchemes);
     }
 
     public function __construct(
@@ -41,8 +43,7 @@ class AuthSelectionMiddleware
         private readonly AuthSchemeResolverInterface $authResolver,
         private readonly Service $api,
         private readonly ?array $configuredAuthSchemes = null
-    )
-    {
+    ) {
         $this->nextHandler = $nextHandler;
     }
 
@@ -61,7 +62,7 @@ class AuthSelectionMiddleware
         if (!empty($resolvableAuth)) {
             if (isset($command['@context']['auth_scheme_resolver'])
                 && $command['@context']['auth_scheme_resolver'] instanceof AuthSchemeResolverInterface
-            ){
+            ) {
                 $resolver = $command['@context']['auth_scheme_resolver'];
             } else {
                 $resolver = $this->authResolver;
@@ -104,8 +105,7 @@ class AuthSelectionMiddleware
     private function buildAuthSchemeList(
         array $resolvableAuthSchemeList,
         ?array $commandConfiguredAuthSchemes,
-    ): array
-    {
+    ): array {
         $userConfiguredAuthSchemes = $commandConfiguredAuthSchemes
             ?? $this->configuredAuthSchemes;
 

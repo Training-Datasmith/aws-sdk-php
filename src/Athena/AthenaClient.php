@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Athena;
 
 use Aws\AwsClient;
@@ -146,4 +149,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkGroupAsync(array $args = [])
  */
-class AthenaClient extends AwsClient {}
+class AthenaClient extends AwsClient
+{
+}

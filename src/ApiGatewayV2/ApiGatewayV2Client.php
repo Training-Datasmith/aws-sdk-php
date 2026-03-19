@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ApiGatewayV2;
 
 use Aws\AwsClient;
@@ -212,4 +215,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateVpcLink(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateVpcLinkAsync(array $args = [])
  */
-class ApiGatewayV2Client extends AwsClient {}
+class ApiGatewayV2Client extends AwsClient
+{
+}

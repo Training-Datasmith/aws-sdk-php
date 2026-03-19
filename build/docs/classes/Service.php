@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
-use Aws\Api\Service as Api;
 use Aws\Api\DocModel;
+use Aws\Api\Service as Api;
 use Aws\Sdk;
 
 /**

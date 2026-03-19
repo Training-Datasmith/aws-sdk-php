@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Auth\Exception;
 
 use Aws\HasMonitoringEventsTrait;

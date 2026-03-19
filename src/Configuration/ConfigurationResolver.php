@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Configuration;
 
 class ConfigurationResolver
 {
-    const ENV_PROFILE = 'AWS_PROFILE';
-    const ENV_CONFIG_FILE = 'AWS_CONFIG_FILE';
+    public const ENV_PROFILE = 'AWS_PROFILE';
+    public const ENV_CONFIG_FILE = 'AWS_CONFIG_FILE';
 
     public static $envPrefix = 'AWS_';
 
@@ -30,8 +32,7 @@ class ConfigurationResolver
         $defaultValue,
         $expectedType,
         array $config = []
-    )
-    {
+    ) {
         $iniOptions = $config['ini_resolver_options'] ?? [];
 
         $envValue = self::env($key, $expectedType);
@@ -49,7 +50,7 @@ class ConfigurationResolver
                 null,
                 $iniOptions
             );
-            if(!is_null($iniValue)) {
+            if (!is_null($iniValue)) {
                 return $iniValue;
             }
         }
@@ -102,7 +103,7 @@ class ConfigurationResolver
         $profile = null,
         $filename = null,
         array $options = []
-    ){
+    ) {
         $filename = $filename ?: (self::getDefaultConfigFilename());
         $profile = $profile ?: (getenv(self::ENV_PROFILE) ?: 'default');
 
@@ -115,8 +116,7 @@ class ConfigurationResolver
 
         if (isset($options['section'])
             && isset($options['subsection'])
-            && isset($options['key']))
-        {
+            && isset($options['key'])) {
             return self::retrieveValueFromIniSubsection(
                 $data,
                 $profile,
@@ -134,7 +134,7 @@ class ConfigurationResolver
         }
 
         // INI_SCANNER_NORMAL parses false-y values as an empty string
-        if ($data[$profile][$key] === "") {
+        if ($data[$profile][$key] === '') {
             if ($expectedType === 'bool') {
                 $data[$profile][$key] = false;
             } elseif ($expectedType === 'int') {
@@ -222,7 +222,7 @@ class ConfigurationResolver
         string $filename,
         $expectedType,
         array $options
-    ){
+    ) {
         $section = $options['section'];
         if ($data === false
             || !isset($data[$profile][$section])

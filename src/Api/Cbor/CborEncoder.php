@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Cbor;
 
 use Aws\Api\Cbor\Exception\CborException;
@@ -156,10 +159,10 @@ final class CborEncoder
                 return "\xF6";
 
             case 'object':
-                throw new CborException("Cannot encode object of type: " . $value::class);
+                throw new CborException('Cannot encode object of type: ' . $value::class);
 
             default:
-                throw new CborException("Cannot encode value of type: " . gettype($value));
+                throw new CborException('Cannot encode value of type: ' . gettype($value));
         }
     }
 

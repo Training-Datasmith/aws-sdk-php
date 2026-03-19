@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
-use Aws\Api\Shape;
 use Aws\Api\ListShape;
+use Aws\Api\Shape;
 
 /**
  * @internal
@@ -12,7 +15,7 @@ class Ec2ParamBuilder extends QueryParamBuilder
     protected function queryName(Shape $shape, $default = null)
     {
         return ($shape['queryName']
-            ?: ucfirst((string) @$shape['locationName'] ?: ""))
+            ?: ucfirst((string) @$shape['locationName'] ?: ''))
                 ?: $default;
     }
 

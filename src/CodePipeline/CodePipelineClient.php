@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CodePipeline;
 
 use Aws\AwsClient;
@@ -95,4 +98,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updatePipeline(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updatePipelineAsync(array $args = [])
  */
-class CodePipelineClient extends AwsClient {}
+class CodePipelineClient extends AwsClient
+{
+}

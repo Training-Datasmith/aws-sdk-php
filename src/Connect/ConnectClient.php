@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Connect;
 
 use Aws\AwsClient;
@@ -740,4 +743,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkspaceVisibility(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkspaceVisibilityAsync(array $args = [])
  */
-class ConnectClient extends AwsClient {}
+class ConnectClient extends AwsClient
+{
+}

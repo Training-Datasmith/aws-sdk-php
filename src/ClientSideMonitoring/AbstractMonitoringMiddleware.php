@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\ClientSideMonitoring;
 
 use Aws\CommandInterface;
@@ -14,8 +16,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * @internal
  */
-abstract class AbstractMonitoringMiddleware
-    implements MonitoringMiddlewareInterface
+abstract class AbstractMonitoringMiddleware implements MonitoringMiddlewareInterface
 {
     private static \Socket|bool|null $socket = null;
 
@@ -133,7 +134,7 @@ abstract class AbstractMonitoringMiddleware
                 0,
                 256
             ),
-            'Version' => 1
+            'Version' => 1,
         ];
     }
 
@@ -205,7 +206,6 @@ abstract class AbstractMonitoringMiddleware
         }
         return $event;
     }
-
 
     /**
      * Checks if the socket is created. If PHP version is greater or equals to 8 then,

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws\Api\ApiProvider;
@@ -20,10 +22,8 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Assert;
 
-class ClientSideMonitoringContext
-    implements Context, SnippetAcceptingContext
+class ClientSideMonitoringContext implements Context, SnippetAcceptingContext
 {
-
     /**
      * Child process ID used by the test UDP server
      * @var int
@@ -66,7 +66,7 @@ class ClientSideMonitoringContext
 
     public function __construct()
     {
-        $this->testDir = __DIR__ . "/csm";
+        $this->testDir = __DIR__ . '/csm';
     }
 
     /**
@@ -130,7 +130,7 @@ class ClientSideMonitoringContext
             true
         );
         $provider = ApiProvider::manifest("{$this->testDir}/data/", $manifest);
-        $serviceDirectories = glob("{$this->testDir}/data/*" , GLOB_ONLYDIR);
+        $serviceDirectories = glob("{$this->testDir}/data/*", GLOB_ONLYDIR);
         foreach ($serviceDirectories as $directory) {
             $definition = $provider('api', basename($directory), 'latest');
             $service = new Service($definition, $provider);
@@ -150,14 +150,13 @@ class ClientSideMonitoringContext
         );
 
         if (!empty($this->testData['defaults']['configuration']['environmentVariables'])) {
-            foreach ($this->testData['defaults']['configuration']['environmentVariables']
-                     as $key => $value) {
+            foreach ($this->testData['defaults']['configuration']['environmentVariables'] as $key => $value) {
                 $this->defaultEnv[$key] = $value;
             }
         }
 
         $sharedConfig = [
-            'version' => 'latest'
+            'version' => 'latest',
         ];
         foreach ($this->testData['defaults']['configuration'] as $key => $value) {
             if (array_key_exists($key, $this->configKeys)) {
@@ -341,7 +340,7 @@ class ClientSideMonitoringContext
 
         $headers = [];
         if (isset($attemptResponse['responseHeaders'])) {
-            foreach($attemptResponse['responseHeaders'] as $header => $value) {
+            foreach ($attemptResponse['responseHeaders'] as $header => $value) {
                 $headers[$header] = $value;
             }
         }
@@ -354,14 +353,16 @@ class ClientSideMonitoringContext
                 'transfer_stats' => $transferStats,
             ];
 
-            return new AwsException($attemptResponse['errorMessage'],
+            return new AwsException(
+                $attemptResponse['errorMessage'],
                 $command,
                 $context
             );
         }
         if (!empty($attemptResponse['sdkException'])) {
             return new ConfigurationException(
-                $attemptResponse['sdkException']['message'], 555
+                $attemptResponse['sdkException']['message'],
+                555
             );
         }
         if (!empty($attemptResponse['httpStatus'])) {
@@ -371,8 +372,8 @@ class ClientSideMonitoringContext
                     'headers' => $headers,
                     'transferStats' => [
                         'http' => [
-                            $transferStats
-                        ]
+                            $transferStats,
+                        ],
                     ],
                 ],
             ];
@@ -435,10 +436,10 @@ class ClientSideMonitoringContext
     private function validateEventValue($expected, $actual)
     {
         switch ($expected) {
-            case "ANY_INT":
+            case 'ANY_INT':
                 Assert::assertIsInt($actual);
                 break;
-            case "ANY_STR":
+            case 'ANY_STR':
                 Assert::assertIsString('string', $actual);
                 break;
             default:

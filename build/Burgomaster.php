@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Packages the zip and phar file using a staging directory.
  *
@@ -15,7 +17,7 @@ class Burgomaster
     public $projectRoot;
 
     /** @var array stack of sections */
-    private $sections = array();
+    private $sections = [];
 
     /**
      * @param string $stageDir    Staging base directory where your packaging
@@ -126,7 +128,7 @@ class Burgomaster
      * @throws \RuntimeException if the file cannot be copied.
      */
     public function deepCopy($from, $to)
-    { 
+    {
         if (!is_file($from)) {
             throw new \InvalidArgumentException("File not found: {$from}");
         }
@@ -160,10 +162,10 @@ class Burgomaster
      *                              Defaults to a recursive iterator of $sourceDir
      * @throws \InvalidArgumentException if the source directory is invalid.
      */
-    function recursiveCopy(
+    public function recursiveCopy(
         $sourceDir,
         $destDir,
-        $extensions = array('php', 'php.gz'),
+        $extensions = ['php', 'php.gz'],
         ?Iterator $files = null
     ) {
         if (!realpath($sourceDir)) {
@@ -241,7 +243,8 @@ class Burgomaster
      * @param string $filename Name of the autoloader file.
      * @throws \RuntimeException if the file cannot be written
      */
-    function createAutoloader($files = array(), $filename = 'autoloader.php') {
+    public function createAutoloader($files = [], $filename = 'autoloader.php')
+    {
         $sourceDir = realpath($this->stageDir);
         $iter = new \RecursiveDirectoryIterator($sourceDir);
         $iter = new \RecursiveIteratorIterator($iter);
@@ -250,7 +253,7 @@ class Burgomaster
         $this->debug('Creating classmap autoloader');
         $this->debug("Collecting valid PHP files from {$this->stageDir}");
 
-        $classMap = array();
+        $classMap = [];
         foreach ($iter as $file) {
             if ($file->getExtension() == 'php') {
                 $location = str_replace($this->stageDir . '/', '', (string) $file);
@@ -283,7 +286,9 @@ class Burgomaster
             fwrite($h, "    '$c' => $f,\n");
         }
         fwrite($h, ");\n\n");
-        fwrite($h, <<<EOT
+        fwrite(
+            $h,
+            <<<EOT
 spl_autoload_register(function (\$class) use (\$mapping) {
     if (isset(\$mapping[\$class])) {
         require \$mapping[\$class];

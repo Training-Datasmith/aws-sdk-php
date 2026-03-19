@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 $stageDirectory = __DIR__ . '/artifacts/staging';
@@ -46,9 +48,9 @@ if (file_exists($projectRoot . 'vendor/psr/http-client/src')) {
 
 $burgomaster->createAutoloader($autoloaderContents, $autoloaderFilename);
 
-$burgomaster->createZip(__DIR__ . "/artifacts/aws.zip");
+$burgomaster->createZip(__DIR__ . '/artifacts/aws.zip');
 $burgomaster->createPhar(
-    __DIR__ . "/artifacts/aws.phar",
+    __DIR__ . '/artifacts/aws.phar',
     null,
     $autoloaderFilename,
     'aws-' . \Aws\Sdk::VERSION . '.phar'

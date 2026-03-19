@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 // Run this script from the command line to see if your system is able to run
 // the AWS SDK for PHP
 
 class CompatibilityTest
 {
     protected $isCli;
-    protected $lines = array();
+    protected $lines = [];
 
     public function __construct()
     {
@@ -46,7 +48,9 @@ class CompatibilityTest
     {
         return !$this->isCli
             ? "<pre>{$text}</pre>"
-            : implode("\n", array_map(function ($t) { return '    ' . $t; }, explode("\n", $text)));
+            : implode("\n", array_map(function ($t) {
+                return '    ' . $t;
+            }, explode("\n", $text)));
     }
 
     public function check($info, $func, $text, $required)
@@ -96,7 +100,9 @@ class CompatibilityTest
     public function extCheck($ext, $required = true, $help = '')
     {
         $info = sprintf('Checking if the %s extension is installed', $ext);
-        $cb = function () use ($ext) { return extension_loaded($ext); };
+        $cb = function () use ($ext) {
+            return extension_loaded($ext);
+        };
         $message = $help ?: sprintf('The %s extension %s be installed', $ext, $required ? 'must' : 'should');
         $this->check($info, $cb, $message, $required);
     }
@@ -106,7 +112,9 @@ $c = new CompatibilityTest();
 $c->title('System requirements');
 $c->addRequire(
     'Ensuring that the version of PHP is >= 8.1.0',
-    function () { return version_compare(phpversion(), '8.1.0', '>='); },
+    function () {
+        return version_compare(phpversion(), '8.1.0', '>=');
+    },
     'You must update your version of PHP to 8.1.0 to run the AWS SDK for PHP'
 );
 
@@ -123,7 +131,7 @@ if (extension_loaded('suhosin')) {
     );
 }
 
-foreach (array('pcre', 'spl', 'json', 'simplexml') as $ext) {
+foreach (['pcre', 'spl', 'json', 'simplexml'] as $ext) {
     $c->extCheck($ext, true);
 }
 
@@ -151,12 +159,14 @@ $c->check('Ensuring that date.timezone is set', function () {
 }, 'The date.timezone PHP ini setting has not been set in ' . php_ini_loaded_file(), false);
 
 if (extension_loaded('xdebug')) {
-    $c->addRecommend('Checking if Xdebug is installed', function () { return false; }, 'Xdebug is installed. Consider uninstalling Xdebug to make the SDK run much faster.');
+    $c->addRecommend('Checking if Xdebug is installed', function () {
+        return false;
+    }, 'Xdebug is installed. Consider uninstalling Xdebug to make the SDK run much faster.');
     $c->iniCheck('Ensuring that Xdebug\'s infinite recursion detection does not erroneously cause a fatal error', 'xdebug.max_nesting_level', 0, false);
 }
 
-$c->extCheck('dom',false);
-$c->extCheck('curl',false);
+$c->extCheck('dom', false);
+$c->extCheck('curl', false);
 $c->extCheck('openssl', false);
 $c->extCheck('zlib', false);
 $c->iniCheck('Checking if OPCache is enabled', 'opcache.enable', 1, false);

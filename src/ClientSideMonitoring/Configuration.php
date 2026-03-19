@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ClientSideMonitoring;
 
 class Configuration implements ConfigurationInterface
@@ -20,7 +23,8 @@ class Configuration implements ConfigurationInterface
         $this->port = filter_var($port, FILTER_VALIDATE_INT);
         if ($this->port === false) {
             throw new \InvalidArgumentException(
-                "CSM 'port' value must be an integer!");
+                "CSM 'port' value must be an integer!"
+            );
         }
 
         // Unparsable $enabled flag errors on the side of disabling CSM
@@ -69,7 +73,7 @@ class Configuration implements ConfigurationInterface
             'client_id' => $this->getClientId(),
             'enabled' => $this->isEnabled(),
             'host' => $this->getHost(),
-            'port' => $this->getPort()
+            'port' => $this->getPort(),
         ];
     }
 }

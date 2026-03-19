@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ConnectWisdomService;
 
 use Aws\AwsClient;
@@ -88,4 +91,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateQuickResponse(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateQuickResponseAsync(array $args = [])
  */
-class ConnectWisdomServiceClient extends AwsClient {}
+class ConnectWisdomServiceClient extends AwsClient
+{
+}

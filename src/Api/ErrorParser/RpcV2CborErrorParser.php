@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\ErrorParser;
 
 use Aws\Api\Cbor\CborDecoder;
@@ -17,9 +20,8 @@ use Psr\Http\Message\StreamInterface;
  */
 final class RpcV2CborErrorParser extends AbstractRpcV2ErrorParser
 {
-    private CborDecoder $decoder;
-
     use RpcV2ParserTrait;
+    private CborDecoder $decoder;
 
     public function __construct(?Service $api = null)
     {
@@ -34,8 +36,7 @@ final class RpcV2CborErrorParser extends AbstractRpcV2ErrorParser
     protected function payload(
         ResponseInterface $response,
         StructureShape $member
-    ): array
-    {
+    ): array {
         $body = $response->getBody();
         $cborBody = $this->parseCbor($body, $response);
 
@@ -45,8 +46,7 @@ final class RpcV2CborErrorParser extends AbstractRpcV2ErrorParser
     protected function parseBody(
         StreamInterface $body,
         ResponseInterface $response
-    ): mixed
-    {
+    ): mixed {
         return $this->parseCbor($body, $response);
     }
 }

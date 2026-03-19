@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser\Exception;
 
 use Aws\HasMonitoringEventsTrait;

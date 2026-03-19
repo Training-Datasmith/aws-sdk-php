@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CodeConnections;
 
 use Aws\AwsClient;
@@ -60,4 +63,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateSyncConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateSyncConfigurationAsync(array $args = [])
  */
-class CodeConnectionsClient extends AwsClient {}
+class CodeConnectionsClient extends AwsClient
+{
+}

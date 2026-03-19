@@ -1,12 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudSearchDomain;
 
 use Aws\AwsClient;
 use Aws\CommandInterface;
-use Aws\HandlerList;
+use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\RequestInterface;
-use GuzzleHttp\Psr7;
 
 /**
  * This client is used to search and upload documents to an **Amazon CloudSearch** Domain.
@@ -31,10 +33,10 @@ class CloudSearchDomainClient extends AwsClient
     {
         $args = parent::getArguments();
         $args['endpoint']['required'] = true;
-        $args['region']['default'] = 
+        $args['region']['default'] =
             // Determine the region from the provided endpoint.
             // (e.g. http://search-blah.{region}.cloudsearch.amazonaws.com)
-            (fn(array $args) => explode('.', new Uri($args['endpoint']))[1]);
+            (fn (array $args) => explode('.', new Uri($args['endpoint']))[1]);
         unset($args['endpoint']['default']);
 
         return $args;
@@ -47,7 +49,7 @@ class CloudSearchDomainClient extends AwsClient
      */
     private function searchByPost()
     {
-        return static fn(callable $handler) => function (
+        return static fn (callable $handler) => function (
             CommandInterface $c,
             ?RequestInterface $r = null
         ) use ($handler) {

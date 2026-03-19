@@ -1,10 +1,12 @@
 <?php
+
+declare(strict_types=1);
 require __DIR__ . '/artifacts/aws.phar';
 
 $conf = [
     'credentials' => ['key' => 'foo', 'secret' => 'bar'],
     'region'      => 'us-west-2',
-    'version'     => 'latest'
+    'version'     => 'latest',
 ];
 
 // Ensure that a client can be created.

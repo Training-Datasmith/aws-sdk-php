@@ -1,23 +1,26 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
+use Aws\Crypto\AbstractCryptoClient;
 use Aws\Crypto\KmsMaterialsProvider;
 use Aws\Crypto\MetadataEnvelope;
 use Aws\Exception\AwsException;
+use Aws\Kms\KmsClient;
 use Aws\S3\Crypto\S3EncryptionClient;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
-use Aws\Crypto\AbstractCryptoClient;
-use Aws\Kms\KmsClient;
 use PHPUnit\Framework\Assert;
 
 class S3EncryptionContext implements Context, SnippetAcceptingContext
 {
     use IntegUtils;
 
-    const DEFAULT_REGION = 'us-west-2';
-    const DEFAULT_BUCKET = 'aws-sdk-php-crypto-tests';
+    public const DEFAULT_REGION = 'us-west-2';
+    public const DEFAULT_BUCKET = 'aws-sdk-php-crypto-tests';
 
     private $plaintexts;
     private $decrypted;
@@ -54,18 +57,18 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
         $prefixLength = strlen($prefix);
         $s3Client = self::getSdk()->createS3([
             'region' => $this->region,
-            'version' => 'latest'
+            'version' => 'latest',
         ]);
 
         $objects = $s3Client->listObjects([
             'Bucket' => $bucket,
-            'Prefix' => $prefix
+            'Prefix' => $prefix,
         ]);
 
         foreach ($objects['Contents'] as $objectListing) {
             $object = $s3Client->getObject([
                 'Bucket' => $bucket,
-                'Key' => $objectListing['Key']
+                'Key' => $objectListing['Key'],
             ]);
 
             $this->plaintexts[substr($objectListing['Key'], $prefixLength)]
@@ -81,7 +84,7 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
         $this->region = $region;
 
         $kmsClient = self::getSdk()->createKms([
-            'region' => $region
+            'region' => $region,
         ]);
         $keyArn = $this->getKmsArnFromAlias($kmsClient, $alias);
 
@@ -113,10 +116,10 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
 
             $this->operationParams[$fileKeyPart] = [
                 '@CipherOptions' => [
-                    'Cipher' => $shortCipher
+                    'Cipher' => $shortCipher,
                 ],
                 '@MaterialsProvider' => $materialsProvider,
-                'Bucket' => $this->bucket
+                'Bucket' => $this->bucket,
             ];
         }
     }
@@ -128,7 +131,7 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
     {
         $s3Client = self::getSdk()->createS3([
             'region' => $this->region,
-            'version' => 'latest'
+            'version' => 'latest',
         ]);
         $s3EncryptionClient = new S3EncryptionClient($s3Client);
 
@@ -152,13 +155,13 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
     {
         $materialsProvider = new KmsMaterialsProvider(
             self::getSdk()->createKms([
-                'region' => $this->region
+                'region' => $this->region,
             ])
         );
 
         $s3Client = self::getSdk()->createS3([
             'region' => $this->region,
-            'version' => 'latest'
+            'version' => 'latest',
         ]);
         $s3EncryptionClient = new S3EncryptionClient($s3Client);
 
@@ -170,12 +173,12 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
                     . $this->cipher
                     . '/' . $folder
                     . '/language_' . $language
-                    . '/ciphertext_test_case_' . $fileKeyPart
+                    . '/ciphertext_test_case_' . $fileKeyPart,
             ];
             try {
                 $result = $s3Client->headObject($params);
             } catch (AwsException $exception) {
-                if ($exception->getAwsErrorCode() === "NotFound") {
+                if ($exception->getAwsErrorCode() === 'NotFound') {
                     continue;
                 }
                 throw $exception;
@@ -214,7 +217,7 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
     private function getKmsArnFromAlias(KmsClient $kmsClient, $alias)
     {
         $results = $kmsClient->getPaginator('ListAliases', [
-            'Bucket' => 'my-bucket'
+            'Bucket' => 'my-bucket',
         ]);
 
         foreach ($results as $result) {
@@ -227,4 +230,3 @@ class S3EncryptionContext implements Context, SnippetAcceptingContext
         return '';
     }
 }
-

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
-use \Iterator;
 use Aws\Api\DateTimeResult;
-use GuzzleHttp\Psr7;
-use Psr\Http\Message\StreamInterface;
 use Aws\Api\Parser\Exception\ParserException;
+use GuzzleHttp\Psr7;
+use Iterator;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * @internal Implements a decoder for a binary encoded event stream that will
@@ -14,16 +16,16 @@ use Aws\Api\Parser\Exception\ParserException;
  */
 class DecodingEventStreamIterator implements Iterator
 {
-    const HEADERS = 'headers';
-    const PAYLOAD = 'payload';
+    public const HEADERS = 'headers';
+    public const PAYLOAD = 'payload';
 
-    const LENGTH_TOTAL = 'total_length';
-    const LENGTH_HEADERS = 'headers_length';
+    public const LENGTH_TOTAL = 'total_length';
+    public const LENGTH_HEADERS = 'headers_length';
 
-    const CRC_PRELUDE = 'prelude_crc';
+    public const CRC_PRELUDE = 'prelude_crc';
 
-    const BYTES_PRELUDE = 12;
-    const BYTES_TRAILING = 4;
+    public const BYTES_PRELUDE = 12;
+    public const BYTES_TRAILING = 4;
 
     private static array $preludeFormat = [
         self::LENGTH_TOTAL => 'decodeUint32',
@@ -290,7 +292,7 @@ class DecodingEventStreamIterator implements Iterator
         return unpack('J', $bytes);
     }
 
-    private function decodeBytes($lengthBytes=2): array
+    private function decodeBytes($lengthBytes = 2): array
     {
         if (!isset(self::$lengthFormatMap[$lengthBytes])) {
             throw new ParserException('Undefined variable length format.');
@@ -300,7 +302,7 @@ class DecodingEventStreamIterator implements Iterator
         return [$this->readAndHashBytes($len), $len + $bytes];
     }
 
-    private function decodeString(int $lengthBytes=2): array
+    private function decodeString(int $lengthBytes = 2): array
     {
         if (!isset(self::$lengthFormatMap[$lengthBytes])) {
             throw new ParserException('Undefined variable length format.');
@@ -315,7 +317,7 @@ class DecodingEventStreamIterator implements Iterator
         [$val, $bytes] = $this->decodeInt64();
         return [
             DateTimeResult::createFromFormat('U.u', $val / 1000),
-            $bytes
+            $bytes,
         ];
     }
 
@@ -328,7 +330,7 @@ class DecodingEventStreamIterator implements Iterator
             . substr((string) $val, 12, 4) . '-'
             . substr((string) $val, 16, 4) . '-'
             . substr((string) $val, 20, 12),
-            16
+            16,
         ];
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
 use Aws\Api\Service;
@@ -30,6 +33,7 @@ use Psr\Http\Message\RequestInterface;
  */
 abstract class AbstractRpcV2Serializer
 {
+    use EndpointV2SerializerTrait;
     protected const HEADER_SMITHY_PROTOCOL = 'Smithy-Protocol';
     protected const HEADER_CONTENT_TYPE = 'Content-Type';
     protected const HEADER_ACCEPT = 'Accept';
@@ -39,8 +43,6 @@ abstract class AbstractRpcV2Serializer
     private string|Uri $endpoint;
 
     private bool $isUseEndpointV2;
-
-    use EndpointV2SerializerTrait;
 
     /**
      * @param Service $api Service API description
@@ -60,8 +62,7 @@ abstract class AbstractRpcV2Serializer
     public function __invoke(
         CommandInterface $command,
         mixed $endpoint = null
-    )
-    {
+    ) {
         $commandArgs = $command->toArray();
         $commandName = $command->getName();
         $operation = $this->api->getOperation($commandName);
@@ -185,8 +186,7 @@ abstract class AbstractRpcV2Serializer
     private function buildRequestTarget(
         string $commandName,
         string $requestUri
-    ): string
-    {
+    ): string {
         $requestUri = str_ends_with($requestUri, '/')
             ? $requestUri
             : $requestUri . '/';

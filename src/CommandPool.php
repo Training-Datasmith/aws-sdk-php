@@ -1,9 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws;
 
+use GuzzleHttp\Promise\EachPromise;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\PromisorInterface;
-use GuzzleHttp\Promise\EachPromise;
 
 /**
  * Sends and iterator of commands concurrently using a capped pool size.

@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
-use Aws\Crypto\Cipher\CipherMethod;
 use Aws\Crypto\Cipher\Cbc;
+use Aws\Crypto\Cipher\CipherMethod;
 use GuzzleHttp\Psr7\Stream;
 
 /**
@@ -17,7 +20,7 @@ abstract class AbstractCryptoClient
     public static $supportedCiphers = ['cbc', 'gcm'];
 
     public static $supportedKeyWraps = [
-        KmsMaterialsProvider::WRAP_ALGORITHM_NAME
+        KmsMaterialsProvider::WRAP_ALGORITHM_NAME,
     ];
 
     /**

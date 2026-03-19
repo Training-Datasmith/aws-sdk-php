@@ -1,13 +1,16 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Credentials;
 
 use Aws\Arn\Arn;
 use Aws\Exception\CredentialsException;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7\Request;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -16,18 +19,18 @@ use Psr\Http\Message\ResponseInterface;
  */
 class EcsCredentialProvider
 {
-    const SERVER_URI = 'http://169.254.170.2';
-    const ENV_URI = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI";
-    const ENV_FULL_URI = "AWS_CONTAINER_CREDENTIALS_FULL_URI";
-    const ENV_AUTH_TOKEN = "AWS_CONTAINER_AUTHORIZATION_TOKEN";
-    const ENV_AUTH_TOKEN_FILE = "AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE";
-    const ENV_TIMEOUT = 'AWS_METADATA_SERVICE_TIMEOUT';
-    const EKS_SERVER_HOST_IPV4 = '169.254.170.23';
-    const EKS_SERVER_HOST_IPV6 = 'fd00:ec2::23';
-    const ENV_RETRIES = 'AWS_METADATA_SERVICE_NUM_ATTEMPTS';
+    public const SERVER_URI = 'http://169.254.170.2';
+    public const ENV_URI = 'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI';
+    public const ENV_FULL_URI = 'AWS_CONTAINER_CREDENTIALS_FULL_URI';
+    public const ENV_AUTH_TOKEN = 'AWS_CONTAINER_AUTHORIZATION_TOKEN';
+    public const ENV_AUTH_TOKEN_FILE = 'AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE';
+    public const ENV_TIMEOUT = 'AWS_METADATA_SERVICE_TIMEOUT';
+    public const EKS_SERVER_HOST_IPV4 = '169.254.170.23';
+    public const EKS_SERVER_HOST_IPV6 = 'fd00:ec2::23';
+    public const ENV_RETRIES = 'AWS_METADATA_SERVICE_NUM_ATTEMPTS';
 
-    const DEFAULT_ENV_TIMEOUT = 1.0;
-    const DEFAULT_ENV_RETRIES = 3;
+    public const DEFAULT_ENV_TIMEOUT = 1.0;
+    public const DEFAULT_ENV_RETRIES = 3;
 
     /** @var callable */
     private $client;
@@ -174,8 +177,9 @@ class EcsCredentialProvider
     {
         $authToken = self::getEcsAuthToken();
 
-        if (!empty($authToken))
+        if (!empty($authToken)) {
             return ['Authorization' => $authToken];
+        }
 
         return [];
     }
@@ -185,8 +189,9 @@ class EcsCredentialProvider
     public function setHeaderForAuthToken(): array
     {
         $authToken = self::getEcsAuthToken();
-        if (!empty($authToken))
+        if (!empty($authToken)) {
             return ['Authorization' => $authToken];
+        }
 
         return [];
     }
@@ -204,14 +209,15 @@ class EcsCredentialProvider
             $credsUri = $_SERVER[self::ENV_URI] ?? '';
         }
 
-        if (empty($credsUri)){
+        if (empty($credsUri)) {
             $credFullUri = getenv(self::ENV_FULL_URI);
-            if ($credFullUri === false){
+            if ($credFullUri === false) {
                 $credFullUri = $_SERVER[self::ENV_FULL_URI] ?? '';
             }
 
-            if (!empty($credFullUri))
+            if (!empty($credFullUri)) {
                 return $credFullUri;
+            }
         }
 
         return self::SERVER_URI . $credsUri;

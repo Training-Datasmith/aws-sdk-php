@@ -1,11 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
+use Aws\Api\DocModel;
 use Aws\Api\ListShape;
 use Aws\Api\MapShape;
 use Aws\Api\Shape;
 use Aws\Api\StructureShape;
-use Aws\Api\DocModel;
 
 /**
  * @internal
@@ -158,7 +161,7 @@ class ShapeIterator implements \Iterator
 
         // Create the shape data from the Shape object.
         $data = $this->createShapeData($member);
-        $path[] = $data['param'] = "<index>";
+        $path[] = $data['param'] = '<index>';
         $data['docs'] = $this->docs->getShapeDocs($member->getName(), $shape->getName(), 'member');
         $data['recursive'] = $this->getRecursionPath($member, $visited);
         $data['path'] = $path;

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudSearch;
 
 use Aws\AwsClient;
@@ -59,4 +62,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateServiceAccessPolicies(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateServiceAccessPoliciesAsync(array $args = [])
  */
-class CloudSearchClient extends AwsClient {}
+class CloudSearchClient extends AwsClient
+{
+}

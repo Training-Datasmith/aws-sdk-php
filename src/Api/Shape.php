@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api;
 
 /**
@@ -28,7 +31,7 @@ class Shape extends AbstractModel
             'byte'      => Shape::class,
             'character' => Shape::class,
             'blob'      => Shape::class,
-            'boolean'   => Shape::class
+            'boolean'   => Shape::class,
         ];
 
         if (isset($definition['shape'])) {

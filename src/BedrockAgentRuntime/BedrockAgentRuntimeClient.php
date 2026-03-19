@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BedrockAgentRuntime;
 
 use Aws\AwsClient;
@@ -68,4 +71,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateSession(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateSessionAsync(array $args = [])
  */
-class BedrockAgentRuntimeClient extends AwsClient {}
+class BedrockAgentRuntimeClient extends AwsClient
+{
+}

@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudTrail;
 
-use Aws\S3\S3Client;
 use Aws\CloudTrail\Exception\CloudTrailException;
+use Aws\S3\S3Client;
 
 /**
  * The `Aws\CloudTrail\LogFileIterator` provides an easy way to iterate over
@@ -19,17 +22,17 @@ use Aws\CloudTrail\Exception\CloudTrailException;
 class LogFileIterator extends \IteratorIterator
 {
     // For internal use
-    const DEFAULT_TRAIL_NAME = 'Default';
-    const PREFIX_TEMPLATE = 'prefix/AWSLogs/account/CloudTrail/region/date/';
-    const PREFIX_WILDCARD = '*';
+    public const DEFAULT_TRAIL_NAME = 'Default';
+    public const PREFIX_TEMPLATE = 'prefix/AWSLogs/account/CloudTrail/region/date/';
+    public const PREFIX_WILDCARD = '*';
 
     // Option names used internally or externally
-    const TRAIL_NAME = 'trail_name';
-    const KEY_PREFIX = 'key_prefix';
-    const START_DATE = 'start_date';
-    const END_DATE = 'end_date';
-    const ACCOUNT_ID = 'account_id';
-    const LOG_REGION = 'log_region';
+    public const TRAIL_NAME = 'trail_name';
+    public const KEY_PREFIX = 'key_prefix';
+    public const START_DATE = 'start_date';
+    public const END_DATE = 'end_date';
+    public const ACCOUNT_ID = 'account_id';
+    public const LOG_REGION = 'log_region';
 
     /**
      * Constructs a LogRecordIterator. This factory method is used if the name
@@ -56,7 +59,7 @@ class LogFileIterator extends \IteratorIterator
         // including the bucket name.
         try {
             $result = $cloudTrailClient->describeTrails([
-                'trailNameList' => [$trailName]
+                'trailNameList' => [$trailName],
             ]);
             $s3BucketName = $result->search('trailList[0].S3BucketName');
             $options[self::KEY_PREFIX] = $result->search(
@@ -118,7 +121,7 @@ class LogFileIterator extends \IteratorIterator
         if ($object = parent::current()) {
             return [
                 'Bucket' => $this->s3BucketName,
-                'Key'    => $object['Key']
+                'Key'    => $object['Key'],
             ];
         }
 
@@ -257,7 +260,7 @@ class LogFileIterator extends \IteratorIterator
                 // match the provided options.
                 $objectsIterator = new \CallbackFilterIterator(
                     $objectsIterator,
-                    fn($object) => preg_match("#{$regex}#", (string) $object['Key'])
+                    fn ($object) => preg_match("#{$regex}#", (string) $object['Key'])
                 );
             }
         }

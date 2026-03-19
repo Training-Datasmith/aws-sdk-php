@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ApiGatewayManagementApi\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **AmazonApiGatewayManagementApi** service.
  */
-class ApiGatewayManagementApiException extends AwsException {}
+class ApiGatewayManagementApiException extends AwsException
+{
+}

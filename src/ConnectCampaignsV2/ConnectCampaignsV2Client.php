@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ConnectCampaignsV2;
 
 use Aws\AwsClient;
@@ -76,4 +79,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateCampaignSource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateCampaignSourceAsync(array $args = [])
  */
-class ConnectCampaignsV2Client extends AwsClient {}
+class ConnectCampaignsV2Client extends AwsClient
+{
+}

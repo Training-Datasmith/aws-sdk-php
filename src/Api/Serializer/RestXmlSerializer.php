@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
-use Aws\Api\StructureShape;
 use Aws\Api\Service;
+use Aws\Api\StructureShape;
 
 /**
  * @internal
@@ -36,8 +39,8 @@ class RestXmlSerializer extends RestSerializer
     private function getXmlBody(StructureShape $member, array $value): string
     {
         $xmlBody = $this->xmlBody->build($member, $value);
-        $xmlBody = str_replace("'", "&apos;", $xmlBody);
-        $xmlBody = str_replace('\r', "&#13;", $xmlBody);
-        return str_replace('\n', "&#10;", $xmlBody);
+        $xmlBody = str_replace("'", '&apos;', $xmlBody);
+        $xmlBody = str_replace('\r', '&#13;', $xmlBody);
+        return str_replace('\n', '&#10;', $xmlBody);
     }
 }

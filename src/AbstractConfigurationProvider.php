@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws;
 
 use GuzzleHttp\Promise;
@@ -10,8 +13,8 @@ use GuzzleHttp\Promise;
  */
 abstract class AbstractConfigurationProvider
 {
-    const ENV_PROFILE = 'AWS_PROFILE';
-    const ENV_CONFIG_FILE = 'AWS_CONFIG_FILE';
+    public const ENV_PROFILE = 'AWS_PROFILE';
+    public const ENV_CONFIG_FILE = 'AWS_CONFIG_FILE';
 
     public static $cacheKey;
 

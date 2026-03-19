@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
-use \Iterator;
-use Aws\Exception\EventStreamDataException;
 use Aws\Api\Parser\Exception\ParserException;
 use Aws\Api\StructureShape;
+use Aws\Exception\EventStreamDataException;
+use Iterator;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -116,7 +118,7 @@ class EventParsingIterator implements Iterator
             $eventType => array_merge(
                 $this->parseEventHeaders($event['headers'], $eventShape),
                 $this->parseEventPayload($eventPayload, $eventShape)
-            )
+            ),
         ];
     }
 
@@ -179,7 +181,8 @@ class EventParsingIterator implements Iterator
         );
     }
 
-    private function parseException(array $event): never {
+    private function parseException(array $event): never
+    {
         $payload = $event['payload']?->getContents();
         $parsedPayload = json_decode((string) $payload, true);
 

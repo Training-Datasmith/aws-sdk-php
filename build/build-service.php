@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/ServiceBuilder.php';
 
@@ -7,13 +9,13 @@ $options = getopt('', [
     'namespace:',
     'model:',
     'clientPath:',
-    'exceptionPath:'
+    'exceptionPath:',
 ]);
 
 if (empty($options['namespace']) || empty($options['model'])) {
     throw new LogicException(
-        "You must specify a namespace (--namespace=) and path to an api model "
-        . "(--model=) to build a service"
+        'You must specify a namespace (--namespace=) and path to an api model '
+        . '(--model=) to build a service'
     );
 }
 

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\B2bi;
 
 use Aws\AwsClient;
@@ -66,4 +69,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateTransformer(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateTransformerAsync(array $args = [])
  */
-class B2biClient extends AwsClient {}
+class B2biClient extends AwsClient
+{
+}

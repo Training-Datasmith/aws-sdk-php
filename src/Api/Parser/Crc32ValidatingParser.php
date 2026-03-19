@@ -1,12 +1,15 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\StructureShape;
 use Aws\CommandInterface;
 use Aws\Exception\AwsException;
+use GuzzleHttp\Psr7;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use GuzzleHttp\Psr7;
 
 /**
  * @internal Decorates a parser and validates the x-amz-crc32 header.
@@ -34,7 +37,7 @@ class Crc32ValidatingParser extends AbstractParser
                     [
                         'code'             => 'ClientChecksumMismatch',
                         'connection_error' => true,
-                        'response'         => $response
+                        'response'         => $response,
                     ]
                 );
             }

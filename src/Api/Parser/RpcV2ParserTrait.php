@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\Cbor\Exception\CborException;
@@ -80,8 +83,7 @@ trait RpcV2ParserTrait
     protected function parseCbor(
         StreamInterface $stream,
         ResponseInterface $response
-    ): mixed
-    {
+    ): mixed {
         try {
             $cborString = (string) $stream;
             return empty($cborString)

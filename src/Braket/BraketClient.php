@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Braket;
 
 use Aws\AwsClient;
@@ -40,4 +43,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateSpendingLimit(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateSpendingLimitAsync(array $args = [])
  */
-class BraketClient extends AwsClient {}
+class BraketClient extends AwsClient
+{
+}

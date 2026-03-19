@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Cbor;
 
 use Aws\Cbor\Exception\CborException;
@@ -168,10 +171,10 @@ final class CborEncoder
                     return "\xC1\xFB" . pack('E', $timestamp + $micro / 1e6);
                 }
 
-                throw new CborException("Cannot encode object of type: " . $value::class);
+                throw new CborException('Cannot encode object of type: ' . $value::class);
 
             default:
-                throw new CborException("Cannot encode value of type: " . gettype($value));
+                throw new CborException('Cannot encode value of type: ' . gettype($value));
         }
     }
 

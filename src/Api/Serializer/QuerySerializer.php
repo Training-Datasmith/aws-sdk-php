@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Serializer;
 
 use Aws\Api\Service;
@@ -40,12 +43,11 @@ class QuerySerializer
     public function __invoke(
         CommandInterface $command,
         $endpoint = null
-    )
-    {
+    ) {
         $operation = $this->api->getOperation($command->getName());
         $body = [
             'Action'  => $command->getName(),
-            'Version' => $this->api->getMetadata('apiVersion')
+            'Version' => $this->api->getMetadata('apiVersion'),
         ];
         $commandArgs = $command->toArray();
 
@@ -60,7 +62,7 @@ class QuerySerializer
         $body = http_build_query($body, '', '&', PHP_QUERY_RFC3986);
         $headers = [
             'Content-Length' => strlen($body),
-            'Content-Type'   => 'application/x-www-form-urlencoded'
+            'Content-Type'   => 'application/x-www-form-urlencoded',
         ];
         $requestUri = $operation['http']['requestUri'] ?? null;
 

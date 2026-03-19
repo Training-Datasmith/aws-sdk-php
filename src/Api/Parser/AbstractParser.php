@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\Service;
@@ -53,8 +56,7 @@ abstract class AbstractParser
 
     public static function getResponseWithCachingStream(
         ResponseInterface $response
-    ): ResponseInterface
-    {
+    ): ResponseInterface {
         if (!$response->getBody()->isSeekable()) {
             return $response->withBody(
                 new CachingStream($response->getBody())

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
 /**
@@ -58,16 +61,16 @@ class ExampleBuilder
         // Write the parameter value.
         if ($shape['complex']) {
             if ($shape['recursive']) {
-                $this->buffer .= "[...],";
+                $this->buffer .= '[...],';
             } elseif (!in_array($shape['complex'], ['structure', 'list', 'map', 'mixed'])) {
-                $this->buffer .= "[" . $this->getSimpleValue(['type' => $shape['complex']]) . ", ...],";
+                $this->buffer .= '[' . $this->getSimpleValue(['type' => $shape['complex']]) . ', ...],';
                 $this->skipLevel += 2;
             } else {
-                $this->buffer .= "[";
+                $this->buffer .= '[';
                 $this->tabLevel++;
             }
         } else {
-            $this->buffer .= $this->getSimpleValue($shape) . ",";
+            $this->buffer .= $this->getSimpleValue($shape) . ',';
         }
 
         $this->buffer .= $this->getTags($shape);

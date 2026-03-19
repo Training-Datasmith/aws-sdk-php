@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Backup;
 
 use Aws\AwsClient;
@@ -222,4 +225,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateTieringConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateTieringConfigurationAsync(array $args = [])
  */
-class BackupClient extends AwsClient {}
+class BackupClient extends AwsClient
+{
+}

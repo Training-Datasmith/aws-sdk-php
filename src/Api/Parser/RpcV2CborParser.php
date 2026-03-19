@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\Cbor\CborDecoder;
@@ -15,11 +18,10 @@ use Psr\Http\Message\StreamInterface;
  */
 final class RpcV2CborParser extends AbstractRpcV2Parser
 {
+    use RpcV2ParserTrait;
     protected static string $smithyProtocol = 'rpc-v2-cbor';
 
     private CborDecoder $decoder;
-
-    use RpcV2ParserTrait;
 
     /**
      * @param Service $api Service description
@@ -38,8 +40,7 @@ final class RpcV2CborParser extends AbstractRpcV2Parser
         StreamInterface $stream,
         StructureShape $member,
         $response
-    ): mixed
-    {
+    ): mixed {
         return $this->resolveOutputShape($member, $this->parseCbor($stream, $response));
     }
 }

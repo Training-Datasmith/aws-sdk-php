@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Test\Integ;
 
 use Aws;
@@ -221,7 +224,7 @@ class SmokeContext implements
         $sqs->deleteQueue([
             'QueueUrl' => $sqs->getQueueUrl([
                 'QueueName' => self::getResourcePrefix() . 'testing-queue',
-            ])['QueueUrl']
+            ])['QueueUrl'],
         ]);
     }
 
@@ -258,7 +261,7 @@ class SmokeContext implements
     public function setUp(BeforeScenarioScope $scope)
     {
         foreach ($scope->getFeature()->getTags() as $tag) {
-            try{
+            try {
                 $this->serviceName = Aws\manifest($tag)['namespace'];
                 break;
             } catch (\Exception $e) {
@@ -322,7 +325,7 @@ class SmokeContext implements
         try {
             $this->iCallTheApiWith($command, $payload);
         } catch (AwsException $e) {
-            $this->error= $e;
+            $this->error = $e;
         }
     }
 
@@ -337,7 +340,7 @@ class SmokeContext implements
         try {
             $this->iCallTheApiWithJson($command, $payload);
         } catch (AwsException $e) {
-            $this->error= $e;
+            $this->error = $e;
         }
     }
 

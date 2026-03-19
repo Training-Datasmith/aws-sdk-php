@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
+use Aws\Api\Parser\Exception\ParserException;
 use GuzzleHttp\Psr7;
 use Psr\Http\Message\StreamInterface;
-use Aws\Api\Parser\Exception\ParserException;
 
 /**
  * @inheritDoc

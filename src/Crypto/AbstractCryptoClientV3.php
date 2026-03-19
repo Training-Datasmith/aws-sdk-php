@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 use Aws\Crypto\Cipher\CipherMethod;
@@ -11,20 +13,20 @@ use GuzzleHttp\Psr7\Stream;
  */
 abstract class AbstractCryptoClientV3
 {
-    const SUPPORTED_SECURITY_PROFILES = ['V3', 'V3_AND_LEGACY'];
+    public const SUPPORTED_SECURITY_PROFILES = ['V3', 'V3_AND_LEGACY'];
 
-    const LEGACY_SECURITY_PROFILES = ['V3_AND_LEGACY'];
+    public const LEGACY_SECURITY_PROFILES = ['V3_AND_LEGACY'];
 
-    const KEY_COMMITMENT_POLICIES = [
+    public const KEY_COMMITMENT_POLICIES = [
         'FORBID_ENCRYPT_ALLOW_DECRYPT',
         'REQUIRE_ENCRYPT_ALLOW_DECRYPT',
-        'REQUIRE_ENCRYPT_REQUIRE_DECRYPT'
+        'REQUIRE_ENCRYPT_REQUIRE_DECRYPT',
     ];
 
     public static array $supportedCiphers = ['gcm'];
 
     public static array $supportedKeyWraps = [
-        KmsMaterialsProviderV3::WRAP_ALGORITHM_NAME
+        KmsMaterialsProviderV3::WRAP_ALGORITHM_NAME,
     ];
 
     /**

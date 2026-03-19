@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\AccessAnalyzer;
 
 use Aws\AwsClient;
@@ -80,4 +83,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validatePolicy(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validatePolicyAsync(array $args = [])
  */
-class AccessAnalyzerClient extends AwsClient {}
+class AccessAnalyzerClient extends AwsClient
+{
+}

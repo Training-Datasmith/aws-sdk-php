@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CleanRoomsML;
 
 use Aws\AwsClient;
@@ -124,4 +127,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateConfiguredAudienceModel(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateConfiguredAudienceModelAsync(array $args = [])
  */
-class CleanRoomsMLClient extends AwsClient {}
+class CleanRoomsMLClient extends AwsClient
+{
+}

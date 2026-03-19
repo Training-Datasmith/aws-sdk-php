@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
 abstract class MaterialsProviderV2 implements MaterialsProviderInterfaceV2

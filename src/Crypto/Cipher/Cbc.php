@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto\Cipher;
 
-use \InvalidArgumentException;
-use \LogicException;
+use InvalidArgumentException;
+use LogicException;
 
 /**
  * An implementation of the CBC cipher for use with an AesEncryptingStream or
@@ -16,7 +19,7 @@ use \LogicException;
  */
 class Cbc implements CipherMethod
 {
-    const BLOCK_SIZE = 16;
+    public const BLOCK_SIZE = 16;
 
     /**
      * @var string

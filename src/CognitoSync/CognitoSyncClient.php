@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CognitoSync;
 
 use Aws\AwsClient;
@@ -41,4 +44,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRecords(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRecordsAsync(array $args = [])
  */
-class CognitoSyncClient extends AwsClient {}
+class CognitoSyncClient extends AwsClient
+{
+}

@@ -1,19 +1,21 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Crypto;
 
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use \LogicException;
-use Psr\Http\Message\StreamInterface;
 use Aws\Crypto\Cipher\CipherMethod;
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use LogicException;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * @internal Represents a stream of data to be encrypted with a passed cipher.
  */
 class AesEncryptingStream implements AesStreamInterface
 {
-    const BLOCK_SIZE = 16; // 128 bits
-
     use StreamDecoratorTrait;
+    public const BLOCK_SIZE = 16; // 128 bits
 
     private string $buffer = '';
 

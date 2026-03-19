@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CodeArtifact;
 
 use Aws\AwsClient;
@@ -102,4 +105,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRepository(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRepositoryAsync(array $args = [])
  */
-class CodeArtifactClient extends AwsClient {}
+class CodeArtifactClient extends AwsClient
+{
+}

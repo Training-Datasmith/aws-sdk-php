@@ -1,11 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\Operation;
-use Aws\Api\StructureShape;
 use Aws\Api\Service;
-use Aws\Result;
+use Aws\Api\StructureShape;
 use Aws\CommandInterface;
+use Aws\Result;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 
@@ -56,7 +59,7 @@ class JsonRpcParser extends AbstractParser
                         $response->getBody(),
                         $outputShape->getMember($memberName),
                         $this
-                    )
+                    ),
                 ]);
             }
         }

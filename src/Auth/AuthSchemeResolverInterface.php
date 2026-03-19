@@ -1,8 +1,8 @@
 <?php
 
-namespace Aws\Auth;
+declare(strict_types=1);
 
-use Aws\Identity\IdentityInterface;
+namespace Aws\Auth;
 
 /**
  * An AuthSchemeResolver object determines which auth scheme will be used for request signing.

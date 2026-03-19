@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
 /**
@@ -58,7 +61,8 @@ class HtmlDocument
         $this->lines[$this->currentLine++] = $this->getTab() . '</' . $tag . '>';
 
         if ($collapse) {
-            $this->lines[$startLine] = $this->lines[$startLine] . implode('', array_map('trim',
+            $this->lines[$startLine] = $this->lines[$startLine] . implode('', array_map(
+                'trim',
                 array_slice($this->lines, $startLine + 1, $this->currentLine - $startLine + 1)
             ));
             $this->currentLine = $startLine + 1;

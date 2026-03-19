@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BackupGateway\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **AWS Backup Gateway** service.
  */
-class BackupGatewayException extends AwsException {}
+class BackupGatewayException extends AwsException
+{
+}

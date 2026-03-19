@@ -1,10 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Parser;
 
 use Aws\Api\Operation;
 use Aws\Api\Parser\Exception\ParserException;
-use Aws\Result;
 use Aws\CommandInterface;
+use Aws\Result;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -41,8 +44,7 @@ abstract class AbstractRpcV2Parser extends AbstractParser
     private function parseResponse(
         ResponseInterface $response,
         Operation $operation
-    ): Result
-    {
+    ): Result {
         $smithyProtocolHeader = $response->getHeaderLine(self::HEADER_SMITHY_PROTOCOL);
         if ($smithyProtocolHeader !== static::$smithyProtocol) {
             $statusCode = $response->getStatusCode();
@@ -64,7 +66,7 @@ abstract class AbstractRpcV2Parser extends AbstractParser
                         $response->getBody(),
                         $outputShape->getMember($memberName),
                         $this
-                    )
+                    ),
                 ]);
             }
         }

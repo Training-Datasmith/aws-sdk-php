@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Build\Docs;
 
 use Aws\Api\ApiProvider;
@@ -25,8 +28,8 @@ class RedirectMapBuilder
     public function build()
     {
         $redirectEntry = [];
-        $reWriteRulePrefix = "RewriteRule ^/goto/SdkForPHPV3/";
-        $docPathPrefix = " /aws-sdk-php/v3/api/";
+        $reWriteRulePrefix = 'RewriteRule ^/goto/SdkForPHPV3/';
+        $docPathPrefix = ' /aws-sdk-php/v3/api/';
         $flags = " [L,R,NE]\n";
         $skipCount = 0;
         // Using latest version per service
@@ -44,9 +47,9 @@ class RedirectMapBuilder
                 // Skip rewrite rule if service doesn't has a uid in metadata
                 if ($service->uid) {
                     $entry = $reWriteRulePrefix . $service->uid . '/' . $key . '$';
-                    $entry .= $docPathPrefix . 'api-' . $service->slug . ".html#" . strtolower($key);
+                    $entry .= $docPathPrefix . 'api-' . $service->slug . '.html#' . strtolower($key);
 
-                    $redirectEntry []= $entry . $flags;
+                    $redirectEntry [] = $entry . $flags;
                     $skipCount++;
                 }
             }
@@ -56,23 +59,25 @@ class RedirectMapBuilder
             } else {
                 $servicePrefix = $service->name;
             }
-            $redirectEntry []= $reWriteRulePrefix . $servicePrefix . '(.*)'
+            $redirectEntry [] = $reWriteRulePrefix . $servicePrefix . '(.*)'
                 . $docPathPrefix . 'class-Aws.'. $service->namespace . '.'
                 . $service->namespace . 'Client.html' . $flags;
             $skipCount++;
         }
         // Apply skip check at beginning if not PHP SDK related
-        array_unshift($redirectEntry,
+        array_unshift(
+            $redirectEntry,
             "RewriteCond %{REQUEST_URI} !^\\/goto\\/SdkForPHPV3\\/.*$\n",
             "RewriteRule \".*\" \"-\" [S={$skipCount}]\n"
         );
 
         // Fall back to api main page if service not found
-        $redirectEntry []= $reWriteRulePrefix . '(.*)' . $docPathPrefix . 'index.html' . $flags;
+        $redirectEntry [] = $reWriteRulePrefix . '(.*)' . $docPathPrefix . 'index.html' . $flags;
 
         // Redirect old /AWSSDKforPHP/ paths
         $reWriteRulePrefix = 'RewriteRule ^/AWSSDKforPHP/';
-        array_unshift($redirectEntry,
+        array_unshift(
+            $redirectEntry,
             "RewriteCond %{REQUEST_URI} !^\\/AWSSDKforPHP\\/.*$\n",
             "RewriteRule \".*\" \"-\" [S={4}]\n",
             $reWriteRulePrefix . 'latest(.*) /aws-sdk-php/latest/index.html' . $flags,

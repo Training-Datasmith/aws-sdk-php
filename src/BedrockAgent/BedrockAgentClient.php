@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\BedrockAgent;
 
 use Aws\AwsClient;
@@ -150,4 +153,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validateFlowDefinition(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validateFlowDefinitionAsync(array $args = [])
  */
-class BedrockAgentClient extends AwsClient {}
+class BedrockAgentClient extends AwsClient
+{
+}

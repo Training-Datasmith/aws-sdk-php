@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CloudFront;
 
 use GuzzleHttp\Psr7;
@@ -114,6 +117,6 @@ class UrlSigner
         }
 
         throw new \InvalidArgumentException("Invalid URI scheme: {$scheme}. "
-            . "Scheme must be one of: http, https, or rtmp");
+            . 'Scheme must be one of: http, https, or rtmp');
     }
 }

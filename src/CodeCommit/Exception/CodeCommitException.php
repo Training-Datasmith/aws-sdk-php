@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\CodeCommit\Exception;
 
 use Aws\Exception\AwsException;
@@ -6,4 +9,6 @@ use Aws\Exception\AwsException;
 /**
  * Represents an error interacting with the **AWS CodeCommit** service.
  */
-class CodeCommitException extends AwsException {}
+class CodeCommitException extends AwsException
+{
+}

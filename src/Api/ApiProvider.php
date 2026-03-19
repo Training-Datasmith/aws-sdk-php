@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api;
 
 use Aws\Exception\UnresolvedApiException;
@@ -72,11 +75,11 @@ class ApiProvider
 
         // Throw an exception with a message depending on the inputs.
         if (!isset(self::$typeMap[$type])) {
-            $msg = "The type must be one of: " . implode(', ', self::$typeMap);
+            $msg = 'The type must be one of: ' . implode(', ', self::$typeMap);
         } elseif ($service) {
             $msg = "The {$service} service does not have version: {$version}.";
         } else {
-            $msg = "You must specify a service name to retrieve its API data.";
+            $msg = 'You must specify a service name to retrieve its API data.';
         }
 
         throw new UnresolvedApiException($msg);
@@ -224,8 +227,8 @@ class ApiProvider
         } else {
             $this->manifest[$service] = [
                 'versions' => [
-                    'latest' => $results[0]
-                ]
+                    'latest' => $results[0],
+                ],
             ];
             $this->manifest[$service]['versions'] += array_combine($results, $results);
         }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\Api\Cbor;
 
 use Aws\Api\Cbor\Exception\CborException;
@@ -30,14 +33,14 @@ final class CborDecoder
      * Decode CBOR binary data to PHP value
      *
      * @param string $data The CBOR-encoded binary data to decode
-     * 
+     *
      * @return mixed The decoded PHP value (can be any type: int, string, array, bool, null, float)
      * @throws CborException If data is empty or malformed CBOR
      */
     public function decode(string $data): mixed
     {
         if ($data === '') {
-            throw new CborException("No data to decode");
+            throw new CborException('No data to decode');
         }
 
         $this->offset = 0;
@@ -50,7 +53,7 @@ final class CborDecoder
      * Decode multiple CBOR values from sequential binary data
      *
      * @param string $data The CBOR-encoded binary data containing multiple values
-     * 
+     *
      * @return array Array of decoded PHP values in the order they appear in the data
      * @throws CborException If data is malformed CBOR
      */
@@ -71,7 +74,7 @@ final class CborDecoder
      * Decodes a single CBOR value at the current offset
      *
      * @param string $data Reference to the CBOR data being decoded
-     * 
+     *
      * @return mixed The decoded value
      * @throws CborException If unexpected end of data or invalid CBOR format
      */
@@ -81,7 +84,7 @@ final class CborDecoder
         $length = $this->length;
 
         if ($offset >= $length) {
-            throw new CborException("Unexpected end of data");
+            throw new CborException('Unexpected end of data');
         }
 
         $byte = ord($data[$offset++]);
@@ -99,7 +102,7 @@ final class CborDecoder
                 switch ($info) {
                     case 24:
                         if ($offset >= $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 1;
@@ -108,7 +111,7 @@ final class CborDecoder
 
                     case 25:
                         if ($offset + 2 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 2;
@@ -117,7 +120,7 @@ final class CborDecoder
 
                     case 26:
                         if ($offset + 4 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 4;
@@ -126,7 +129,7 @@ final class CborDecoder
 
                     case 27:
                         if ($offset + 8 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 8;
@@ -137,6 +140,7 @@ final class CborDecoder
                         throw new CborException("Invalid additional info for integer: $info");
                 }
 
+                // no break
             case 1: // Negative integer
                 if ($info < 24) {
                     $this->offset = $offset;
@@ -147,7 +151,7 @@ final class CborDecoder
                 switch ($info) {
                     case 24:
                         if ($offset >= $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 1;
@@ -156,7 +160,7 @@ final class CborDecoder
 
                     case 25:
                         if ($offset + 2 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 2;
@@ -165,7 +169,7 @@ final class CborDecoder
 
                     case 26:
                         if ($offset + 4 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 4;
@@ -174,7 +178,7 @@ final class CborDecoder
 
                     case 27:
                         if ($offset + 8 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 8;
@@ -186,6 +190,7 @@ final class CborDecoder
                         throw new CborException("Invalid additional info for integer: $info");
                 }
 
+                // no break
             case 2: // Byte string
                 if ($info < 24) {
                     $len = $info;
@@ -193,7 +198,7 @@ final class CborDecoder
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = ord($data[$offset++]);
@@ -201,7 +206,7 @@ final class CborDecoder
 
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
@@ -210,7 +215,7 @@ final class CborDecoder
 
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = unpack('N', $data, $offset)[1];
@@ -219,7 +224,7 @@ final class CborDecoder
 
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = unpack('J', $data, $offset)[1];
@@ -237,7 +242,7 @@ final class CborDecoder
                 }
 
                 if ($offset + $len > $length) {
-                    throw new CborException("Not enough data");
+                    throw new CborException('Not enough data');
                 }
 
                 $this->offset = $offset + $len;
@@ -251,7 +256,7 @@ final class CborDecoder
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = ord($data[$offset++]);
@@ -259,7 +264,7 @@ final class CborDecoder
 
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
@@ -268,7 +273,7 @@ final class CborDecoder
 
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = unpack('N', $data, $offset)[1];
@@ -277,7 +282,7 @@ final class CborDecoder
 
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $len = unpack('J', $data, $offset)[1];
@@ -295,7 +300,7 @@ final class CborDecoder
                 }
 
                 if ($offset + $len > $length) {
-                    throw new CborException("Not enough data");
+                    throw new CborException('Not enough data');
                 }
 
                 $this->offset = $offset + $len;
@@ -309,7 +314,7 @@ final class CborDecoder
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = ord($data[$offset++]);
@@ -317,7 +322,7 @@ final class CborDecoder
 
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
@@ -326,7 +331,7 @@ final class CborDecoder
 
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = unpack('N', $data, $offset)[1];
@@ -335,7 +340,7 @@ final class CborDecoder
 
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = unpack('J', $data, $offset)[1];
@@ -368,7 +373,7 @@ final class CborDecoder
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = ord($data[$offset++]);
@@ -376,7 +381,7 @@ final class CborDecoder
 
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
@@ -385,7 +390,7 @@ final class CborDecoder
 
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = unpack('N', $data, $offset)[1];
@@ -394,7 +399,7 @@ final class CborDecoder
 
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException("Not enough data");
+                                throw new CborException('Not enough data');
                             }
 
                             $count = unpack('J', $data, $offset)[1];
@@ -464,7 +469,7 @@ final class CborDecoder
 
                     case 25: // Half-precision float
                         if ($offset + 2 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 2;
@@ -487,7 +492,7 @@ final class CborDecoder
 
                     case 26: // Single-precision float
                         if ($offset + 4 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 4;
@@ -496,7 +501,7 @@ final class CborDecoder
 
                     case 27: // Double-precision float
                         if ($offset + 8 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $this->offset = $offset + 8;
@@ -504,12 +509,13 @@ final class CborDecoder
                         return unpack('E', $data, $offset)[1];
 
                     case 31:
-                        throw new CborException("Unexpected break");
+                        throw new CborException('Unexpected break');
 
                     default:
                         throw new CborException("Unknown simple value: $info");
                 }
 
+                // no break
             default:
                 throw new CborException("Unknown major type: $majorType");
         }
@@ -520,7 +526,7 @@ final class CborDecoder
      *
      * @param string $data Reference to the CBOR data being decoded
      * @param int $expectedMajor Expected major type (0x40 for byte string, 0x60 for text string)
-     * 
+     *
      * @return string The concatenated string from all chunks
      * @throws CborException If invalid chunk format or unexpected end of data
      */
@@ -533,7 +539,7 @@ final class CborDecoder
             $length = $this->length;
 
             if ($offset >= $length) {
-                throw new CborException("Unexpected end of data");
+                throw new CborException('Unexpected end of data');
             }
 
             $byte = ord($data[$offset++]);
@@ -545,13 +551,13 @@ final class CborDecoder
             }
 
             if (($byte & 0xE0) !== $expectedMajor) {
-                throw new CborException("Invalid chunk in indefinite string");
+                throw new CborException('Invalid chunk in indefinite string');
             }
 
             $info = $byte & 0x1F;
 
             if ($info === 31) {
-                throw new CborException("Nested indefinite string");
+                throw new CborException('Nested indefinite string');
             }
 
             if ($info < 24) {
@@ -560,7 +566,7 @@ final class CborDecoder
                 switch ($info) {
                     case 24:
                         if ($offset >= $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $len = ord($data[$offset++]);
@@ -568,7 +574,7 @@ final class CborDecoder
 
                     case 25:
                         if ($offset + 2 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $len = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
@@ -577,7 +583,7 @@ final class CborDecoder
 
                     case 26:
                         if ($offset + 4 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $len = unpack('N', $data, $offset)[1];
@@ -586,7 +592,7 @@ final class CborDecoder
 
                     case 27:
                         if ($offset + 8 > $length) {
-                            throw new CborException("Not enough data");
+                            throw new CborException('Not enough data');
                         }
 
                         $len = unpack('J', $data, $offset)[1];
@@ -599,7 +605,7 @@ final class CborDecoder
             }
 
             if ($offset + $len > $length) {
-                throw new CborException("Not enough data for chunk");
+                throw new CborException('Not enough data for chunk');
             }
 
             $chunks[] = substr($data, $offset, $len);
@@ -611,7 +617,7 @@ final class CborDecoder
      * Decode indefinite-length array
      *
      * @param string $data Reference to the CBOR data being decoded
-     * 
+     *
      * @return array The decoded array elements
      * @throws CborException If unexpected end of data
      */
@@ -621,7 +627,7 @@ final class CborDecoder
 
         while (true) {
             if ($this->offset >= $this->length) {
-                throw new CborException("Unexpected end of data");
+                throw new CborException('Unexpected end of data');
             }
 
             if (ord($data[$this->offset]) === 0xFF) {
@@ -638,7 +644,7 @@ final class CborDecoder
      * Decode indefinite-length map
      *
      * @param string $data Reference to the CBOR data being decoded
-     * 
+     *
      * @return array The decoded map as associative array
      * @throws CborException If unexpected end of data or odd number of items
      */
@@ -648,7 +654,7 @@ final class CborDecoder
 
         while (true) {
             if ($this->offset >= $this->length) {
-                throw new CborException("Unexpected end of data");
+                throw new CborException('Unexpected end of data');
             }
 
             if (ord($data[$this->offset]) === 0xFF) {

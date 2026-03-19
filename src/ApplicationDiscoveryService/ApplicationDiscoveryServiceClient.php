@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Aws\ApplicationDiscoveryService;
 
 use Aws\AwsClient;
@@ -62,4 +65,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateApplication(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateApplicationAsync(array $args = [])
  */
-class ApplicationDiscoveryServiceClient extends AwsClient {}
+class ApplicationDiscoveryServiceClient extends AwsClient
+{
+}
