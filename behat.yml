@@ -2,46 +2,46 @@ default:
     suites:
         smoke:
             paths: [ "%paths.base%/features/smoke" ]
-            contexts: [ Aws\Test\Integ\SmokeContext ]
+            contexts: [ Aws\Test\Integ\Smoke_Context ]
         performance:
             paths: [ "%paths.base%/features/performance" ]
-            contexts: [ Aws\Test\PerformanceContext ]
+            contexts: [ Aws\Test\Performance_Context ]
         multipart:
             paths: [ "%paths.base%/features/multipart" ]
-            contexts: [ Aws\Test\Integ\MultipartContext ]
+            contexts: [ Aws\Test\Integ\Multipart_Context ]
         batching:
             paths: [ "%paths.base%/features/batching" ]
-            contexts: [ Aws\Test\Integ\BatchingContext ]
+            contexts: [ Aws\Test\Integ\Batching_Context ]
         blocking:
             paths: [ "%paths.base%/features/blocking" ]
-            contexts: [ Aws\Test\Integ\BlockingContext ]
+            contexts: [ Aws\Test\Integ\Blocking_Context ]
         clientSideMonitoring:
             paths: [ "%paths.base%/features/clientSideMonitoring" ]
-            contexts: [ Aws\Test\Integ\ClientSideMonitoringContext ]
+            contexts: [ Aws\Test\Integ\Client_Side_Monitoring_Context ]
         concurrency:
             paths: [ "%paths.base%/features/concurrency" ]
-            contexts: [ Aws\Test\Integ\ConcurrencyContext ]
+            contexts: [ Aws\Test\Integ\Concurrency_Context ]
         crt:
             paths: [ "%paths.base%/features/crt" ]
-            contexts: [ Aws\Test\Integ\CrtContext ]
+            contexts: [ Aws\Test\Integ\Crt_Context ]
         credentials:
             paths: [ "%paths.base%/features/credentials" ]
-            contexts: [ Aws\Test\Integ\CredentialsContext ]
+            contexts: [ Aws\Test\Integ\Credentials_Context ]
         streams:
             paths: [ "%paths.base%/features/streams" ]
-            contexts: [ Aws\Test\Integ\NativeStreamContext ]
+            contexts: [ Aws\Test\Integ\Native_Stream_Context ]
         s3:
             paths: [ "%paths.base%/features/s3" ]
             contexts: [ Aws\Test\Integ\S3Context ]
         s3TransferManager:
             paths: [ "%paths.base%/features/s3Transfer" ]
-            contexts: [ Aws\Test\Integ\S3TransferManagerContext ]
+            contexts: [ Aws\Test\Integ\S3Transfer_Manager_Context ]
         s3Encryption:
             paths: [ "%paths.base%/features/s3Encryption" ]
-            contexts: [ Aws\Test\Integ\S3EncryptionContext ]
+            contexts: [ Aws\Test\Integ\S3Encryption_Context ]
         s3EncryptionV2:
             paths: [ "%paths.base%/features/s3EncryptionV2" ]
-            contexts: [ Aws\Test\Integ\S3EncryptionContextV2 ]
+            contexts: [ Aws\Test\Integ\S3Encryption_Context_V2 ]
         s3EncryptionV3:
             paths: [ "%paths.base%/features/s3EncryptionV3" ]
-            contexts: [ Aws\Test\Integ\S3EncryptionContextV3 ]
+            contexts: [ Aws\Test\Integ\S3Encryption_Context_V3 ]
