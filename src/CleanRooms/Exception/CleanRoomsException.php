@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Clean_Rooms\Exception;
 
-namespace Aws\CleanRooms\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Clean Rooms Service** service.
  */
-class CleanRoomsException extends AwsException
+class Clean_Rooms_Exception extends Aws_Exception
 {
 }

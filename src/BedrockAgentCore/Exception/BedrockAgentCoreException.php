@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Agent_Core\Exception;
 
-namespace Aws\BedrockAgentCore\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Bedrock AgentCore Data Plane Fronting Layer** service.
  */
-class BedrockAgentCoreException extends AwsException
+class Bedrock_Agent_Core_Exception extends Aws_Exception
 {
 }

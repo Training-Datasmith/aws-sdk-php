@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Participant\Exception;
 
-namespace Aws\ConnectParticipant\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Connect Participant Service** service.
  */
-class ConnectParticipantException extends AwsException
+class Connect_Participant_Exception extends Aws_Exception
 {
 }

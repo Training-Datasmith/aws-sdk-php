@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Hsm;
 
-namespace Aws\CloudHsm;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with **AWS CloudHSM**.
  *
@@ -50,6 +48,6 @@ use Aws\AwsClient;
  * @method \Aws\Result removeTagsFromResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise removeTagsFromResourceAsync(array $args = [])
  */
-class CloudHsmClient extends AwsClient
+class Cloud_Hsm_Client extends Aws_Client
 {
 }

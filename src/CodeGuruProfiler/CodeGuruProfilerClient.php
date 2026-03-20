@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Guru_Profiler;
 
-namespace Aws\CodeGuruProfiler;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CodeGuru Profiler** service.
  * @method \Aws\Result addNotificationChannels(array $args = [])
@@ -55,6 +53,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateProfilingGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateProfilingGroupAsync(array $args = [])
  */
-class CodeGuruProfilerClient extends AwsClient
+class Code_Guru_Profiler_Client extends Aws_Client
 {
 }

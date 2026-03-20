@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Health;
 
-namespace Aws\ConnectHealth;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Connect Health** service.
  * @method \Aws\Result activateSubscription(array $args = [])
@@ -39,6 +37,6 @@ use Aws\AwsClient;
  * @method \Aws\Result untagResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
-class ConnectHealthClient extends AwsClient
+class Connect_Health_Client extends Aws_Client
 {
 }

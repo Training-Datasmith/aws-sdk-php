@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bcm_Pricing_Calculator\Exception;
 
-namespace Aws\BCMPricingCalculator\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Billing and Cost Management Pricing Calculator** service.
  */
-class BCMPricingCalculatorException extends AwsException
+class Bcm_Pricing_Calculator_Exception extends Aws_Exception
 {
 }

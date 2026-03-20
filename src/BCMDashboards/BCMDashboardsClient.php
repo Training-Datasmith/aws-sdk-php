@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bcm_Dashboards;
 
-namespace Aws\BCMDashboards;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Billing and Cost Management Dashboards** service.
  * @method \Aws\Result createDashboard(array $args = [])
@@ -27,6 +25,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateDashboard(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateDashboardAsync(array $args = [])
  */
-class BCMDashboardsClient extends AwsClient
+class Bcm_Dashboards_Client extends Aws_Client
 {
 }

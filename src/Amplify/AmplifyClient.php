@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Amplify;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Amplify** service.
  * @method \Aws\Result createApp(array $args = [])
@@ -83,6 +81,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWebhook(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWebhookAsync(array $args = [])
  */
-class AmplifyClient extends AwsClient
+class Amplify_Client extends Aws_Client
 {
 }

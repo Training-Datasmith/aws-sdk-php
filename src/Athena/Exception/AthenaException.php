@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Athena\Exception;
 
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Athena** service.
  */
-class AthenaException extends AwsException
+class Athena_Exception extends Aws_Exception
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Agent_Runtime;
 
-namespace Aws\BedrockAgentRuntime;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Agents for Amazon Bedrock Runtime** service.
  * @method \Aws\Result createInvocation(array $args = [])
@@ -71,6 +69,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateSession(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateSessionAsync(array $args = [])
  */
-class BedrockAgentRuntimeClient extends AwsClient
+class Bedrock_Agent_Runtime_Client extends Aws_Client
 {
 }

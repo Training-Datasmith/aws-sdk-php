@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
-interface MaterialsProviderInterface
+interface Materials_Provider_Interface
 {
     /**
      * Returns if the requested size is supported by AES.
@@ -13,8 +12,7 @@ interface MaterialsProviderInterface
      *
      * @return bool
      */
-    public static function isSupportedKeySize($keySize);
-
+    public static function is_supported_key_size($key_size);
     /**
      * Performs further initialization of the MaterialsProvider based on the
      * data inside the MetadataEnvelope.
@@ -24,15 +22,13 @@ interface MaterialsProviderInterface
      *
      * @internal
      */
-    public function fromDecryptionEnvelope(MetadataEnvelope $envelope);
-
+    public function from_decryption_envelope(Metadata_Envelope $envelope);
     /**
      * Returns the wrap algorithm name for this Provider.
      *
      * @return string
      */
-    public function getWrapAlgorithmName();
-
+    public function get_wrap_algorithm_name();
     /**
      * Takes an encrypted content encryption key (CEK) and material description
      * for use decrypting the key according to the Provider's specifications.
@@ -44,21 +40,19 @@ interface MaterialsProviderInterface
      *
      * @return string
      */
-    public function decryptCek($encryptedCek, $materialDescription);
-
+    public function decrypt_cek($encrypted_cek, $material_description);
     /**
      * @param string $keySize Length of a cipher key in bits for generating a
      *                        random content encryption key (CEK).
      *
      * @return string
      */
-    public function generateCek($keySize);
-
+    public function generate_cek($key_size);
     /**
      * @param string $openSslName Cipher OpenSSL name to use for generating
      *                            an initialization vector.
      *
      * @return string
      */
-    public function generateIv($openSslName);
+    public function generate_iv($open_ssl_name);
 }

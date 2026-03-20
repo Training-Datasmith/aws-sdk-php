@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Arn;
 
 /**
@@ -18,23 +17,15 @@ namespace Aws\Arn;
  *
  * @internal
  */
-interface ArnInterface
+interface Arn_Interface
 {
     public static function parse($string);
-
     public function __toString();
-
-    public function getPrefix();
-
-    public function getPartition();
-
-    public function getService();
-
-    public function getRegion();
-
-    public function getAccountId();
-
-    public function getResource();
-
-    public function toArray();
+    public function get_prefix();
+    public function get_partition();
+    public function get_service();
+    public function get_region();
+    public function get_account_id();
+    public function get_resource();
+    public function to_array();
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Compute_Optimizer_Automation;
 
-namespace Aws\ComputeOptimizerAutomation;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Compute Optimizer Automation** service.
  * @method \Aws\Result associateAccounts(array $args = [])
@@ -55,6 +53,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateEnrollmentConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateEnrollmentConfigurationAsync(array $args = [])
  */
-class ComputeOptimizerAutomationClient extends AwsClient
+class Compute_Optimizer_Automation_Client extends Aws_Client
 {
 }

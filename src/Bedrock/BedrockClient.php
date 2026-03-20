@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Bedrock;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Bedrock** service.
  * @method \Aws\Result batchDeleteEvaluationJob(array $args = [])
@@ -205,6 +203,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateProvisionedModelThroughput(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateProvisionedModelThroughputAsync(array $args = [])
  */
-class BedrockClient extends AwsClient
+class Bedrock_Client extends Aws_Client
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Chime_Sdk_Voice;
 
-namespace Aws\ChimeSDKVoice;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Chime SDK Voice** service.
  * @method \Aws\Result associatePhoneNumbersWithVoiceConnector(array $args = [])
@@ -201,6 +199,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validateE911Address(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validateE911AddressAsync(array $args = [])
  */
-class ChimeSDKVoiceClient extends AwsClient
+class Chime_Sdk_Voice_Client extends Aws_Client
 {
 }

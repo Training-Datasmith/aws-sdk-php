@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Ai_Ops;
 
-namespace Aws\AIOps;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS AI Ops** service.
  * @method \Aws\Result createInvestigationGroup(array $args = [])
@@ -31,6 +29,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateInvestigationGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateInvestigationGroupAsync(array $args = [])
  */
-class AIOpsClient extends AwsClient
+class Ai_Ops_Client extends Aws_Client
 {
 }

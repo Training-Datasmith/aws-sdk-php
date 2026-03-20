@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Chime_Sdk_Media_Pipelines;
 
-namespace Aws\ChimeSDKMediaPipelines;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Chime SDK Media Pipelines** service.
  * @method \Aws\Result createMediaCapturePipeline(array $args = [])
@@ -71,6 +69,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateMediaPipelineKinesisVideoStreamPool(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateMediaPipelineKinesisVideoStreamPoolAsync(array $args = [])
  */
-class ChimeSDKMediaPipelinesClient extends AwsClient
+class Chime_Sdk_Media_Pipelines_Client extends Aws_Client
 {
 }

@@ -1,86 +1,66 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws;
 
-use Aws\Api\ApiProvider;
-use Aws\Api\DocModel;
+use Aws\Api\Api_Provider;
+use Aws\Api\Doc_Model;
 use Aws\Api\Service;
-use Aws\Auth\AuthSchemeResolverInterface;
-use Aws\Auth\AuthSelectionMiddleware;
-use Aws\EndpointDiscovery\EndpointDiscoveryMiddleware;
-use Aws\EndpointV2\EndpointProviderV2;
-use Aws\EndpointV2\EndpointV2Middleware;
-use Aws\Exception\AwsException;
-use Aws\Signature\SignatureProvider;
-use GuzzleHttp\Psr7\Uri;
-use Psr\Http\Message\RequestInterface;
-
+use Aws\Auth\Auth_Scheme_Resolver_Interface;
+use Aws\Auth\Auth_Selection_Middleware;
+use Aws\Endpoint_Discovery\Endpoint_Discovery_Middleware;
+use Aws\Endpoint_V2\Endpoint_Provider_V2;
+use Aws\Endpoint_V2\Endpoint_V2middleware;
+use Aws\Exception\Aws_Exception;
+use Aws\Signature\Signature_Provider;
+use Guzzle_Http\Psr7\Uri;
+use Psr\Http\Message\Request_Interface;
 /**
  * Default AWS client implementation
  */
-class AwsClient implements AwsClientInterface
+class Aws_Client implements Aws_Client_Interface
 {
-    use AwsClientTrait;
-
+    use Aws_Client_Trait;
     /** @var array */
     private $aliases;
-
     /** @var array */
     private $config;
-
     /** @var string */
     private $region;
-
     /** @var string */
-    private $signingRegionSet;
-
+    private $signing_region_set;
     /** @var string */
-    private \GuzzleHttp\Psr7\Uri $endpoint;
-
+    private \Guzzle_Http\Psr7\Uri $endpoint;
     /** @var Service */
     private $api;
-
     /** @var callable */
-    private $signatureProvider;
-
+    private $signature_provider;
     /** @var AuthSchemeResolverInterface */
-    private $authSchemeResolver;
-
+    private $auth_scheme_resolver;
     /** @var callable */
-    private $credentialProvider;
-
+    private $credential_provider;
     /** @var callable */
-    private $tokenProvider;
-
-    private \Aws\HandlerList $handlerList;
-
+    private $token_provider;
+    private \Aws\Handler_List $handler_list;
     /** @var array*/
-    private $defaultRequestOptions;
-
+    private $default_request_options;
     /** @var array*/
-    private $clientContextParams = [];
-
+    private $client_context_params = [];
     /** @var array*/
-    protected $clientBuiltIns = [];
-
+    protected $client_built_ins = [];
     /** @var  EndpointProviderV2 | callable */
-    protected $endpointProvider;
-
+    protected $endpoint_provider;
     /** @var callable */
     protected $serializer;
-
     /**
      * Get an array of client constructor arguments used by the client.
      *
      * @return array
      */
-    public static function getArguments()
+    public static function get_arguments()
     {
-        return ClientResolver::getDefaultArguments();
+        return Client_Resolver::get_default_arguments();
     }
-
     /**
      * The client constructor accepts the following options:
      *
@@ -239,234 +219,177 @@ class AwsClient implements AwsClientInterface
      */
     public function __construct(array $args)
     {
-        [$service, $exceptionClass] = $this->parseClass();
+        [$service, $exception_class] = $this->parse_class();
         if (!isset($args['service'])) {
             $args['service'] = manifest($service)['endpoint'];
         }
         if (!isset($args['exception_class'])) {
-            $args['exception_class'] = $exceptionClass;
+            $args['exception_class'] = $exception_class;
         }
-        $this->handlerList = new HandlerList();
-        $resolver = new ClientResolver(static::getArguments());
-        $config = $resolver->resolve($args, $this->handlerList);
+        $this->handler_list = new Handler_List();
+        $resolver = new Client_Resolver(static::get_arguments());
+        $config = $resolver->resolve($args, $this->handler_list);
         $this->api = $config['api'];
-        $this->signatureProvider = $config['signature_provider'];
-        $this->authSchemeResolver = $config['auth_scheme_resolver'];
+        $this->signature_provider = $config['signature_provider'];
+        $this->auth_scheme_resolver = $config['auth_scheme_resolver'];
         $this->endpoint = new Uri($config['endpoint']);
-        $this->credentialProvider = $config['credentials'];
-        $this->tokenProvider = $config['token'];
+        $this->credential_provider = $config['credentials'];
+        $this->token_provider = $config['token'];
         $this->region = $config['region'] ?? null;
-        $this->signingRegionSet = $config['sigv4a_signing_region_set'] ?? null;
+        $this->signing_region_set = $config['sigv4a_signing_region_set'] ?? null;
         $this->config = $config['config'];
-        $this->setClientBuiltIns($args, $config);
-        $this->clientContextParams = $this->setClientContextParams($args);
-        $this->defaultRequestOptions = $config['http'];
-        $this->endpointProvider = $config['endpoint_provider'];
+        $this->set_client_built_ins($args, $config);
+        $this->client_context_params = $this->set_client_context_params($args);
+        $this->default_request_options = $config['http'];
+        $this->endpoint_provider = $config['endpoint_provider'];
         $this->serializer = $config['serializer'];
-        $this->addSignatureMiddleware($args);
-        $this->addInvocationId();
-        $this->addEndpointParameterMiddleware($args);
-        $this->addEndpointDiscoveryMiddleware($config, $args);
-        $this->addRequestCompressionMiddleware($config);
-        $this->loadAliases();
-        $this->addStreamRequestPayload();
-        $this->addRecursionDetection();
-        if ($this->isUseEndpointV2()) {
-            $this->addEndpointV2Middleware();
+        $this->add_signature_middleware($args);
+        $this->add_invocation_id();
+        $this->add_endpoint_parameter_middleware($args);
+        $this->add_endpoint_discovery_middleware($config, $args);
+        $this->add_request_compression_middleware($config);
+        $this->load_aliases();
+        $this->add_stream_request_payload();
+        $this->add_recursion_detection();
+        if ($this->is_use_endpoint_v2()) {
+            $this->add_endpoint_v2middleware();
         }
-        $this->addAuthSelectionMiddleware($config['config']);
-
-        if (!is_null($this->api->getMetadata('awsQueryCompatible'))) {
-            $this->addQueryCompatibleInputMiddleware($this->api);
-            $this->addQueryModeHeader();
+        $this->add_auth_selection_middleware($config['config']);
+        if (!is_null($this->api->get_metadata('awsQueryCompatible'))) {
+            $this->add_query_compatible_input_middleware($this->api);
+            $this->add_query_mode_header();
         }
-
         if (isset($args['with_resolved'])) {
             $args['with_resolved']($config);
         }
-        $this->addUserAgentMiddleware($config);
-        $this->addEventStreamHttpFlagMiddleware();
+        $this->add_user_agent_middleware($config);
+        $this->add_event_stream_http_flag_middleware();
     }
-
-    public function getHandlerList()
+    public function get_handler_list()
     {
-        return $this->handlerList;
+        return $this->handler_list;
     }
-
-    public function getConfig($option = null)
+    public function get_config($option = null)
     {
-        return $option === null
-            ? $this->config
-            : $this->config[$option] ?? null;
+        return $option === null ? $this->config : $this->config[$option] ?? null;
     }
-
-    public function getCredentials()
+    public function get_credentials()
     {
-        $fn = $this->credentialProvider;
+        $fn = $this->credential_provider;
         return $fn();
     }
-
-    public function getToken()
+    public function get_token()
     {
-        $fn = $this->tokenProvider;
+        $fn = $this->token_provider;
         return $fn();
     }
-
-    public function getEndpoint()
+    public function get_endpoint()
     {
         return $this->endpoint;
     }
-
-    public function getRegion()
+    public function get_region()
     {
         return $this->region;
     }
-
-    public function getApi()
+    public function get_api()
     {
         return $this->api;
     }
-
-    public function getCommand($name, array $args = []): \Aws\Command
+    public function get_command($name, array $args = []): \Aws\Command
     {
         // Fail fast if the command cannot be found in the description.
-        if (!isset($this->getApi()['operations'][$name])) {
+        if (!isset($this->get_api()['operations'][$name])) {
             $name = ucfirst($name);
-            if (!isset($this->getApi()['operations'][$name])) {
-                throw new \InvalidArgumentException("Operation not found: $name");
+            if (!isset($this->get_api()['operations'][$name])) {
+                throw new \InvalidArgumentException("Operation not found: {$name}");
             }
         }
-
         if (!isset($args['@http'])) {
-            $args['@http'] = $this->defaultRequestOptions;
+            $args['@http'] = $this->default_request_options;
         } else {
-            $args['@http'] += $this->defaultRequestOptions;
+            $args['@http'] += $this->default_request_options;
         }
-
-        return new Command($name, $args, clone $this->getHandlerList());
+        return new Command($name, $args, clone $this->get_handler_list());
     }
-
-    public function getEndpointProvider()
+    public function get_endpoint_provider()
     {
-        return $this->endpointProvider;
+        return $this->endpoint_provider;
     }
-
     /**
      * Provides the set of service context parameter
      * key-value pairs used for endpoint resolution.
      *
      * @return array
      */
-    public function getClientContextParams()
+    public function get_client_context_params()
     {
-        return $this->clientContextParams;
+        return $this->client_context_params;
     }
-
     /**
      * Provides the set of built-in keys and values
      * used for endpoint resolution
      *
      * @return array
      */
-    public function getClientBuiltIns()
+    public function get_client_built_ins()
     {
-        return $this->clientBuiltIns;
+        return $this->client_built_ins;
     }
-
     public function __sleep()
     {
-        throw new \RuntimeException('Instances of ' . static::class
-            . ' cannot be serialized');
+        throw new \RuntimeException('Instances of ' . static::class . ' cannot be serialized');
     }
-
     /**
      * Get the signature_provider function of the client.
      *
      * @return callable
      */
-    final public function getSignatureProvider()
+    final public function get_signature_provider()
     {
-        return $this->signatureProvider;
+        return $this->signature_provider;
     }
-
     /**
      * Parse the class name and setup the custom exception class of the client
      * and return the "service" name of the client and "exception_class".
      */
-    private function parseClass(): array
+    private function parse_class(): array
     {
         $klass = static::class;
-
         if ($klass === self::class) {
-            return ['', AwsException::class];
+            return ['', Aws_Exception::class];
         }
-
         $service = substr($klass, strrpos($klass, '\\') + 1, -6);
-
-        return [
-            strtolower($service),
-            "Aws\\{$service}\\Exception\\{$service}Exception",
-        ];
+        return [strtolower($service), "Aws\\{$service}\\Exception\\{$service}Exception"];
     }
-
-    private function addEndpointParameterMiddleware(array $args): void
+    private function add_endpoint_parameter_middleware(array $args): void
     {
         if (empty($args['disable_host_prefix_injection'])) {
-            $list = $this->getHandlerList();
-            $list->appendBuild(
-                EndpointParameterMiddleware::wrap(
-                    $this->api
-                ),
-                'endpoint_parameter'
-            );
+            $list = $this->get_handler_list();
+            $list->append_build(Endpoint_Parameter_Middleware::wrap($this->api), 'endpoint_parameter');
         }
     }
-
-    private function addEndpointDiscoveryMiddleware(array $config, array $args): void
+    private function add_endpoint_discovery_middleware(array $config, array $args): void
     {
-        $list = $this->getHandlerList();
-
+        $list = $this->get_handler_list();
         if (!isset($args['endpoint'])) {
-            $list->appendBuild(
-                EndpointDiscoveryMiddleware::wrap(
-                    $this,
-                    $args,
-                    $config['endpoint_discovery']
-                ),
-                'EndpointDiscoveryMiddleware'
-            );
+            $list->append_build(Endpoint_Discovery_Middleware::wrap($this, $args, $config['endpoint_discovery']), 'EndpointDiscoveryMiddleware');
         }
     }
-
-    private function addSignatureMiddleware(array $args): void
+    private function add_signature_middleware(array $args): void
     {
-        $api = $this->getApi();
-        $provider = $this->signatureProvider;
-        $signatureVersion = $this->config['signature_version'];
+        $api = $this->get_api();
+        $provider = $this->signature_provider;
+        $signature_version = $this->config['signature_version'];
         $name = $this->config['signing_name'];
         $region = $this->config['signing_region'];
-        $signingRegionSet = $this->signingRegionSet;
-
-        if (isset($args['signature_version'])
-         || isset($this->config['configured_signature_version'])
-        ) {
-            $configuredSignatureVersion = true;
+        $signing_region_set = $this->signing_region_set;
+        if (isset($args['signature_version']) || isset($this->config['configured_signature_version'])) {
+            $configured_signature_version = true;
         } else {
-            $configuredSignatureVersion = false;
+            $configured_signature_version = false;
         }
-
-        $resolver = static function (
-            CommandInterface $command
-        ) use (
-            $api,
-            $provider,
-            $name,
-            $region,
-            $signatureVersion,
-            $configuredSignatureVersion,
-            $signingRegionSet
-        ) {
-            if (!$configuredSignatureVersion) {
+        $resolver = static function (Command_Interface $command) use ($api, $provider, $name, $region, $signature_version, $configured_signature_version, $signing_region_set) {
+            if (!$configured_signature_version) {
                 if (!empty($command['@context']['signing_region'])) {
                     $region = $command['@context']['signing_region'];
                 }
@@ -474,163 +397,93 @@ class AwsClient implements AwsClientInterface
                     $name = $command['@context']['signing_service'];
                 }
                 if (!empty($command['@context']['signature_version'])) {
-                    $signatureVersion = $command['@context']['signature_version'];
+                    $signature_version = $command['@context']['signature_version'];
                 }
-
-                $authType = $api->getOperation($command->getName())['authtype'];
-                switch ($authType) {
+                $auth_type = $api->get_operation($command->get_name())['authtype'];
+                switch ($auth_type) {
                     case 'none':
-                        $signatureVersion = 'anonymous';
+                        $signature_version = 'anonymous';
                         break;
                     case 'v4-unsigned-body':
-                        $signatureVersion = 'v4-unsigned-body';
+                        $signature_version = 'v4-unsigned-body';
                         break;
                     case 'bearer':
-                        $signatureVersion = 'bearer';
+                        $signature_version = 'bearer';
                         break;
                 }
             }
-
-            if ($signatureVersion === 'v4a') {
-                $commandSigningRegionSet = !empty($command['@context']['signing_region_set'])
-                    ? implode(', ', $command['@context']['signing_region_set'])
-                    : null;
-
-                $region = $signingRegionSet
-                    ?? $commandSigningRegionSet
-                    ?? $region;
+            if ($signature_version === 'v4a') {
+                $command_signing_region_set = !empty($command['@context']['signing_region_set']) ? implode(', ', $command['@context']['signing_region_set']) : null;
+                $region = $signing_region_set ?? $command_signing_region_set ?? $region;
             }
-
             // Capture signature metric
-            $command->getMetricsBuilder()->identifyMetricByValueAndAppend(
-                'signature',
-                $signatureVersion
-            );
-
-            return SignatureProvider::resolve($provider, $signatureVersion, $name, $region);
+            $command->get_metrics_builder()->identify_metric_by_value_and_append('signature', $signature_version);
+            return Signature_Provider::resolve($provider, $signature_version, $name, $region);
         };
-        $this->handlerList->appendSign(
-            Middleware::signer(
-                $this->credentialProvider,
-                $resolver,
-                $this->tokenProvider,
-                $this->getConfig()
-            ),
-            'signer'
-        );
+        $this->handler_list->append_sign(Middleware::signer($this->credential_provider, $resolver, $this->token_provider, $this->get_config()), 'signer');
     }
-
-    private function addRequestCompressionMiddleware(array $config): void
+    private function add_request_compression_middleware(array $config): void
     {
         if (empty($config['disable_request_compression'])) {
-            $list = $this->getHandlerList();
-            $list->appendBuild(
-                RequestCompressionMiddleware::wrap($config),
-                'request-compression'
-            );
+            $list = $this->get_handler_list();
+            $list->append_build(Request_Compression_Middleware::wrap($config), 'request-compression');
         }
     }
-
-    private function addQueryCompatibleInputMiddleware(Service $api): void
+    private function add_query_compatible_input_middleware(Service $api): void
     {
-        $list = $this->getHandlerList();
-        $list->appendValidate(
-            QueryCompatibleInputMiddleware::wrap($api),
-            'query-compatible-input'
-        );
+        $list = $this->get_handler_list();
+        $list->append_validate(Query_Compatible_Input_Middleware::wrap($api), 'query-compatible-input');
     }
-
-    private function addQueryModeHeader(): void
+    private function add_query_mode_header(): void
     {
-        $list = $this->getHandlerList();
-        $list->appendBuild(
-            Middleware::mapRequest(fn (RequestInterface $r) => $r->withHeader(
-                'x-amzn-query-mode',
-                'true'
-            )),
-            'x-amzn-query-mode-header'
-        );
+        $list = $this->get_handler_list();
+        $list->append_build(Middleware::map_request(fn(Request_Interface $r) => $r->with_header('x-amzn-query-mode', 'true')), 'x-amzn-query-mode-header');
     }
-
-    private function addInvocationId(): void
+    private function add_invocation_id(): void
     {
         // Add invocation id to each request
-        $this->handlerList->prependSign(Middleware::invocationId(), 'invocation-id');
+        $this->handler_list->prepend_sign(Middleware::invocation_id(), 'invocation-id');
     }
-
-    private function loadAliases($file = null): void
+    private function load_aliases($file = null): void
     {
         if (!isset($this->aliases)) {
             if (is_null($file)) {
                 $file = __DIR__ . '/data/aliases.json';
             }
             $aliases = \Aws\load_compiled_json($file);
-            $serviceId = $this->api->getServiceId();
-            $version = $this->getApi()->getApiVersion();
-            $serviceAliases = null;
-
-            if (!is_null($serviceId) && isset($aliases['operations'][$serviceId])) {
-                $serviceAliases = $aliases['operations'][$serviceId];
+            $service_id = $this->api->get_service_id();
+            $version = $this->get_api()->get_api_version();
+            $service_aliases = null;
+            if (!is_null($service_id) && isset($aliases['operations'][$service_id])) {
+                $service_aliases = $aliases['operations'][$service_id];
             }
-
-            if ($serviceAliases && isset($serviceAliases[$version])) {
-                $this->aliases = array_flip($serviceAliases[$version]);
+            if ($service_aliases && isset($service_aliases[$version])) {
+                $this->aliases = array_flip($service_aliases[$version]);
             }
         }
     }
-
-    private function addStreamRequestPayload(): void
+    private function add_stream_request_payload(): void
     {
-        $streamRequestPayloadMiddleware = StreamRequestPayloadMiddleware::wrap(
-            $this->api
-        );
-
-        $this->handlerList->prependSign(
-            $streamRequestPayloadMiddleware,
-            'StreamRequestPayloadMiddleware'
-        );
+        $stream_request_payload_middleware = Stream_Request_Payload_Middleware::wrap($this->api);
+        $this->handler_list->prepend_sign($stream_request_payload_middleware, 'StreamRequestPayloadMiddleware');
     }
-
-    private function addRecursionDetection(): void
+    private function add_recursion_detection(): void
     {
         // Add recursion detection header to requests
         // originating in supported Lambda runtimes
-        $this->handlerList->appendBuild(
-            Middleware::recursionDetection(),
-            'recursion-detection'
-        );
+        $this->handler_list->append_build(Middleware::recursion_detection(), 'recursion-detection');
     }
-
-    private function addAuthSelectionMiddleware(array $args): void
+    private function add_auth_selection_middleware(array $args): void
     {
-        $list = $this->getHandlerList();
-
-        $list->prependBuild(
-            AuthSelectionMiddleware::wrap(
-                $this->authSchemeResolver,
-                $this->getApi(),
-                $args['auth_scheme_preference'] ?? null
-            ),
-            'auth-selection'
-        );
+        $list = $this->get_handler_list();
+        $list->prepend_build(Auth_Selection_Middleware::wrap($this->auth_scheme_resolver, $this->get_api(), $args['auth_scheme_preference'] ?? null), 'auth-selection');
     }
-
-    private function addEndpointV2Middleware(): void
+    private function add_endpoint_v2middleware(): void
     {
-        $list = $this->getHandlerList();
-        $endpointArgs = $this->getEndpointProviderArgs();
-
-        $list->prependBuild(
-            EndpointV2Middleware::wrap(
-                $this->endpointProvider,
-                $this->getApi(),
-                $endpointArgs,
-                $this->credentialProvider
-            ),
-            'endpoint-resolution'
-        );
+        $list = $this->get_handler_list();
+        $endpoint_args = $this->get_endpoint_provider_args();
+        $list->prepend_build(Endpoint_V2middleware::wrap($this->endpoint_provider, $this->get_api(), $endpoint_args, $this->credential_provider), 'endpoint-resolution');
     }
-
     /**
      * Appends the user agent middleware.
      * This middleware MUST be appended after the
@@ -640,121 +493,102 @@ class AwsClient implements AwsClientInterface
      *
      * @param $args
      */
-    private function addUserAgentMiddleware(array $args): void
+    private function add_user_agent_middleware(array $args): void
     {
-        $this->getHandlerList()->appendSign(
-            UserAgentMiddleware::wrap($args),
-            'user-agent'
-        );
+        $this->get_handler_list()->append_sign(User_Agent_Middleware::wrap($args), 'user-agent');
     }
-
     /**
      * Enables streaming the response by using the stream flag.
      */
-    private function addEventStreamHttpFlagMiddleware(): void
+    private function add_event_stream_http_flag_middleware(): void
     {
-        $this->getHandlerList()
-            -> appendInit(
-                fn (callable $handler) => function (CommandInterface $command, $request = null) use ($handler) {
-                    $operation = $this->getApi()->getOperation($command->getName());
-                    $output = $operation->getOutput();
-                    foreach ($output->getMembers() as $memberProps) {
-                        if (!empty($memberProps['eventstream'])) {
-                            $command['@http']['stream'] = true;
-                            break;
-                        }
-                    }
-
-                    return $handler($command, $request);
-                },
-                'event-streaming-flag-middleware'
-            );
+        $this->get_handler_list()->append_init(fn(callable $handler) => function (Command_Interface $command, $request = null) use ($handler) {
+            $operation = $this->get_api()->get_operation($command->get_name());
+            $output = $operation->get_output();
+            foreach ($output->get_members() as $member_props) {
+                if (!empty($member_props['eventstream'])) {
+                    $command['@http']['stream'] = true;
+                    break;
+                }
+            }
+            return $handler($command, $request);
+        }, 'event-streaming-flag-middleware');
     }
-
     /**
      * Retrieves client context param definition from service model,
      * creates mapping of client context param names with client-provided
      * values.
      */
-    private function setClientContextParams(array $args): array
+    private function set_client_context_params(array $args): array
     {
-        $api = $this->getApi();
-        $resolvedParams = [];
-        if (!empty($paramDefinitions = $api->getClientContextParams())) {
-            foreach ($paramDefinitions as $paramName => $paramValue) {
-                if (isset($args[$paramName])) {
-                    $resolvedParams[$paramName] = $args[$paramName];
+        $api = $this->get_api();
+        $resolved_params = [];
+        if (!empty($param_definitions = $api->get_client_context_params())) {
+            foreach ($param_definitions as $param_name => $param_value) {
+                if (isset($args[$param_name])) {
+                    $resolved_params[$param_name] = $args[$param_name];
                 }
             }
         }
-        return $resolvedParams;
+        return $resolved_params;
     }
-
     /**
      * Retrieves and sets default values used for endpoint resolution.
      */
-    private function setClientBuiltIns(array $args, array $resolvedConfig): void
+    private function set_client_built_ins(array $args, array $resolved_config): void
     {
-        $builtIns = [];
-        $config = $resolvedConfig['config'];
+        $built_ins = [];
+        $config = $resolved_config['config'];
         $service = $args['service'];
-
-        $builtIns['SDK::Endpoint'] = null;
+        $built_ins['SDK::Endpoint'] = null;
         if (!empty($args['endpoint'])) {
-            $builtIns['SDK::Endpoint'] = $args['endpoint'];
+            $built_ins['SDK::Endpoint'] = $args['endpoint'];
         } elseif (isset($config['configured_endpoint_url'])) {
-            $builtIns['SDK::Endpoint'] = (string) $this->getEndpoint();
+            $built_ins['SDK::Endpoint'] = (string) $this->get_endpoint();
         }
-        $builtIns['AWS::Region'] = $this->getRegion();
-        $builtIns['AWS::UseFIPS'] = $config['use_fips_endpoint']->isUseFipsEndpoint();
-        $builtIns['AWS::UseDualStack'] = $config['use_dual_stack_endpoint']->isUseDualstackEndpoint();
+        $built_ins['AWS::Region'] = $this->get_region();
+        $built_ins['AWS::UseFIPS'] = $config['use_fips_endpoint']->is_use_fips_endpoint();
+        $built_ins['AWS::UseDualStack'] = $config['use_dual_stack_endpoint']->is_use_dualstack_endpoint();
         if ($service === 's3' || $service === 's3control') {
-            $builtIns['AWS::S3::UseArnRegion'] = $config['use_arn_region']->isUseArnRegion();
+            $built_ins['AWS::S3::UseArnRegion'] = $config['use_arn_region']->is_use_arn_region();
         }
         if ($service === 's3') {
-            $builtIns['AWS::S3::UseArnRegion'] = $config['use_arn_region']->isUseArnRegion();
-            $builtIns['AWS::S3::Accelerate'] = $config['use_accelerate_endpoint'];
-            $builtIns['AWS::S3::ForcePathStyle'] = $config['use_path_style_endpoint'];
-            $builtIns['AWS::S3::DisableMultiRegionAccessPoints'] = $config['disable_multiregion_access_points'];
+            $built_ins['AWS::S3::UseArnRegion'] = $config['use_arn_region']->is_use_arn_region();
+            $built_ins['AWS::S3::Accelerate'] = $config['use_accelerate_endpoint'];
+            $built_ins['AWS::S3::ForcePathStyle'] = $config['use_path_style_endpoint'];
+            $built_ins['AWS::S3::DisableMultiRegionAccessPoints'] = $config['disable_multiregion_access_points'];
         }
-        $builtIns['AWS::Auth::AccountIdEndpointMode'] = $resolvedConfig['account_id_endpoint_mode'];
-
-        $this->clientBuiltIns += $builtIns;
+        $built_ins['AWS::Auth::AccountIdEndpointMode'] = $resolved_config['account_id_endpoint_mode'];
+        $this->client_built_ins += $built_ins;
     }
-
     /**
      * Retrieves arguments to be used in endpoint resolution.
      *
      * @return array
      */
-    public function getEndpointProviderArgs()
+    public function get_endpoint_provider_args()
     {
-        return $this->normalizeEndpointProviderArgs();
+        return $this->normalize_endpoint_provider_args();
     }
-
     /**
      * Combines built-in and client context parameter values in
      * order of specificity.  Client context parameter values supersede
      * built-in values.
      */
-    private function normalizeEndpointProviderArgs(): array
+    private function normalize_endpoint_provider_args(): array
     {
-        $normalizedBuiltIns = [];
-
-        foreach ($this->clientBuiltIns as $name => $value) {
-            $normalizedName = explode('::', (string) $name);
-            $normalizedName = $normalizedName[count($normalizedName) - 1];
-            $normalizedBuiltIns[$normalizedName] = $value;
+        $normalized_built_ins = [];
+        foreach ($this->client_built_ins as $name => $value) {
+            $normalized_name = explode('::', (string) $name);
+            $normalized_name = $normalized_name[count($normalized_name) - 1];
+            $normalized_built_ins[$normalized_name] = $value;
         }
-
-        return array_merge($normalizedBuiltIns, $this->getClientContextParams());
+        return array_merge($normalized_built_ins, $this->get_client_context_params());
     }
-
-    protected function isUseEndpointV2(): bool
+    protected function is_use_endpoint_v2(): bool
     {
-        return $this->endpointProvider instanceof EndpointProviderV2;
+        return $this->endpoint_provider instanceof Endpoint_Provider_V2;
     }
-
     /**
      * Returns a service model and doc model with any necessary changes
      * applied.
@@ -767,28 +601,22 @@ class AwsClient implements AwsClientInterface
      * @internal This should only used to document the service API.
      * @codeCoverageIgnore
      */
-    public static function applyDocFilters(array $api, array $docs): array
+    public static function apply_doc_filters(array $api, array $docs): array
     {
         $aliases = \Aws\load_compiled_json(__DIR__ . '/data/aliases.json');
-        $serviceId = $api['metadata']['serviceId'] ?? '';
+        $service_id = $api['metadata']['serviceId'] ?? '';
         $version = $api['metadata']['apiVersion'];
-
         // Replace names for any operations with SDK aliases
-        if (!empty($aliases['operations'][$serviceId][$version])) {
-            foreach ($aliases['operations'][$serviceId][$version] as $op => $alias) {
+        if (!empty($aliases['operations'][$service_id][$version])) {
+            foreach ($aliases['operations'][$service_id][$version] as $op => $alias) {
                 $api['operations'][$alias] = $api['operations'][$op];
                 $docs['operations'][$alias] = $docs['operations'][$op];
                 unset($api['operations'][$op], $docs['operations'][$op]);
             }
         }
         ksort($api['operations']);
-
-        return [
-            new Service($api, ApiProvider::defaultProvider()),
-            new DocModel($docs),
-        ];
+        return [new Service($api, Api_Provider::default_provider()), new Doc_Model($docs)];
     }
-
     /**
      * @deprecated
      */

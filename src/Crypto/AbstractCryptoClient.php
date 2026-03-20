@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
 use Aws\Crypto\Cipher\Cbc;
-use Aws\Crypto\Cipher\CipherMethod;
-use GuzzleHttp\Psr7\Stream;
-
+use Aws\Crypto\Cipher\Cipher_Method;
+use Guzzle_Http\Psr7\Stream;
 /**
  * Legacy abstract encryption client. New workflows should use
  * AbstractCryptoClientV2.
@@ -15,14 +13,10 @@ use GuzzleHttp\Psr7\Stream;
  * @deprecated
  * @internal
  */
-abstract class AbstractCryptoClient
+abstract class Abstract_Crypto_Client
 {
-    public static $supportedCiphers = ['cbc', 'gcm'];
-
-    public static $supportedKeyWraps = [
-        KmsMaterialsProvider::WRAP_ALGORITHM_NAME,
-    ];
-
+    public static $supported_ciphers = ['cbc', 'gcm'];
+    public static $supported_key_wraps = [Kms_Materials_Provider::WRAP_ALGORITHM_NAME];
     /**
      * Returns if the passed cipher name is supported for encryption by the SDK.
      *
@@ -30,11 +24,10 @@ abstract class AbstractCryptoClient
      *
      * @return bool If the cipher passed is in our supported list.
      */
-    public static function isSupportedCipher($cipherName)
+    public static function is_supported_cipher($cipher_name)
     {
-        return in_array($cipherName, self::$supportedCiphers);
+        return in_array($cipher_name, self::$supported_ciphers);
     }
-
     /**
      * Returns an identifier recognizable by `openssl_*` functions, such as
      * `aes-256-cbc` or `aes-128-ctr`.
@@ -46,8 +39,7 @@ abstract class AbstractCryptoClient
      *
      * @return string
      */
-    abstract protected function getCipherOpenSslName($cipherName, $keySize);
-
+    abstract protected function get_cipher_open_ssl_name($cipher_name, $key_size);
     /**
      * Constructs a CipherMethod for the given name, initialized with the other
      * data passed for use in encrypting or decrypting.
@@ -61,8 +53,7 @@ abstract class AbstractCryptoClient
      *
      * @internal
      */
-    abstract protected function buildCipherMethod($cipherName, $iv, $keySize);
-
+    abstract protected function build_cipher_method($cipher_name, $iv, $key_size);
     /**
      * Performs a reverse lookup to get the openssl_* cipher name from the
      * AESName passed in from the MetadataEnvelope.
@@ -73,8 +64,7 @@ abstract class AbstractCryptoClient
      *
      * @internal
      */
-    abstract protected function getCipherFromAesName($aesName);
-
+    abstract protected function get_cipher_from_aes_name($aes_name);
     /**
      * Dependency to provide an interface for building an encryption stream for
      * data given cipher details, metadata, and materials to do so.
@@ -92,13 +82,7 @@ abstract class AbstractCryptoClient
      *
      * @internal
      */
-    abstract public function encrypt(
-        Stream $plaintext,
-        array $cipherOptions,
-        MaterialsProvider $provider,
-        MetadataEnvelope $envelope
-    );
-
+    abstract public function encrypt(Stream $plaintext, array $cipher_options, Materials_Provider $provider, Metadata_Envelope $envelope);
     /**
      * Dependency to provide an interface for building a decryption stream for
      * cipher text given metadata and materials to do so.
@@ -115,10 +99,5 @@ abstract class AbstractCryptoClient
      *
      * @internal
      */
-    abstract public function decrypt(
-        $cipherText,
-        MaterialsProviderInterface $provider,
-        MetadataEnvelope $envelope,
-        array $cipherOptions = []
-    );
+    abstract public function decrypt($cipher_text, Materials_Provider_Interface $provider, Metadata_Envelope $envelope, array $cipher_options = []);
 }

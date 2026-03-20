@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Backup_Gateway;
 
-namespace Aws\BackupGateway;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Backup Gateway** service.
  * @method \Aws\Result associateGatewayToServer(array $args = [])
@@ -59,6 +57,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateHypervisor(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateHypervisorAsync(array $args = [])
  */
-class BackupGatewayClient extends AwsClient
+class Backup_Gateway_Client extends Aws_Client
 {
 }

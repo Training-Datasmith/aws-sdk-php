@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cost_Explorer\Exception;
 
-namespace Aws\CostExplorer\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Cost Explorer Service** service.
  */
-class CostExplorerException extends AwsException
+class Cost_Explorer_Exception extends Aws_Exception
 {
 }

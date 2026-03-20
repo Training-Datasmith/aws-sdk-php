@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Registry;
 
-namespace Aws\AppRegistry;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Service Catalog App Registry** service.
  * @method \Aws\Result associateAttributeGroup(array $args = [])
@@ -57,6 +55,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateAttributeGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateAttributeGroupAsync(array $args = [])
  */
-class AppRegistryClient extends AwsClient
+class App_Registry_Client extends Aws_Client
 {
 }

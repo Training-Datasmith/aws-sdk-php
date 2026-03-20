@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Wisdom_Service\Exception;
 
-namespace Aws\ConnectWisdomService\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Connect Wisdom Service** service.
  */
-class ConnectWisdomServiceException extends AwsException
+class Connect_Wisdom_Service_Exception extends Aws_Exception
 {
 }

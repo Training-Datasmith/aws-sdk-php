@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Compute_Optimizer;
 
-namespace Aws\ComputeOptimizer;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Compute Optimizer** service.
  * @method \Aws\Result deleteRecommendationPreferences(array $args = [])
@@ -65,6 +63,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateEnrollmentStatus(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateEnrollmentStatusAsync(array $args = [])
  */
-class ComputeOptimizerClient extends AwsClient
+class Compute_Optimizer_Client extends Aws_Client
 {
 }

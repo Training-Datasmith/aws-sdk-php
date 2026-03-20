@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Watch_Rum;
 
-namespace Aws\CloudWatchRUM;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **CloudWatch RUM** service.
  * @method \Aws\Result batchCreateRumMetricDefinitions(array $args = [])
@@ -49,6 +47,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRumMetricDefinition(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRumMetricDefinitionAsync(array $args = [])
  */
-class CloudWatchRUMClient extends AwsClient
+class Cloud_Watch_Rum_Client extends Aws_Client
 {
 }

@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Runtime\Exception;
 
-namespace Aws\BedrockRuntime\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Bedrock Runtime** service.
  */
-class BedrockRuntimeException extends AwsException
+class Bedrock_Runtime_Exception extends Aws_Exception
 {
 }

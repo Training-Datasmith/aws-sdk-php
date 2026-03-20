@@ -1,21 +1,19 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Client_Side_Monitoring;
 
-namespace Aws\ClientSideMonitoring;
-
-use Aws\CommandInterface;
-use Aws\Credentials\CredentialsInterface;
-use Aws\Exception\AwsException;
-use Aws\ResponseContainerInterface;
-use Aws\ResultInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-
+use Aws\Command_Interface;
+use Aws\Credentials\Credentials_Interface;
+use Aws\Exception\Aws_Exception;
+use Aws\Response_Container_Interface;
+use Aws\Result_Interface;
+use Psr\Http\Message\Request_Interface;
+use Psr\Http\Message\Response_Interface;
 /**
  * @internal
  */
-class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
+class Api_Call_Attempt_Monitoring_Middleware extends Abstract_Monitoring_Middleware
 {
     /**
      * Standard middleware wrapper function with CSM options passed in.
@@ -25,97 +23,34 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
      * @param string $service
      * @return callable
      */
-    public static function wrap(
-        callable $credentialProvider,
-        $options,
-        $region,
-        $service
-    ) {
-        return fn (callable $handler) => new static(
-            $handler,
-            $credentialProvider,
-            $options,
-            $region,
-            $service
-        );
+    public static function wrap(callable $credential_provider, $options, $region, $service)
+    {
+        return fn(callable $handler) => new static($handler, $credential_provider, $options, $region, $service);
     }
-
     /**
      * {@inheritdoc}
      */
-    public static function getRequestData(RequestInterface $request): array
+    public static function get_request_data(Request_Interface $request): array
     {
-        return [
-            'Fqdn' => $request->getUri()->getHost(),
-        ];
+        return ['Fqdn' => $request->get_uri()->get_host()];
     }
-
     /**
      * {@inheritdoc}
      */
-    public static function getResponseData($klass)
+    public static function get_response_data($klass)
     {
-        if ($klass instanceof ResultInterface) {
-            return [
-                'AttemptLatency' => self::getResultAttemptLatency($klass),
-                'DestinationIp' => self::getResultDestinationIp($klass),
-                'DnsLatency' => self::getResultDnsLatency($klass),
-                'HttpStatusCode' => self::getResultHttpStatusCode($klass),
-                'XAmzId2' => self::getResultHeader($klass, 'x-amz-id-2'),
-                'XAmzRequestId' => self::getResultHeader($klass, 'x-amz-request-id'),
-                'XAmznRequestId' => self::getResultHeader($klass, 'x-amzn-RequestId'),
-            ];
+        if ($klass instanceof Result_Interface) {
+            return ['AttemptLatency' => self::get_result_attempt_latency($klass), 'DestinationIp' => self::get_result_destination_ip($klass), 'DnsLatency' => self::get_result_dns_latency($klass), 'HttpStatusCode' => self::get_result_http_status_code($klass), 'XAmzId2' => self::get_result_header($klass, 'x-amz-id-2'), 'XAmzRequestId' => self::get_result_header($klass, 'x-amz-request-id'), 'XAmznRequestId' => self::get_result_header($klass, 'x-amzn-RequestId')];
         }
-        if ($klass instanceof AwsException) {
-            return [
-                'AttemptLatency' => self::getAwsExceptionAttemptLatency($klass),
-                'AwsException' => substr(
-                    (string) self::getAwsExceptionErrorCode($klass),
-                    0,
-                    128
-                ),
-                'AwsExceptionMessage' => substr(
-                    (string) self::getAwsExceptionMessage($klass),
-                    0,
-                    512
-                ),
-                'DestinationIp' => self::getAwsExceptionDestinationIp($klass),
-                'DnsLatency' => self::getAwsExceptionDnsLatency($klass),
-                'HttpStatusCode' => self::getAwsExceptionHttpStatusCode($klass),
-                'XAmzId2' => self::getAwsExceptionHeader($klass, 'x-amz-id-2'),
-                'XAmzRequestId' => self::getAwsExceptionHeader(
-                    $klass,
-                    'x-amz-request-id'
-                ),
-                'XAmznRequestId' => self::getAwsExceptionHeader(
-                    $klass,
-                    'x-amzn-RequestId'
-                ),
-            ];
+        if ($klass instanceof Aws_Exception) {
+            return ['AttemptLatency' => self::get_aws_exception_attempt_latency($klass), 'AwsException' => substr((string) self::get_aws_exception_error_code($klass), 0, 128), 'AwsExceptionMessage' => substr((string) self::get_aws_exception_message($klass), 0, 512), 'DestinationIp' => self::get_aws_exception_destination_ip($klass), 'DnsLatency' => self::get_aws_exception_dns_latency($klass), 'HttpStatusCode' => self::get_aws_exception_http_status_code($klass), 'XAmzId2' => self::get_aws_exception_header($klass, 'x-amz-id-2'), 'XAmzRequestId' => self::get_aws_exception_header($klass, 'x-amz-request-id'), 'XAmznRequestId' => self::get_aws_exception_header($klass, 'x-amzn-RequestId')];
         }
         if ($klass instanceof \Exception) {
-            return [
-                'HttpStatusCode' => self::getExceptionHttpStatusCode($klass),
-                'SdkException' => substr(
-                    (string) self::getExceptionCode($klass),
-                    0,
-                    128
-                ),
-                'SdkExceptionMessage' => substr(
-                    (string) self::getExceptionMessage($klass),
-                    0,
-                    512
-                ),
-                'XAmzId2' => self::getExceptionHeader($klass, 'x-amz-id-2'),
-                'XAmzRequestId' => self::getExceptionHeader($klass, 'x-amz-request-id'),
-                'XAmznRequestId' => self::getExceptionHeader($klass, 'x-amzn-RequestId'),
-            ];
+            return ['HttpStatusCode' => self::get_exception_http_status_code($klass), 'SdkException' => substr((string) self::get_exception_code($klass), 0, 128), 'SdkExceptionMessage' => substr((string) self::get_exception_message($klass), 0, 512), 'XAmzId2' => self::get_exception_header($klass, 'x-amz-id-2'), 'XAmzRequestId' => self::get_exception_header($klass, 'x-amz-request-id'), 'XAmznRequestId' => self::get_exception_header($klass, 'x-amzn-RequestId')];
         }
-
         throw new \InvalidArgumentException('Parameter must be an instance of ResultInterface, AwsException or Exception.');
     }
-
-    private static function getResultAttemptLatency(ResultInterface $result): ?int
+    private static function get_result_attempt_latency(Result_Interface $result): ?int
     {
         if (isset($result['@metadata']['transferStats']['http'])) {
             $attempt = end($result['@metadata']['transferStats']['http']);
@@ -125,8 +60,7 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         }
         return null;
     }
-
-    private static function getResultDestinationIp(ResultInterface $result)
+    private static function get_result_destination_ip(Result_Interface $result)
     {
         if (isset($result['@metadata']['transferStats']['http'])) {
             $attempt = end($result['@metadata']['transferStats']['http']);
@@ -136,8 +70,7 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         }
         return null;
     }
-
-    private static function getResultDnsLatency(ResultInterface $result): ?int
+    private static function get_result_dns_latency(Result_Interface $result): ?int
     {
         if (isset($result['@metadata']['transferStats']['http'])) {
             $attempt = end($result['@metadata']['transferStats']['http']);
@@ -147,111 +80,93 @@ class ApiCallAttemptMonitoringMiddleware extends AbstractMonitoringMiddleware
         }
         return null;
     }
-
-    private static function getResultHttpStatusCode(ResultInterface $result)
+    private static function get_result_http_status_code(Result_Interface $result)
     {
         return $result['@metadata']['statusCode'];
     }
-
-    private static function getAwsExceptionAttemptLatency(AwsException $e): ?int
+    private static function get_aws_exception_attempt_latency(Aws_Exception $e): ?int
     {
-        $attempt = $e->getTransferInfo();
+        $attempt = $e->get_transfer_info();
         if (isset($attempt['total_time'])) {
             return (int) floor($attempt['total_time'] * 1000);
         }
         return null;
     }
-
-    private static function getAwsExceptionErrorCode(AwsException $e)
+    private static function get_aws_exception_error_code(Aws_Exception $e)
     {
-        return $e->getAwsErrorCode();
+        return $e->get_aws_error_code();
     }
-
-    private static function getAwsExceptionMessage(AwsException $e)
+    private static function get_aws_exception_message(Aws_Exception $e)
     {
-        return $e->getAwsErrorMessage();
+        return $e->get_aws_error_message();
     }
-
-    private static function getAwsExceptionDestinationIp(AwsException $e)
+    private static function get_aws_exception_destination_ip(Aws_Exception $e)
     {
-        $attempt = $e->getTransferInfo();
+        $attempt = $e->get_transfer_info();
         return $attempt['primary_ip'] ?? null;
     }
-
-    private static function getAwsExceptionDnsLatency(AwsException $e): ?int
+    private static function get_aws_exception_dns_latency(Aws_Exception $e): ?int
     {
-        $attempt = $e->getTransferInfo();
+        $attempt = $e->get_transfer_info();
         if (isset($attempt['namelookup_time'])) {
             return (int) floor($attempt['namelookup_time'] * 1000);
         }
         return null;
     }
-
-    private static function getAwsExceptionHttpStatusCode(AwsException $e)
+    private static function get_aws_exception_http_status_code(Aws_Exception $e)
     {
-        $response = $e->getResponse();
+        $response = $e->get_response();
         if ($response !== null) {
-            return $response->getStatusCode();
+            return $response->get_status_code();
         }
         return null;
     }
-
-    private static function getExceptionHttpStatusCode(\Exception $e)
+    private static function get_exception_http_status_code(\Exception $e)
     {
-        if ($e instanceof ResponseContainerInterface) {
-            $response = $e->getResponse();
-            if ($response instanceof ResponseInterface) {
-                return $response->getStatusCode();
+        if ($e instanceof Response_Container_Interface) {
+            $response = $e->get_response();
+            if ($response instanceof Response_Interface) {
+                return $response->get_status_code();
             }
         }
         return null;
     }
-
-    private static function getExceptionCode(\Exception $e): ?string
+    private static function get_exception_code(\Exception $e): ?string
     {
-        if (!($e instanceof AwsException)) {
+        if (!$e instanceof Aws_Exception) {
             return $e::class;
         }
         return null;
     }
-
-    private static function getExceptionMessage(\Exception $e): ?string
+    private static function get_exception_message(\Exception $e): ?string
     {
-        if (!($e instanceof AwsException)) {
-            return $e->getMessage();
+        if (!$e instanceof Aws_Exception) {
+            return $e->get_message();
         }
         return null;
     }
-
     /**
      * {@inheritdoc}
      */
-    protected function populateRequestEventData(
-        CommandInterface $cmd,
-        RequestInterface $request,
-        array $event
-    ) {
-        $event = parent::populateRequestEventData($cmd, $request, $event);
+    protected function populate_request_event_data(Command_Interface $cmd, Request_Interface $request, array $event)
+    {
+        $event = parent::populate_request_event_data($cmd, $request, $event);
         $event['Type'] = 'ApiCallAttempt';
         return $event;
     }
-
     /**
      * {@inheritdoc}
      */
-    protected function populateResultEventData(
-        $result,
-        array $event
-    ) {
-        $event = parent::populateResultEventData($result, $event);
-
-        $provider = $this->credentialProvider;
+    protected function populate_result_event_data($result, array $event)
+    {
+        $event = parent::populate_result_event_data($result, $event);
+        $provider = $this->credential_provider;
         /** @var CredentialsInterface $credentials */
         $credentials = $provider()->wait();
-        $event['AccessKey'] = $credentials->getAccessKeyId();
-        $sessionToken = $credentials->getSecurityToken();
-        if ($sessionToken !== null) {
-            $event['SessionToken'] = $sessionToken;
+        $event['AccessKey'] = $credentials->get_access_key_id();
+        $session_token = $credentials->get_security_token();
+        if ($session_token !== null) {
+            $event['SessionToken'] = $session_token;
         }
         if (empty($event['AttemptLatency'])) {
             $event['AttemptLatency'] = (int) (floor(microtime(true) * 1000) - $event['Timestamp']);

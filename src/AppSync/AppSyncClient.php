@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Sync;
 
-namespace Aws\AppSync;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS AppSync** service.
  * @method \Aws\Result associateApi(array $args = [])
@@ -157,6 +155,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateType(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateTypeAsync(array $args = [])
  */
-class AppSyncClient extends AwsClient
+class App_Sync_Client extends Aws_Client
 {
 }

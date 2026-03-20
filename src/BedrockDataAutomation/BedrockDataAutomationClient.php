@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Data_Automation;
 
-namespace Aws\BedrockDataAutomation;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Data Automation for Amazon Bedrock** service.
  * @method \Aws\Result copyBlueprintStage(array $args = [])
@@ -43,6 +41,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateDataAutomationProject(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateDataAutomationProjectAsync(array $args = [])
  */
-class BedrockDataAutomationClient extends AwsClient
+class Bedrock_Data_Automation_Client extends Aws_Client
 {
 }

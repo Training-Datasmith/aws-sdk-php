@@ -1,34 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
-use Aws\Crypto\Cipher\CipherMethod;
-use GuzzleHttp\Psr7\AppendStream;
-use GuzzleHttp\Psr7\Stream;
-
+use Aws\Crypto\Cipher\Cipher_Method;
+use Guzzle_Http\Psr7\Append_Stream;
+use Guzzle_Http\Psr7\Stream;
 /**
  * @internal
  */
-abstract class AbstractCryptoClientV3
+abstract class Abstract_Crypto_Client_V3
 {
     public const SUPPORTED_SECURITY_PROFILES = ['V3', 'V3_AND_LEGACY'];
-
     public const LEGACY_SECURITY_PROFILES = ['V3_AND_LEGACY'];
-
-    public const KEY_COMMITMENT_POLICIES = [
-        'FORBID_ENCRYPT_ALLOW_DECRYPT',
-        'REQUIRE_ENCRYPT_ALLOW_DECRYPT',
-        'REQUIRE_ENCRYPT_REQUIRE_DECRYPT',
-    ];
-
-    public static array $supportedCiphers = ['gcm'];
-
-    public static array $supportedKeyWraps = [
-        KmsMaterialsProviderV3::WRAP_ALGORITHM_NAME,
-    ];
-
+    public const KEY_COMMITMENT_POLICIES = ['FORBID_ENCRYPT_ALLOW_DECRYPT', 'REQUIRE_ENCRYPT_ALLOW_DECRYPT', 'REQUIRE_ENCRYPT_REQUIRE_DECRYPT'];
+    public static array $supported_ciphers = ['gcm'];
+    public static array $supported_key_wraps = [Kms_Materials_Provider_V3::WRAP_ALGORITHM_NAME];
     /**
      * Returns if the passed policy name is supported for encryption by the SDK.
      *
@@ -36,11 +23,10 @@ abstract class AbstractCryptoClientV3
      *
      * @return bool If the key commitment policy passed is in our supported list.
      */
-    public static function isSupportedKeyCommitmentPolicy(string $policy): bool
+    public static function is_supported_key_commitment_policy(string $policy): bool
     {
-        return in_array($policy, AbstractCryptoClientV3::KEY_COMMITMENT_POLICIES, strict: true);
+        return in_array($policy, Abstract_Crypto_Client_V3::KEY_COMMITMENT_POLICIES, strict: true);
     }
-
     /**
      * Returns if the passed cipher name is supported for encryption by the SDK.
      *
@@ -48,11 +34,10 @@ abstract class AbstractCryptoClientV3
      *
      * @return bool If the cipher passed is in our supported list.
      */
-    public static function isSupportedCipher(string $cipherName): bool
+    public static function is_supported_cipher(string $cipher_name): bool
     {
-        return in_array($cipherName, self::$supportedCiphers, true);
+        return in_array($cipher_name, self::$supported_ciphers, true);
     }
-
     /**
      * Returns an identifier recognizable by `openssl_*` functions, such as
      * `aes-256-gcm`
@@ -64,11 +49,7 @@ abstract class AbstractCryptoClientV3
      *
      * @return string
      */
-    abstract protected function getCipherOpenSslName(
-        $cipherName,
-        $keySize
-    );
-
+    abstract protected function get_cipher_open_ssl_name($cipher_name, $key_size);
     /**
      * Constructs a CipherMethod for the given name, initialized with the other
      * data passed for use in encrypting or decrypting.
@@ -82,12 +63,7 @@ abstract class AbstractCryptoClientV3
      *
      * @internal
      */
-    abstract protected function buildCipherMethod(
-        $cipherName,
-        $iv,
-        $keySize
-    );
-
+    abstract protected function build_cipher_method($cipher_name, $iv, $key_size);
     /**
      * Performs a reverse lookup to get the openssl_* cipher name from the
      * AESName passed in from the MetadataEnvelope.
@@ -98,8 +74,7 @@ abstract class AbstractCryptoClientV3
      *
      * @internal
      */
-    abstract protected function getCipherFromAesName($aesName);
-
+    abstract protected function get_cipher_from_aes_name($aes_name);
     /**
      * Dependency to provide an interface for building an encryption stream for
      * data given cipher details, metadata, and materials to do so.
@@ -117,14 +92,7 @@ abstract class AbstractCryptoClientV3
      *
      * @internal
      */
-    abstract public function encrypt(
-        Stream $plaintext,
-        AlgorithmSuite $algorithmSuite,
-        array $options,
-        MaterialsProviderV3 $provider,
-        MetadataEnvelope $envelope
-    ): AppendStream;
-
+    abstract public function encrypt(Stream $plaintext, Algorithm_Suite $algorithm_suite, array $options, Materials_Provider_V3 $provider, Metadata_Envelope $envelope): Append_Stream;
     /**
      * Dependency to provide an interface for building a decryption stream for
      * cipher text given metadata and materials to do so.
@@ -141,11 +109,5 @@ abstract class AbstractCryptoClientV3
      *
      * @internal
      */
-    abstract public function decrypt(
-        string $cipherText,
-        MaterialsProviderInterfaceV3 $provider,
-        MetadataEnvelope $envelope,
-        string $commitmentPolicy,
-        array $options = []
-    ): AesStreamInterface;
+    abstract public function decrypt(string $cipher_text, Materials_Provider_Interface_V3 $provider, Metadata_Envelope $envelope, string $commitment_policy, array $options = []): Aes_Stream_Interface;
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Cbor;
 
-use Aws\Cbor\Exception\CborException;
-
+use Aws\Cbor\Exception\Cbor_Exception;
 /**
  * Decodes Concise Binary Object Representation encoded strings
  * into PHP values according to RFC 8949
@@ -24,11 +22,10 @@ use Aws\Cbor\Exception\CborException;
  *
  * @internal
  */
-final class CborDecoder
+final class Cbor_Decoder
 {
     private int $offset;
     private int $length;
-
     /**
      * Decode CBOR binary data to PHP value
      *
@@ -40,15 +37,12 @@ final class CborDecoder
     public function decode(string $data): mixed
     {
         if ($data === '') {
-            throw new CborException('No data to decode');
+            throw new Cbor_Exception('No data to decode');
         }
-
         $this->offset = 0;
         $this->length = strlen($data);
-
-        return $this->decodeValue($data);
+        return $this->decode_value($data);
     }
-
     /**
      * Decode multiple CBOR values from sequential binary data
      *
@@ -57,19 +51,16 @@ final class CborDecoder
      * @return array Array of decoded PHP values in the order they appear in the data
      * @throws CborException If data is malformed CBOR
      */
-    public function decodeAll(string $data): array
+    public function decode_all(string $data): array
     {
         $this->length = strlen($data);
         $this->offset = 0;
         $values = [];
-
         while ($this->offset < $this->length) {
-            $values[] = $this->decodeValue($data);
+            $values[] = $this->decode_value($data);
         }
-
         return $values;
     }
-
     /**
      * Decodes a single CBOR value at the current offset
      *
@@ -78,449 +69,343 @@ final class CborDecoder
      * @return mixed The decoded value
      * @throws CborException If unexpected end of data or invalid CBOR format
      */
-    private function decodeValue(string &$data): mixed
+    private function decode_value(string &$data): mixed
     {
         $offset = $this->offset;
         $length = $this->length;
-
         if ($offset >= $length) {
-            throw new CborException('Unexpected end of data');
+            throw new Cbor_Exception('Unexpected end of data');
         }
-
         $byte = ord($data[$offset++]);
-        $majorType = $byte >> 5;
-        $info = $byte & 0x1F;
-
-        switch ($majorType) {
-            case 0: // Unsigned integer
+        $major_type = $byte >> 5;
+        $info = $byte & 0x1f;
+        switch ($major_type) {
+            case 0:
+                // Unsigned integer
                 if ($info < 24) {
                     $this->offset = $offset;
-
                     return $info;
                 }
-
                 switch ($info) {
                     case 24:
                         if ($offset >= $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 1;
-
                         return ord($data[$offset]);
-
                     case 25:
                         if ($offset + 2 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 2;
-
-                        return (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
-
+                        return ord($data[$offset]) << 8 | ord($data[$offset + 1]);
                     case 26:
                         if ($offset + 4 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 4;
-
                         return unpack('N', $data, $offset)[1];
-
                     case 27:
                         if ($offset + 8 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 8;
-
                         return unpack('J', $data, $offset)[1];
-
                     default:
-                        throw new CborException("Invalid additional info for integer: $info");
+                        throw new Cbor_Exception("Invalid additional info for integer: {$info}");
                 }
-
-                // no break
-            case 1: // Negative integer
+            // no break
+            case 1:
+                // Negative integer
                 if ($info < 24) {
                     $this->offset = $offset;
-
                     return -1 - $info;
                 }
-
                 switch ($info) {
                     case 24:
                         if ($offset >= $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 1;
-
                         return -1 - ord($data[$offset]);
-
                     case 25:
                         if ($offset + 2 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 2;
-
-                        return -1 - ((ord($data[$offset]) << 8) | ord($data[$offset + 1]));
-
+                        return -1 - (ord($data[$offset]) << 8 | ord($data[$offset + 1]));
                     case 26:
                         if ($offset + 4 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 4;
-
                         return -1 - unpack('N', $data, $offset)[1];
-
                     case 27:
                         if ($offset + 8 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 8;
                         $unsigned = unpack('J', $data, $offset)[1];
-
-                        return ($unsigned === 9223372036854775807) ? PHP_INT_MIN : -1 - $unsigned;
-
+                        return $unsigned === 9223372036854775807 ? PHP_INT_MIN : -1 - $unsigned;
                     default:
-                        throw new CborException("Invalid additional info for integer: $info");
+                        throw new Cbor_Exception("Invalid additional info for integer: {$info}");
                 }
-
-                // no break
-            case 2: // Byte string
+            // no break
+            case 2:
+                // Byte string
                 if ($info < 24) {
                     $len = $info;
                 } else {
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $len = ord($data[$offset++]);
                             break;
-
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
-                            $len = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
+                            $len = ord($data[$offset]) << 8 | ord($data[$offset + 1]);
                             $offset += 2;
                             break;
-
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $len = unpack('N', $data, $offset)[1];
                             $offset += 4;
                             break;
-
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $len = unpack('J', $data, $offset)[1];
                             $offset += 8;
                             break;
-
                         case 31:
                             $this->offset = $offset;
-
-                            return $this->decodeIndefiniteString($data, 0x40);
-
+                            return $this->decode_indefinite_string($data, 0x40);
                         default:
-                            throw new CborException("Invalid additional info for byte string: $info");
+                            throw new Cbor_Exception("Invalid additional info for byte string: {$info}");
                     }
                 }
-
                 if ($offset + $len > $length) {
-                    throw new CborException('Not enough data');
+                    throw new Cbor_Exception('Not enough data');
                 }
-
                 $this->offset = $offset + $len;
-
                 return substr($data, $offset, $len);
-
-            case 3: // Text string
+            case 3:
+                // Text string
                 if ($info < 24) {
                     $len = $info;
                 } else {
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $len = ord($data[$offset++]);
                             break;
-
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
-                            $len = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
+                            $len = ord($data[$offset]) << 8 | ord($data[$offset + 1]);
                             $offset += 2;
                             break;
-
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $len = unpack('N', $data, $offset)[1];
                             $offset += 4;
                             break;
-
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $len = unpack('J', $data, $offset)[1];
                             $offset += 8;
                             break;
-
                         case 31:
                             $this->offset = $offset;
-
-                            return $this->decodeIndefiniteString($data, 0x60);
-
+                            return $this->decode_indefinite_string($data, 0x60);
                         default:
-                            throw new CborException("Invalid additional info for text string: $info");
+                            throw new Cbor_Exception("Invalid additional info for text string: {$info}");
                     }
                 }
-
                 if ($offset + $len > $length) {
-                    throw new CborException('Not enough data');
+                    throw new Cbor_Exception('Not enough data');
                 }
-
                 $this->offset = $offset + $len;
-
                 return substr($data, $offset, $len);
-
-            case 4: // Array
+            case 4:
+                // Array
                 if ($info < 24) {
                     $count = $info;
                 } else {
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $count = ord($data[$offset++]);
                             break;
-
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
-                            $count = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
+                            $count = ord($data[$offset]) << 8 | ord($data[$offset + 1]);
                             $offset += 2;
                             break;
-
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $count = unpack('N', $data, $offset)[1];
                             $offset += 4;
                             break;
-
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $count = unpack('J', $data, $offset)[1];
                             $offset += 8;
                             break;
-
                         case 31:
                             $this->offset = $offset;
-
-                            return $this->decodeIndefiniteArray($data);
-
+                            return $this->decode_indefinite_array($data);
                         default:
-                            throw new CborException("Invalid additional info for array: $info");
+                            throw new Cbor_Exception("Invalid additional info for array: {$info}");
                     }
                 }
-
                 $this->offset = $offset;
                 $arr = [];
-
                 for ($i = 0; $i < $count; $i++) {
-                    $arr[] = $this->decodeValue($data);
+                    $arr[] = $this->decode_value($data);
                 }
-
                 return $arr;
-
-            case 5: // Map
+            case 5:
+                // Map
                 if ($info < 24) {
                     $count = $info;
                 } else {
                     switch ($info) {
                         case 24:
                             if ($offset >= $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $count = ord($data[$offset++]);
                             break;
-
                         case 25:
                             if ($offset + 2 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
-                            $count = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
+                            $count = ord($data[$offset]) << 8 | ord($data[$offset + 1]);
                             $offset += 2;
                             break;
-
                         case 26:
                             if ($offset + 4 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $count = unpack('N', $data, $offset)[1];
                             $offset += 4;
                             break;
-
                         case 27:
                             if ($offset + 8 > $length) {
-                                throw new CborException('Not enough data');
+                                throw new Cbor_Exception('Not enough data');
                             }
-
                             $count = unpack('J', $data, $offset)[1];
                             $offset += 8;
                             break;
-
                         case 31:
                             $this->offset = $offset;
-
-                            return $this->decodeIndefiniteMap($data);
-
+                            return $this->decode_indefinite_map($data);
                         default:
-                            throw new CborException("Invalid additional info for map: $info");
+                            throw new Cbor_Exception("Invalid additional info for map: {$info}");
                     }
                 }
-
                 $this->offset = $offset;
                 $map = [];
-
                 for ($i = 0; $i < $count; $i++) {
-                    $key = $this->decodeValue($data);
-                    $map[$key] = $this->decodeValue($data);
+                    $key = $this->decode_value($data);
+                    $map[$key] = $this->decode_value($data);
                 }
-
                 return $map;
-
-            case 6: // Tag
+            case 6:
+                // Tag
                 switch ($info) {
                     case 24:
                         $offset++;
                         break;
-
                     case 25:
                         $offset += 2;
                         break;
-
                     case 26:
                         $offset += 4;
                         break;
-
                     case 27:
                         $offset += 8;
                         break;
                 }
-
                 $this->offset = $offset;
-
-                return $this->decodeValue($data);
-
-            case 7: // Simple/float
+                return $this->decode_value($data);
+            case 7:
+                // Simple/float
                 switch ($info) {
                     case 20:
                         $this->offset = $offset;
-
                         return false;
-
                     case 21:
                         $this->offset = $offset;
-
                         return true;
-
                     case 22:
                     case 23:
                         $this->offset = $offset;
-
                         return null;
-
-                    case 25: // Half-precision float
+                    case 25:
+                        // Half-precision float
                         if ($offset + 2 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 2;
-                        $half = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
-                        $sign = ($half >> 15) & 0x01;
-                        $exp = ($half >> 10) & 0x1F;
-                        $mant = $half & 0x3FF;
-
+                        $half = ord($data[$offset]) << 8 | ord($data[$offset + 1]);
+                        $sign = $half >> 15 & 0x1;
+                        $exp = $half >> 10 & 0x1f;
+                        $mant = $half & 0x3ff;
                         if ($exp === 0) {
-                            return $mant === 0
-                                ? ($sign ? -0.0 : 0.0)
-                                : ($sign ? -1 : 1) * 2 ** -14 * ($mant / 1024);
+                            return $mant === 0 ? $sign ? -0.0 : 0.0 : ($sign ? -1 : 1) * 2 ** -14 * ($mant / 1024);
                         }
-
                         if ($exp === 31) {
-                            return $mant === 0 ? ($sign ? -INF : INF) : NAN;
+                            return $mant === 0 ? $sign ? -INF : INF : NAN;
                         }
-
                         return (float) (($sign ? -1 : 1) * 2 ** ($exp - 15) * (1 + $mant / 1024));
-
-                    case 26: // Single-precision float
+                    case 26:
+                        // Single-precision float
                         if ($offset + 4 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 4;
-
                         return unpack('G', $data, $offset)[1];
-
-                    case 27: // Double-precision float
+                    case 27:
+                        // Double-precision float
                         if ($offset + 8 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $this->offset = $offset + 8;
-
                         return unpack('E', $data, $offset)[1];
-
                     case 31:
-                        throw new CborException('Unexpected break');
-
+                        throw new Cbor_Exception('Unexpected break');
                     default:
-                        throw new CborException("Unknown simple value: $info");
+                        throw new Cbor_Exception("Unknown simple value: {$info}");
                 }
-
-                // no break
+            // no break
             default:
-                throw new CborException("Unknown major type: $majorType");
+                throw new Cbor_Exception("Unknown major type: {$major_type}");
         }
     }
-
     /**
      * Decode indefinite-length string (byte or text)
      *
@@ -530,89 +415,69 @@ final class CborDecoder
      * @return string The concatenated string from all chunks
      * @throws CborException If invalid chunk format or unexpected end of data
      */
-    private function decodeIndefiniteString(string &$data, int $expectedMajor): string
+    private function decode_indefinite_string(string &$data, int $expected_major): string
     {
         $chunks = [];
-
         while (true) {
             $offset = $this->offset;
             $length = $this->length;
-
             if ($offset >= $length) {
-                throw new CborException('Unexpected end of data');
+                throw new Cbor_Exception('Unexpected end of data');
             }
-
             $byte = ord($data[$offset++]);
-
-            if ($byte === 0xFF) {
+            if ($byte === 0xff) {
                 $this->offset = $offset;
-
                 return implode('', $chunks);
             }
-
-            if (($byte & 0xE0) !== $expectedMajor) {
-                throw new CborException('Invalid chunk in indefinite string');
+            if (($byte & 0xe0) !== $expected_major) {
+                throw new Cbor_Exception('Invalid chunk in indefinite string');
             }
-
-            $info = $byte & 0x1F;
-
+            $info = $byte & 0x1f;
             if ($info === 31) {
-                throw new CborException('Nested indefinite string');
+                throw new Cbor_Exception('Nested indefinite string');
             }
-
             if ($info < 24) {
                 $len = $info;
             } else {
                 switch ($info) {
                     case 24:
                         if ($offset >= $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $len = ord($data[$offset++]);
                         break;
-
                     case 25:
                         if ($offset + 2 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
-                        $len = (ord($data[$offset]) << 8) | ord($data[$offset + 1]);
+                        $len = ord($data[$offset]) << 8 | ord($data[$offset + 1]);
                         $offset += 2;
                         break;
-
                     case 26:
                         if ($offset + 4 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $len = unpack('N', $data, $offset)[1];
                         $offset += 4;
                         break;
-
                     case 27:
                         if ($offset + 8 > $length) {
-                            throw new CborException('Not enough data');
+                            throw new Cbor_Exception('Not enough data');
                         }
-
                         $len = unpack('J', $data, $offset)[1];
                         $offset += 8;
                         break;
-
                     default:
-                        throw new CborException("Invalid chunk length info: $info");
+                        throw new Cbor_Exception("Invalid chunk length info: {$info}");
                 }
             }
-
             if ($offset + $len > $length) {
-                throw new CborException('Not enough data for chunk');
+                throw new Cbor_Exception('Not enough data for chunk');
             }
-
             $chunks[] = substr($data, $offset, $len);
             $this->offset = $offset + $len;
         }
     }
-
     /**
      * Decode indefinite-length array
      *
@@ -621,25 +486,20 @@ final class CborDecoder
      * @return array The decoded array elements
      * @throws CborException If unexpected end of data
      */
-    private function decodeIndefiniteArray(string &$data): array
+    private function decode_indefinite_array(string &$data): array
     {
         $result = [];
-
         while (true) {
             if ($this->offset >= $this->length) {
-                throw new CborException('Unexpected end of data');
+                throw new Cbor_Exception('Unexpected end of data');
             }
-
-            if (ord($data[$this->offset]) === 0xFF) {
+            if (ord($data[$this->offset]) === 0xff) {
                 $this->offset++;
-
                 return $result;
             }
-
-            $result[] = $this->decodeValue($data);
+            $result[] = $this->decode_value($data);
         }
     }
-
     /**
      * Decode indefinite-length map
      *
@@ -648,23 +508,19 @@ final class CborDecoder
      * @return array The decoded map as associative array
      * @throws CborException If unexpected end of data or odd number of items
      */
-    private function decodeIndefiniteMap(string &$data): array
+    private function decode_indefinite_map(string &$data): array
     {
         $result = [];
-
         while (true) {
             if ($this->offset >= $this->length) {
-                throw new CborException('Unexpected end of data');
+                throw new Cbor_Exception('Unexpected end of data');
             }
-
-            if (ord($data[$this->offset]) === 0xFF) {
+            if (ord($data[$this->offset]) === 0xff) {
                 $this->offset++;
-
                 return $result;
             }
-
-            $key = $this->decodeValue($data);
-            $result[$key] = $this->decodeValue($data);
+            $key = $this->decode_value($data);
+            $result[$key] = $this->decode_value($data);
         }
     }
 }

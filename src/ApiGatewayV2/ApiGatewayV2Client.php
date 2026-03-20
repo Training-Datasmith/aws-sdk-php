@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Api_Gateway_V2;
 
-namespace Aws\ApiGatewayV2;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AmazonApiGatewayV2** service.
  * @method \Aws\Result createApi(array $args = [])
@@ -215,6 +213,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateVpcLink(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateVpcLinkAsync(array $args = [])
  */
-class ApiGatewayV2Client extends AwsClient
+class Api_Gateway_V2client extends Aws_Client
 {
 }

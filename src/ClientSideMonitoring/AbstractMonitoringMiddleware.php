@@ -1,51 +1,45 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Client_Side_Monitoring;
 
-namespace Aws\ClientSideMonitoring;
-
-use Aws\CommandInterface;
-use Aws\Exception\AwsException;
-use Aws\MonitoringEventsInterface;
-use Aws\ResponseContainerInterface;
-use Aws\ResultInterface;
-use GuzzleHttp\Promise;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-
+use Aws\Command_Interface;
+use Aws\Exception\Aws_Exception;
+use Aws\Monitoring_Events_Interface;
+use Aws\Response_Container_Interface;
+use Aws\Result_Interface;
+use Guzzle_Http\Promise;
+use Psr\Http\Message\Request_Interface;
+use Psr\Http\Message\Response_Interface;
 /**
  * @internal
  */
-abstract class AbstractMonitoringMiddleware implements MonitoringMiddlewareInterface
+abstract class Abstract_Monitoring_Middleware implements Monitoring_Middleware_Interface
 {
     private static \Socket|bool|null $socket = null;
-
-    private $nextHandler;
-    protected $credentialProvider;
-
-    protected static function getAwsExceptionHeader(AwsException $e, $headerName)
+    private $next_handler;
+    protected $credential_provider;
+    protected static function get_aws_exception_header(Aws_Exception $e, $header_name)
     {
-        $response = $e->getResponse();
+        $response = $e->get_response();
         if ($response !== null) {
-            $header = $response->getHeader($headerName);
+            $header = $response->get_header($header_name);
             if (!empty($header[0])) {
                 return $header[0];
             }
         }
         return null;
     }
-
-    protected static function getResultHeader(ResultInterface $result, $headerName)
+    protected static function get_result_header(Result_Interface $result, $header_name)
     {
-        return $result['@metadata']['headers'][$headerName] ?? null;
+        return $result['@metadata']['headers'][$header_name] ?? null;
     }
-
-    protected static function getExceptionHeader(\Exception $e, $headerName)
+    protected static function get_exception_header(\Exception $e, $header_name)
     {
-        if ($e instanceof ResponseContainerInterface) {
-            $response = $e->getResponse();
-            if ($response instanceof ResponseInterface) {
-                $header = $response->getHeader($headerName);
+        if ($e instanceof Response_Container_Interface) {
+            $response = $e->get_response();
+            if ($response instanceof Response_Interface) {
+                $header = $response->get_header($header_name);
                 if (!empty($header[0])) {
                     return $header[0];
                 }
@@ -53,7 +47,6 @@ abstract class AbstractMonitoringMiddleware implements MonitoringMiddlewareInter
         }
         return null;
     }
-
     /**
      * Constructor stores the passed in handler and options.
      *
@@ -61,132 +54,89 @@ abstract class AbstractMonitoringMiddleware implements MonitoringMiddlewareInter
      * @param $region
      * @param $service
      */
-    public function __construct(
-        callable $handler,
-        callable $credentialProvider,
-        private $options,
-        protected $region,
-        protected $service
-    ) {
-        $this->nextHandler = $handler;
-        $this->credentialProvider = $credentialProvider;
+    public function __construct(callable $handler, callable $credential_provider, private $options, protected $region, protected $service)
+    {
+        $this->next_handler = $handler;
+        $this->credential_provider = $credential_provider;
     }
-
     /**
      * Standard invoke pattern for middleware execution to be implemented by
      * child classes.
      *
      * @return Promise\PromiseInterface
      */
-    public function __invoke(CommandInterface $cmd, RequestInterface $request)
+    public function __invoke(Command_Interface $cmd, Request_Interface $request)
     {
-        $handler = $this->nextHandler;
-        $eventData = null;
-        $enabled = $this->isEnabled();
-
+        $handler = $this->next_handler;
+        $event_data = null;
+        $enabled = $this->is_enabled();
         if ($enabled) {
             $cmd['@http']['collect_stats'] = true;
-            $eventData = $this->populateRequestEventData(
-                $cmd,
-                $request,
-                $this->getNewEvent($cmd, $request)
-            );
+            $event_data = $this->populate_request_event_data($cmd, $request, $this->get_new_event($cmd, $request));
         }
-
-        $g = function ($value) use ($eventData, $enabled) {
+        $g = function ($value) use ($event_data, $enabled) {
             if ($enabled) {
-                $eventData = $this->populateResultEventData(
-                    $value,
-                    $eventData
-                );
-                $this->sendEventData($eventData);
-
-                if ($value instanceof MonitoringEventsInterface) {
-                    $value->appendMonitoringEvent($eventData);
+                $event_data = $this->populate_result_event_data($value, $event_data);
+                $this->send_event_data($event_data);
+                if ($value instanceof Monitoring_Events_Interface) {
+                    $value->append_monitoring_event($event_data);
                 }
             }
             if ($value instanceof \Exception || $value instanceof \Throwable) {
-                return Promise\Create::rejectionFor($value);
+                return Promise\Create::rejection_for($value);
             }
             return $value;
         };
-
-        return Promise\Create::promiseFor($handler($cmd, $request))->then($g, $g);
+        return Promise\Create::promise_for($handler($cmd, $request))->then($g, $g);
     }
-
-    private function getClientId()
+    private function get_client_id()
     {
-        return $this->unwrappedOptions()->getClientId();
+        return $this->unwrapped_options()->get_client_id();
     }
-
-    private function getNewEvent(
-        CommandInterface $cmd,
-        RequestInterface $request
-    ): array {
-        return [
-            'Api' => $cmd->getName(),
-            'ClientId' => $this->getClientId(),
-            'Region' => $this->getRegion(),
-            'Service' => $this->getService(),
-            'Timestamp' => (int) floor(microtime(true) * 1000),
-            'UserAgent' => substr(
-                $request->getHeaderLine('User-Agent') . ' ' . \Aws\default_user_agent(),
-                0,
-                256
-            ),
-            'Version' => 1,
-        ];
-    }
-
-    private function getHost()
+    private function get_new_event(Command_Interface $cmd, Request_Interface $request): array
     {
-        return $this->unwrappedOptions()->getHost();
+        return ['Api' => $cmd->get_name(), 'ClientId' => $this->get_client_id(), 'Region' => $this->get_region(), 'Service' => $this->get_service(), 'Timestamp' => (int) floor(microtime(true) * 1000), 'UserAgent' => substr($request->get_header_line('User-Agent') . ' ' . \Aws\default_user_agent(), 0, 256), 'Version' => 1];
     }
-
-    private function getPort()
+    private function get_host()
     {
-        return $this->unwrappedOptions()->getPort();
+        return $this->unwrapped_options()->get_host();
     }
-
-    private function getRegion()
+    private function get_port()
+    {
+        return $this->unwrapped_options()->get_port();
+    }
+    private function get_region()
     {
         return $this->region;
     }
-
-    private function getService()
+    private function get_service()
     {
         return $this->service;
     }
-
     /**
      * Returns enabled flag from options, unwrapping options if necessary.
      *
      * @return bool
      */
-    private function isEnabled()
+    private function is_enabled()
     {
-        return $this->unwrappedOptions()->isEnabled();
+        return $this->unwrapped_options()->is_enabled();
     }
-
     /**
      * Returns $eventData array with information from the request and command.
      *
      * @return array
      */
-    protected function populateRequestEventData(
-        CommandInterface $cmd,
-        RequestInterface $request,
-        array $event
-    ) {
-        $dataFormat = static::getRequestData($request);
-        foreach ($dataFormat as $eventKey => $value) {
+    protected function populate_request_event_data(Command_Interface $cmd, Request_Interface $request, array $event)
+    {
+        $data_format = static::get_request_data($request);
+        foreach ($data_format as $event_key => $value) {
             if ($value !== null) {
-                $event[$eventKey] = $value;
+                $event[$event_key] = $value;
             }
         }
         return $event;
     }
-
     /**
      * Returns $eventData array with information from the response, including
      * the calculation for attempt latency.
@@ -194,19 +144,16 @@ abstract class AbstractMonitoringMiddleware implements MonitoringMiddlewareInter
      * @param ResultInterface|\Exception $result
      * @return array
      */
-    protected function populateResultEventData(
-        $result,
-        array $event
-    ) {
-        $dataFormat = static::getResponseData($result);
-        foreach ($dataFormat as $eventKey => $value) {
+    protected function populate_result_event_data($result, array $event)
+    {
+        $data_format = static::get_response_data($result);
+        foreach ($data_format as $event_key => $value) {
             if ($value !== null) {
-                $event[$eventKey] = $value;
+                $event[$event_key] = $value;
             }
         }
         return $event;
     }
-
     /**
      * Checks if the socket is created. If PHP version is greater or equals to 8 then,
      * it will check if the var is instance of \Socket otherwise it will check if is
@@ -214,17 +161,16 @@ abstract class AbstractMonitoringMiddleware implements MonitoringMiddlewareInter
      *
      * @return bool Returns true if the socket is created, false otherwise.
      */
-    private function isSocketCreated(): bool
+    private function is_socket_created(): bool
     {
         // Before version 8, sockets are resources
         // After version 8, sockets are instances of Socket
         if (PHP_MAJOR_VERSION >= 8) {
-            $socketClass = '\Socket';
-            return self::$socket instanceof $socketClass;
+            $socket_class = '\Socket';
+            return self::$socket instanceof $socket_class;
         }
         return is_resource(self::$socket);
     }
-
     /**
      * Creates a UDP socket resource and stores it with the class, or retrieves
      * it if already instantiated and connected. Handles error-checking and
@@ -233,54 +179,44 @@ abstract class AbstractMonitoringMiddleware implements MonitoringMiddlewareInter
      *
      * @return Resource
      */
-    private function prepareSocket(bool $forceNewConnection = false)
+    private function prepare_socket(bool $force_new_connection = false)
     {
-        if (!$this->isSocketCreated()
-            || $forceNewConnection
-            || socket_last_error(self::$socket)
-        ) {
+        if (!$this->is_socket_created() || $force_new_connection || socket_last_error(self::$socket)) {
             self::$socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
             socket_clear_error(self::$socket);
-            socket_connect(self::$socket, $this->getHost(), $this->getPort());
+            socket_connect(self::$socket, $this->get_host(), $this->get_port());
         }
-
         return self::$socket;
     }
-
     /**
      * Sends formatted monitoring event data via the UDP socket connection to
      * the CSM agent endpoint.
      *
      * @return int
      */
-    private function sendEventData(array $eventData): int|false
+    private function send_event_data(array $event_data): int|false
     {
-        $socket = $this->prepareSocket();
-        $datagram = json_encode($eventData);
+        $socket = $this->prepare_socket();
+        $datagram = json_encode($event_data);
         $result = socket_write($socket, $datagram, strlen($datagram));
         if ($result === false) {
-            $this->prepareSocket(true);
+            $this->prepare_socket(true);
         }
         return $result;
     }
-
     /**
      * Unwraps options, if needed, and returns them.
      *
      * @return ConfigurationInterface
      */
-    private function unwrappedOptions()
+    private function unwrapped_options()
     {
-        if (!($this->options instanceof ConfigurationInterface)) {
+        if (!$this->options instanceof Configuration_Interface) {
             try {
-                $this->options = ConfigurationProvider::unwrap($this->options);
+                $this->options = Configuration_Provider::unwrap($this->options);
             } catch (\Exception) {
                 // Errors unwrapping CSM config defaults to disabling it
-                $this->options = new Configuration(
-                    false,
-                    ConfigurationProvider::DEFAULT_HOST,
-                    ConfigurationProvider::DEFAULT_PORT
-                );
+                $this->options = new Configuration(false, Configuration_Provider::DEFAULT_HOST, Configuration_Provider::DEFAULT_PORT);
             }
         }
         return $this->options;

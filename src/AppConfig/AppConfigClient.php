@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Config;
 
-namespace Aws\AppConfig;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon AppConfig** service.
  * @method \Aws\Result createApplication(array $args = [])
@@ -99,6 +97,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validateConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validateConfigurationAsync(array $args = [])
  */
-class AppConfigClient extends AwsClient
+class App_Config_Client extends Aws_Client
 {
 }

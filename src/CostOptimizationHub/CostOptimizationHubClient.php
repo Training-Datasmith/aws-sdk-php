@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cost_Optimization_Hub;
 
-namespace Aws\CostOptimizationHub;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Cost Optimization Hub** service.
  * @method \Aws\Result getPreferences(array $args = [])
@@ -25,6 +23,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updatePreferences(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updatePreferencesAsync(array $args = [])
  */
-class CostOptimizationHubClient extends AwsClient
+class Cost_Optimization_Hub_Client extends Aws_Client
 {
 }

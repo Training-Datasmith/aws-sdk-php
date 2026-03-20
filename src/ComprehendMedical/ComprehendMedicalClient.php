@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Comprehend_Medical;
 
-namespace Aws\ComprehendMedical;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Comprehend Medical** service.
  * @method \Aws\Result describeEntitiesDetectionV2Job(array $args = [])
@@ -61,6 +59,6 @@ use Aws\AwsClient;
  * @method \Aws\Result stopSNOMEDCTInferenceJob(array $args = [])
  * @method \GuzzleHttp\Promise\Promise stopSNOMEDCTInferenceJobAsync(array $args = [])
  */
-class ComprehendMedicalClient extends AwsClient
+class Comprehend_Medical_Client extends Aws_Client
 {
 }

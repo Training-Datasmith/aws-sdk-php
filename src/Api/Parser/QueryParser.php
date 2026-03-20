@@ -1,23 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api\Parser;
 
 use Aws\Api\Service;
-use Aws\Api\StructureShape;
-use Aws\CommandInterface;
+use Aws\Api\Structure_Shape;
+use Aws\Command_Interface;
 use Aws\Result;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
-
+use Psr\Http\Message\Response_Interface;
+use Psr\Http\Message\Stream_Interface;
 /**
  * @internal Parses query (XML) responses (e.g., EC2, SQS, and many others)
  */
-class QueryParser extends AbstractParser
+class Query_Parser extends Abstract_Parser
 {
-    use PayloadParserTrait;
-
+    use Payload_Parser_Trait;
     /**
      * @param Service   $api                Service description
      * @param XmlParser $xmlParser          Optional XML parser
@@ -25,45 +22,30 @@ class QueryParser extends AbstractParser
      *                                      back of result wrappers from the
      *                                      output structure.
      */
-    public function __construct(
-        Service $api,
-        ?XmlParser $xmlParser = null,
-        private $honorResultWrapper = true
-    ) {
+    public function __construct(Service $api, ?Xml_Parser $xml_parser = null, private $honor_result_wrapper = true)
+    {
         parent::__construct($api);
-        $this->parser = $xmlParser ?: new XmlParser();
+        $this->parser = $xml_parser ?: new Xml_Parser();
     }
-
-    public function __invoke(
-        CommandInterface $command,
-        ResponseInterface $response
-    ): \Aws\Result {
-        $output = $this->api->getOperation($command->getName())->getOutput();
+    public function __invoke(Command_Interface $command, Response_Interface $response): \Aws\Result
+    {
+        $output = $this->api->get_operation($command->get_name())->get_output();
         // Read the full payload, even in non-seekable streams
-        $rawBody = AbstractParser::getBodyContents($response);
+        $raw_body = Abstract_Parser::get_body_contents($response);
         // Just parse when the body is not empty
-        $xml = !empty($rawBody)
-            ? $this->parseXml($rawBody, $response)
-            : null;
-
+        $xml = !empty($raw_body) ? $this->parse_xml($raw_body, $response) : null;
         // Empty request bodies should not be deserialized.
         if (is_null($xml)) {
             return new Result();
         }
-
-        if ($this->honorResultWrapper && $output['resultWrapper']) {
+        if ($this->honor_result_wrapper && $output['resultWrapper']) {
             $xml = $xml->{$output['resultWrapper']};
         }
-
         return new Result($this->parser->parse($output, $xml));
     }
-
-    public function parseMemberFromStream(
-        StreamInterface $stream,
-        StructureShape $member,
-        $response
-    ) {
-        $xml = $this->parseXml($stream, $response);
+    public function parse_member_from_stream(Stream_Interface $stream, Structure_Shape $member, $response)
+    {
+        $xml = $this->parse_xml($stream, $response);
         return $this->parser->parse($member, $xml);
     }
 }

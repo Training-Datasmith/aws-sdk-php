@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Application_Discovery_Service\Exception;
 
-namespace Aws\ApplicationDiscoveryService\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Application Discovery Service** service.
  */
-class ApplicationDiscoveryServiceException extends AwsException
+class Application_Discovery_Service_Exception extends Aws_Exception
 {
 }

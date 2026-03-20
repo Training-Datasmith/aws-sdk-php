@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Hsmv2;
 
-namespace Aws\CloudHSMV2;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS CloudHSM V2** service.
  * @method \Aws\Result copyBackupToRegion(array $args = [])
@@ -45,6 +43,6 @@ use Aws\AwsClient;
  * @method \Aws\Result untagResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
-class CloudHSMV2Client extends AwsClient
+class Cloud_Hsmv2client extends Aws_Client
 {
 }

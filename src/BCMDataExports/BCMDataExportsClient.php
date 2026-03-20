@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bcm_Data_Exports;
 
-namespace Aws\BCMDataExports;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Billing and Cost Management Data Exports** service.
  * @method \Aws\Result createExport(array $args = [])
@@ -33,6 +31,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateExport(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateExportAsync(array $args = [])
  */
-class BCMDataExportsClient extends AwsClient
+class Bcm_Data_Exports_Client extends Aws_Client
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Config_Service;
 
-namespace Aws\ConfigService;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with AWS Config.
  *
@@ -204,6 +202,6 @@ use Aws\AwsClient;
  * @method \Aws\Result untagResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
-class ConfigServiceClient extends AwsClient
+class Config_Service_Client extends Aws_Client
 {
 }

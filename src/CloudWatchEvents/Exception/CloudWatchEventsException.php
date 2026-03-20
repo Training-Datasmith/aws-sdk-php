@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Watch_Events\Exception;
 
-namespace Aws\CloudWatchEvents\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon CloudWatch Events** service.
  */
-class CloudWatchEventsException extends AwsException
+class Cloud_Watch_Events_Exception extends Aws_Exception
 {
 }

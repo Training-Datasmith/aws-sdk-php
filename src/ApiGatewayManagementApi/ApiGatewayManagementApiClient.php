@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Api_Gateway_Management_Api;
 
-namespace Aws\ApiGatewayManagementApi;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AmazonApiGatewayManagementApi** service.
  * @method \Aws\Result deleteConnection(array $args = [])
@@ -15,6 +13,6 @@ use Aws\AwsClient;
  * @method \Aws\Result postToConnection(array $args = [])
  * @method \GuzzleHttp\Promise\Promise postToConnectionAsync(array $args = [])
  */
-class ApiGatewayManagementApiClient extends AwsClient
+class Api_Gateway_Management_Api_Client extends Aws_Client
 {
 }

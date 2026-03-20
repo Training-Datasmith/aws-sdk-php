@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto\Cipher;
 
-interface CipherMethod
+interface Cipher_Method
 {
     /**
      * Returns an identifier recognizable by `openssl_*` functions, such as
@@ -12,23 +11,20 @@ interface CipherMethod
      *
      * @return string
      */
-    public function getOpenSslName();
-
+    public function get_open_ssl_name();
     /**
      * Returns an AES recognizable name, such as 'AES/GCM/NoPadding'.
      *
      * @return string
      */
-    public function getAesName();
-
+    public function get_aes_name();
     /**
      * Returns the IV that should be used to initialize the next block in
      * encrypt or decrypt.
      *
      * @return string
      */
-    public function getCurrentIv();
-
+    public function get_current_iv();
     /**
      * Indicates whether the cipher method used with this IV requires padding
      * the final block to make sure the plaintext is evenly divisible by the
@@ -36,8 +32,7 @@ interface CipherMethod
      *
      * @return boolean
      */
-    public function requiresPadding();
-
+    public function requires_padding();
     /**
      * Adjust the return of this::getCurrentIv to reflect a seek performed on
      * the encryption stream using this IV object.
@@ -51,12 +46,11 @@ interface CipherMethod
      *                          $whence === SEEK_SET)
      */
     public function seek($offset, $whence = SEEK_SET);
-
     /**
      * Take account of the last cipher text block to adjust the return of
      * this::getCurrentIv
      *
      * @param string $cipherTextBlock
      */
-    public function update($cipherTextBlock);
+    public function update($cipher_text_block);
 }

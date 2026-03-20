@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Credentials;
 
 /**
  * @internal
  */
-final class CredentialSources
+final class Credential_Sources
 {
     public const STATIC = 'static';
     public const ENVIRONMENT = 'env';

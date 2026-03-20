@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Batch;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Batch** service.
  * @method \Aws\Result cancelJob(array $args = [])
@@ -87,6 +85,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateServiceEnvironment(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateServiceEnvironmentAsync(array $args = [])
  */
-class BatchClient extends AwsClient
+class Batch_Client extends Aws_Client
 {
 }

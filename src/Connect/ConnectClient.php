@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Connect;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Connect Service** service.
  * @method \Aws\Result activateEvaluationForm(array $args = [])
@@ -743,6 +741,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkspaceVisibility(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkspaceVisibilityAsync(array $args = [])
  */
-class ConnectClient extends AwsClient
+class Connect_Client extends Aws_Client
 {
 }

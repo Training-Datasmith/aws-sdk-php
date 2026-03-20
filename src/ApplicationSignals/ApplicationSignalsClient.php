@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Application_Signals;
 
-namespace Aws\ApplicationSignals;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CloudWatch Application Signals** service.
  * @method \Aws\Result batchGetServiceLevelObjectiveBudgetReport(array $args = [])
@@ -55,6 +53,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateServiceLevelObjective(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateServiceLevelObjectiveAsync(array $args = [])
  */
-class ApplicationSignalsClient extends AwsClient
+class Application_Signals_Client extends Aws_Client
 {
 }

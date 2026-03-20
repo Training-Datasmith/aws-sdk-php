@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Control_Catalog;
 
-namespace Aws\ControlCatalog;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Control Catalog** service.
  * @method \Aws\Result getControl(array $args = [])
@@ -21,6 +19,6 @@ use Aws\AwsClient;
  * @method \Aws\Result listObjectives(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listObjectivesAsync(array $args = [])
  */
-class ControlCatalogClient extends AwsClient
+class Control_Catalog_Client extends Aws_Client
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Augmented_Ai_Runtime;
 
-namespace Aws\AugmentedAIRuntime;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Augmented AI Runtime** service.
  * @method \Aws\Result deleteHumanLoop(array $args = [])
@@ -19,6 +17,6 @@ use Aws\AwsClient;
  * @method \Aws\Result stopHumanLoop(array $args = [])
  * @method \GuzzleHttp\Promise\Promise stopHumanLoopAsync(array $args = [])
  */
-class AugmentedAIRuntimeClient extends AwsClient
+class Augmented_Ai_Runtime_Client extends Aws_Client
 {
 }

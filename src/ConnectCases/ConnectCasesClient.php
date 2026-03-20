@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Cases;
 
-namespace Aws\ConnectCases;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Connect Cases** service.
  * @method \Aws\Result batchGetCaseRule(array $args = [])
@@ -93,6 +91,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateTemplate(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateTemplateAsync(array $args = [])
  */
-class ConnectCasesClient extends AwsClient
+class Connect_Cases_Client extends Aws_Client
 {
 }

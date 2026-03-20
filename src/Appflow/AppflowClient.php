@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Appflow;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Appflow** service.
  * @method \Aws\Result cancelFlowExecutions(array $args = [])
@@ -59,6 +57,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateFlow(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateFlowAsync(array $args = [])
  */
-class AppflowClient extends AwsClient
+class Appflow_Client extends Aws_Client
 {
 }

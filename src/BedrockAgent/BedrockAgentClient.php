@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Agent;
 
-namespace Aws\BedrockAgent;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Agents for Amazon Bedrock** service.
  * @method \Aws\Result associateAgentCollaborator(array $args = [])
@@ -153,6 +151,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validateFlowDefinition(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validateFlowDefinitionAsync(array $args = [])
  */
-class BedrockAgentClient extends AwsClient
+class Bedrock_Agent_Client extends Aws_Client
 {
 }

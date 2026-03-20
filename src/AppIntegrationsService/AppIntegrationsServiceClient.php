@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Integrations_Service;
 
-namespace Aws\AppIntegrationsService;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon AppIntegrations Service** service.
  * @method \Aws\Result createApplication(array $args = [])
@@ -55,6 +53,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateEventIntegration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateEventIntegrationAsync(array $args = [])
  */
-class AppIntegrationsServiceClient extends AwsClient
+class App_Integrations_Service_Client extends Aws_Client
 {
 }

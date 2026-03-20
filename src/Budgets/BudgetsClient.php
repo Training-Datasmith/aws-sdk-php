@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Budgets;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Budgets** service.
  * @method \Aws\Result createBudget(array $args = [])
@@ -61,6 +59,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateSubscriber(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateSubscriberAsync(array $args = [])
  */
-class BudgetsClient extends AwsClient
+class Budgets_Client extends Aws_Client
 {
 }

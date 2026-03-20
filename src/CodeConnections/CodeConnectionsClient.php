@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Connections;
 
-namespace Aws\CodeConnections;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS CodeConnections** service.
  * @method \Aws\Result createConnection(array $args = [])
@@ -63,6 +61,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateSyncConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateSyncConfigurationAsync(array $args = [])
  */
-class CodeConnectionsClient extends AwsClient
+class Code_Connections_Client extends Aws_Client
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Front;
 
-namespace Aws\CloudFront;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CloudFront** service.
  *
@@ -346,7 +344,7 @@ use Aws\AwsClient;
  * @method \Aws\Result verifyDnsConfiguration(array $args = []) (supported in versions 2020-05-31)
  * @method \GuzzleHttp\Promise\Promise verifyDnsConfigurationAsync(array $args = []) (supported in versions 2020-05-31)
  */
-class CloudFrontClient extends AwsClient
+class Cloud_Front_Client extends Aws_Client
 {
     /**
      * Create a signed Amazon CloudFront URL.
@@ -372,26 +370,16 @@ class CloudFrontClient extends AwsClient
      *     were not specified.
      * @link http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/WorkingWithStreamingDistributions.html
      */
-    public function getSignedUrl(array $options)
+    public function get_signed_url(array $options)
     {
         foreach (['url', 'key_pair_id', 'private_key'] as $required) {
             if (!isset($options[$required])) {
-                throw new \InvalidArgumentException("$required is required");
+                throw new \InvalidArgumentException("{$required} is required");
             }
         }
-
-        $urlSigner = new UrlSigner(
-            $options['key_pair_id'],
-            $options['private_key']
-        );
-
-        return $urlSigner->getSignedUrl(
-            $options['url'],
-            $options['expires'] ?? null,
-            $options['policy'] ?? null
-        );
+        $url_signer = new Url_Signer($options['key_pair_id'], $options['private_key']);
+        return $url_signer->get_signed_url($options['url'], $options['expires'] ?? null, $options['policy'] ?? null);
     }
-
     /**
      * Create a signed Amazon CloudFront cookie.
      *
@@ -415,23 +403,14 @@ class CloudFrontClient extends AwsClient
      *     were not specified.
      * @link http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/WorkingWithStreamingDistributions.html
      */
-    public function getSignedCookie(array $options)
+    public function get_signed_cookie(array $options)
     {
         foreach (['key_pair_id', 'private_key'] as $required) {
             if (!isset($options[$required])) {
-                throw new \InvalidArgumentException("$required is required");
+                throw new \InvalidArgumentException("{$required} is required");
             }
         }
-
-        $cookieSigner = new CookieSigner(
-            $options['key_pair_id'],
-            $options['private_key']
-        );
-
-        return $cookieSigner->getSignedCookie(
-            $options['url'] ?? null,
-            $options['expires'] ?? null,
-            $options['policy'] ?? null
-        );
+        $cookie_signer = new Cookie_Signer($options['key_pair_id'], $options['private_key']);
+        return $cookie_signer->get_signed_cookie($options['url'] ?? null, $options['expires'] ?? null, $options['policy'] ?? null);
     }
 }

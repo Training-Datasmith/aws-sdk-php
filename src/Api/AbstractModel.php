@@ -1,77 +1,64 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api;
 
 /**
  * Base class that is used by most API shapes
  */
-abstract class AbstractModel implements \ArrayAccess
+abstract class Abstract_Model implements \ArrayAccess
 {
     /** @var array */
-    protected $contextParam;
-
+    protected $context_param;
     /**
      * @param array    $definition Service description
      * @param ShapeMap $shapeMap   Shapemap used for creating shapes
      */
-    public function __construct(protected array $definition, protected \Aws\Api\ShapeMap $shapeMap)
+    public function __construct(protected array $definition, protected \Aws\Api\Shape_Map $shape_map)
     {
         if (isset($this->definition['contextParam'])) {
-            $this->contextParam = $this->definition['contextParam'];
+            $this->context_param = $this->definition['contextParam'];
         }
     }
-
-    public function toArray()
+    public function to_array()
     {
         return $this->definition;
     }
-
     /**
      * @return mixed|null
      */
-    #[\ReturnTypeWillChange]
+    #[\Return_Type_Will_Change]
     public function offsetGet($offset)
     {
         return $this->definition[$offset] ?? null;
     }
-
-    #[\ReturnTypeWillChange]
+    #[\Return_Type_Will_Change]
     public function offsetSet($offset, $value): void
     {
         $this->definition[$offset] = $value;
     }
-
     /**
      * @return bool
      */
-    #[\ReturnTypeWillChange]
+    #[\Return_Type_Will_Change]
     public function offsetExists($offset)
     {
         return isset($this->definition[$offset]);
     }
-
-    #[\ReturnTypeWillChange]
+    #[\Return_Type_Will_Change]
     public function offsetUnset($offset): void
     {
         unset($this->definition[$offset]);
     }
-
-    protected function shapeAt(string $key)
+    protected function shape_at(string $key)
     {
         if (!isset($this->definition[$key])) {
-            throw new \InvalidArgumentException('Expected shape definition at '
-                . $key);
+            throw new \InvalidArgumentException('Expected shape definition at ' . $key);
         }
-
-        return $this->shapeFor($this->definition[$key]);
+        return $this->shape_for($this->definition[$key]);
     }
-
-    protected function shapeFor(array $definition)
+    protected function shape_for(array $definition)
     {
-        return isset($definition['shape'])
-            ? $this->shapeMap->resolve($definition)
-            : Shape::create($definition, $this->shapeMap);
+        return isset($definition['shape']) ? $this->shape_map->resolve($definition) : Shape::create($definition, $this->shape_map);
     }
 }

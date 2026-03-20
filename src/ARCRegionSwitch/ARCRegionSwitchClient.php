@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Arc_Region_Switch;
 
-namespace Aws\ARCRegionSwitch;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **ARC - Region switch** service.
  * @method \Aws\Result approvePlanExecutionStep(array $args = [])
@@ -51,6 +49,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updatePlanExecutionStep(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updatePlanExecutionStepAsync(array $args = [])
  */
-class ARCRegionSwitchClient extends AwsClient
+class Arc_Region_Switch_Client extends Aws_Client
 {
 }

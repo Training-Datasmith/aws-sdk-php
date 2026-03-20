@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Amplify_Ui_Builder\Exception;
 
-namespace Aws\AmplifyUIBuilder\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Amplify UI Builder** service.
  */
-class AmplifyUIBuilderException extends AwsException
+class Amplify_Ui_Builder_Exception extends Aws_Exception
 {
 }

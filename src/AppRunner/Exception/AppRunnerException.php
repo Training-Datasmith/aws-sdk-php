@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Runner\Exception;
 
-namespace Aws\AppRunner\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS App Runner** service.
  */
-class AppRunnerException extends AwsException
+class App_Runner_Exception extends Aws_Exception
 {
 }

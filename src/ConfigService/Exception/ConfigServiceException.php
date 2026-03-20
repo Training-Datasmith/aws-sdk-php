@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Config_Service\Exception;
 
-namespace Aws\ConfigService\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the AWS Config service.
  */
-class ConfigServiceException extends AwsException
+class Config_Service_Exception extends Aws_Exception
 {
 }

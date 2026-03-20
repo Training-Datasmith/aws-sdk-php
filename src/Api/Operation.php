@@ -1,45 +1,37 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api;
 
 /**
  * Represents an API operation.
  */
-class Operation extends AbstractModel
+class Operation extends Abstract_Model
 {
     private $input;
     private $output;
     private $errors;
-    private $staticContextParams = [];
-    private $contextParams;
-    private $operationContextParams = [];
-
-    public function __construct(array $definition, ShapeMap $shapeMap)
+    private $static_context_params = [];
+    private $context_params;
+    private $operation_context_params = [];
+    public function __construct(array $definition, Shape_Map $shape_map)
     {
         $definition['type'] = 'structure';
-
         if (!isset($definition['http']['method'])) {
             $definition['http']['method'] = 'POST';
         }
-
         if (!isset($definition['http']['requestUri'])) {
             $definition['http']['requestUri'] = '/';
         }
-
         if (isset($definition['staticContextParams'])) {
-            $this->staticContextParams = $definition['staticContextParams'];
+            $this->static_context_params = $definition['staticContextParams'];
         }
-
         if (isset($definition['operationContextParams'])) {
-            $this->operationContextParams = $definition['operationContextParams'];
+            $this->operation_context_params = $definition['operationContextParams'];
         }
-
-        parent::__construct($definition, $shapeMap);
-        $this->contextParams = $this->setContextParams();
+        parent::__construct($definition, $shape_map);
+        $this->context_params = $this->set_context_params();
     }
-
     /**
      * Returns an associative array of the HTTP attribute of the operation:
      *
@@ -48,115 +40,101 @@ class Operation extends AbstractModel
      *
      * @return array
      */
-    public function getHttp()
+    public function get_http()
     {
         return $this->definition['http'];
     }
-
     /**
      * Get the input shape of the operation.
      *
      * @return StructureShape
      */
-    public function getInput()
+    public function get_input()
     {
         if (!$this->input) {
             if ($input = $this['input']) {
-                $this->input = $this->shapeFor($input);
+                $this->input = $this->shape_for($input);
             } else {
-                $this->input = new StructureShape([], $this->shapeMap);
+                $this->input = new Structure_Shape([], $this->shape_map);
             }
         }
-
         return $this->input;
     }
-
     /**
      * Get the output shape of the operation.
      *
      * @return StructureShape
      */
-    public function getOutput()
+    public function get_output()
     {
         if (!$this->output) {
             if ($output = $this['output']) {
-                $this->output = $this->shapeFor($output);
+                $this->output = $this->shape_for($output);
             } else {
-                $this->output = new StructureShape([], $this->shapeMap);
+                $this->output = new Structure_Shape([], $this->shape_map);
             }
         }
-
         return $this->output;
     }
-
     /**
      * Get an array of operation error shapes.
      *
      * @return StructureShape[]
      */
-    public function getErrors()
+    public function get_errors()
     {
         if ($this->errors === null) {
             if ($errors = $this['errors']) {
                 foreach ($errors as $key => $error) {
-                    $errors[$key] = $this->shapeFor($error);
+                    $errors[$key] = $this->shape_for($error);
                 }
                 $this->errors = $errors;
             } else {
                 $this->errors = [];
             }
         }
-
         return $this->errors;
     }
-
     /**
      * Gets static modeled static values used for
      * endpoint resolution.
      *
      * @return array
      */
-    public function getStaticContextParams()
+    public function get_static_context_params()
     {
-        return $this->staticContextParams;
+        return $this->static_context_params;
     }
-
     /**
      * Gets definition of modeled dynamic values used
      * for endpoint resolution
      *
      * @return array
      */
-    public function getContextParams()
+    public function get_context_params()
     {
-        return $this->contextParams;
+        return $this->context_params;
     }
-
     /**
      * Gets definition of modeled dynamic values used
      * for endpoint resolution
      */
-    public function getOperationContextParams(): array
+    public function get_operation_context_params(): array
     {
-        return $this->operationContextParams;
+        return $this->operation_context_params;
     }
-
     /**
      * @return array{shape: mixed, type: mixed}[]
      */
-    private function setContextParams(): array
+    private function set_context_params(): array
     {
-        $members = $this->getInput()->getMembers();
-        $contextParams = [];
-
+        $members = $this->get_input()->get_members();
+        $context_params = [];
         foreach ($members as $name => $shape) {
-            if (!empty($contextParam = $shape->getContextParam())) {
-                $contextParams[$contextParam['name']] = [
-                    'shape' => $name,
-                    'type' => $shape->getType(),
-                ];
+            if (!empty($context_param = $shape->get_context_param())) {
+                $context_params[$context_param['name']] = ['shape' => $name, 'type' => $shape->get_type()];
             }
         }
-        return $contextParams;
+        return $context_params;
     }
 }

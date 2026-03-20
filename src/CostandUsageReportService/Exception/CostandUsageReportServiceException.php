@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Costand_Usage_Report_Service\Exception;
 
-namespace Aws\CostandUsageReportService\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Cost and Usage Report Service** service.
  */
-class CostandUsageReportServiceException extends AwsException
+class Costand_Usage_Report_Service_Exception extends Aws_Exception
 {
 }

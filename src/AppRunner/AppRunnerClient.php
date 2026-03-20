@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Runner;
 
-namespace Aws\AppRunner;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS App Runner** service.
  * @method \Aws\Result associateCustomDomain(array $args = [])
@@ -83,6 +81,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateVpcIngressConnection(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateVpcIngressConnectionAsync(array $args = [])
  */
-class AppRunnerClient extends AwsClient
+class App_Runner_Client extends Aws_Client
 {
 }

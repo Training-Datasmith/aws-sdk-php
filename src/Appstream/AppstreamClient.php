@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Appstream;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon AppStream** service.
  * @method \Aws\Result associateAppBlockBuilderAppBlock(array $args = [])
@@ -185,6 +183,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateThemeForStack(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateThemeForStackAsync(array $args = [])
  */
-class AppstreamClient extends AwsClient
+class Appstream_Client extends Aws_Client
 {
 }

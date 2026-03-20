@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Application_Auto_Scaling;
 
-namespace Aws\ApplicationAutoScaling;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Application Auto Scaling** service.
  * @method \Aws\Result deleteScalingPolicy(array $args = [])
@@ -37,6 +35,6 @@ use Aws\AwsClient;
  * @method \Aws\Result untagResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
-class ApplicationAutoScalingClient extends AwsClient
+class Application_Auto_Scaling_Client extends Aws_Client
 {
 }

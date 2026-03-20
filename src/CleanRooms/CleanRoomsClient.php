@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Clean_Rooms;
 
-namespace Aws\CleanRooms;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Clean Rooms Service** service.
  * @method \Aws\Result batchGetCollaborationAnalysisTemplate(array $args = [])
@@ -185,6 +183,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateProtectedQuery(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateProtectedQueryAsync(array $args = [])
  */
-class CleanRoomsClient extends AwsClient
+class Clean_Rooms_Client extends Aws_Client
 {
 }

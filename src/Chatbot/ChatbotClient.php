@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Chatbot;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **chatbot** service.
  * @method \Aws\Result associateToConfiguration(array $args = [])
@@ -77,6 +75,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateSlackChannelConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateSlackChannelConfigurationAsync(array $args = [])
  */
-class ChatbotClient extends AwsClient
+class Chatbot_Client extends Aws_Client
 {
 }

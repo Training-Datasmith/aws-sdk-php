@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Sync\Exception;
 
-namespace Aws\AppSync\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS AppSync** service.
  */
-class AppSyncException extends AwsException
+class App_Sync_Exception extends Aws_Exception
 {
 }

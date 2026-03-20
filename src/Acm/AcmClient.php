@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Acm;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Certificate Manager** service.
  *
@@ -42,6 +40,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateCertificateOptions(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateCertificateOptionsAsync(array $args = [])
  */
-class AcmClient extends AwsClient
+class Acm_Client extends Aws_Client
 {
 }

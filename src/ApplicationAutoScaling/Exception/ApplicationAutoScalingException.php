@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Application_Auto_Scaling\Exception;
 
-namespace Aws\ApplicationAutoScaling\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Application Auto Scaling** service.
  */
-class ApplicationAutoScalingException extends AwsException
+class Application_Auto_Scaling_Exception extends Aws_Exception
 {
 }

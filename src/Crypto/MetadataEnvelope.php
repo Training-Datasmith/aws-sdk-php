@@ -1,28 +1,24 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
 use ArrayAccess;
-use Aws\HasDataTrait;
+use Aws\Has_Data_Trait;
 use InvalidArgumentException;
 use IteratorAggregate;
 use JsonSerializable;
-
 /**
  * Stores encryption metadata for reading and writing.
  *
  * @internal
  */
-class MetadataEnvelope implements ArrayAccess, IteratorAggregate, JsonSerializable
+class Metadata_Envelope implements ArrayAccess, IteratorAggregate, JsonSerializable
 {
-    use HasDataTrait;
-
+    use Has_Data_Trait;
     //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
     //# The "x-amz-" prefix denotes that the metadata is owned by an Amazon product
     //# and MUST be prepended to all S3EC metadata mapkeys.
-
     //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
     //# - The mapkey "x-amz-key-v2" MUST be present for V2 format objects.
     public const CONTENT_KEY_V2_HEADER = 'x-amz-key-v2';
@@ -76,132 +72,65 @@ class MetadataEnvelope implements ArrayAccess, IteratorAggregate, JsonSerializab
     //= type=implication
     //# - This mapkey ("x-amz-i") SHOULD be represented by a constant named "MESSAGE_ID_V3" or similar in the implementation code.
     public const MESSAGE_ID_V3 = 'x-amz-i';
-
     private static array $constants = [];
-
-    public static function getConstantValues(): array
+    public static function get_constant_values(): array
     {
         if (empty(self::$constants)) {
             $reflection = new \ReflectionClass(static::class);
             //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
             //# The "x-amz-meta-" prefix is automatically added by the S3 server and MUST NOT be included in implementation code.
-            foreach (array_values($reflection->getConstants()) as $constant) {
+            foreach (array_values($reflection->get_constants()) as $constant) {
                 self::$constants[$constant] = true;
             }
         }
-
         return array_keys(self::$constants);
     }
-
-    #[\ReturnTypeWillChange]
+    #[\Return_Type_Will_Change]
     public function offsetSet($name, $value): void
     {
-        $constants = self::getConstantValues();
+        $constants = self::get_constant_values();
         //= ../specification/s3-encryption/data-format/content-metadata.md#determining-s3ec-object-status
         //# In general, if there is any deviation from the above format, with the exception of additional unrelated mapkeys, then the S3EC SHOULD throw an exception.
         if (is_null($name) || !in_array($name, $constants)) {
-            throw new InvalidArgumentException('MetadataEnvelope fields must'
-                . ' must match a predefined offset; use the header constants.');
+            throw new InvalidArgumentException('MetadataEnvelope fields must' . ' must match a predefined offset; use the header constants.');
         }
-
         $this->data[$name] = $value;
     }
-
-    #[\ReturnTypeWillChange]
+    #[\Return_Type_Will_Change]
     public function jsonSerialize()
     {
         return $this->data;
     }
-
-    public static function isV2Envelope(MetadataEnvelope $envelope): bool
+    public static function is_v2envelope(Metadata_Envelope $envelope): bool
     {
-        if (!isset($envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER])
-            || !isset($envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER])
-            || !isset($envelope[MetadataEnvelope::IV_HEADER])
-            || !isset($envelope[MetadataEnvelope::KEY_WRAP_ALGORITHM_HEADER])
-            || !isset($envelope[MetadataEnvelope::CONTENT_CRYPTO_SCHEME_HEADER])
-            || !isset($envelope[MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER])
-        ) {
+        if (!isset($envelope[Metadata_Envelope::CONTENT_KEY_V2_HEADER]) || !isset($envelope[Metadata_Envelope::MATERIALS_DESCRIPTION_HEADER]) || !isset($envelope[Metadata_Envelope::IV_HEADER]) || !isset($envelope[Metadata_Envelope::KEY_WRAP_ALGORITHM_HEADER]) || !isset($envelope[Metadata_Envelope::CONTENT_CRYPTO_SCHEME_HEADER]) || !isset($envelope[Metadata_Envelope::CRYPTO_TAG_LENGTH_HEADER])) {
             return false;
         }
         return true;
     }
-
-    public static function isV1Envelope(MetadataEnvelope $envelope): bool
+    public static function is_v1envelope(Metadata_Envelope $envelope): bool
     {
-        if (!isset($envelope[MetadataEnvelope::CONTENT_KEY_V2_HEADER])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //# - The mapkey "x-amz-matdesc" MUST be present for V1 format objects.
-            || !isset($envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //# - The mapkey "x-amz-iv" MUST be present for V1 format objects.
-            || !isset($envelope[MetadataEnvelope::IV_HEADER])
-            || !isset($envelope[MetadataEnvelope::KEY_WRAP_ALGORITHM_HEADER])
-            || !isset($envelope[MetadataEnvelope::CONTENT_CRYPTO_SCHEME_HEADER])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //# - The mapkey "x-amz-unencrypted-content-length" SHOULD be present for V1 format objects.
-            || !isset($envelope[MetadataEnvelope::UNENCRYPTED_CONTENT_LENGTH_HEADER])
-        ) {
+        if (!isset($envelope[Metadata_Envelope::CONTENT_KEY_V2_HEADER]) || !isset($envelope[Metadata_Envelope::MATERIALS_DESCRIPTION_HEADER]) || !isset($envelope[Metadata_Envelope::IV_HEADER]) || !isset($envelope[Metadata_Envelope::KEY_WRAP_ALGORITHM_HEADER]) || !isset($envelope[Metadata_Envelope::CONTENT_CRYPTO_SCHEME_HEADER]) || !isset($envelope[Metadata_Envelope::UNENCRYPTED_CONTENT_LENGTH_HEADER])) {
             return false;
         }
         return true;
     }
-
-    public static function isV3Envelope(MetadataEnvelope $envelope): bool
+    public static function is_v3envelope(Metadata_Envelope $envelope): bool
     {
-
         //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
         //= type=implication
         //# - The mapkey "x-amz-3" MUST be present for V3 format objects.
-        if (!isset($envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_V3])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //= type=implication
-            //# - The mapkey "x-amz-c" MUST be present for V3 format objects.
-            || !isset($envelope[MetadataEnvelope::CONTENT_CIPHER_V3])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //= type=implication
-            //# - The mapkey "x-amz-d" MUST be present for V3 format objects.
-            || !isset($envelope[MetadataEnvelope::KEY_COMMITMENT_V3])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //= type=implication
-            //# - The mapkey "x-amz-i" MUST be present for V3 format objects.
-            || !isset($envelope[MetadataEnvelope::MESSAGE_ID_V3])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //= type=implication
-            //# - The mapkey "x-amz-w" MUST be present for V3 format objects.
-            || !isset($envelope[MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3])
-            //= ../specification/s3-encryption/data-format/content-metadata.md#content-metadata-mapkeys
-            //= type=implication
-            //# - The mapkey "x-amz-t" SHOULD be present for V3 format objects that use KMS Encryption Context.
-            || !isset($envelope[MetadataEnvelope::ENCRYPTION_CONTEXT_V3])
-        ) {
+        if (!isset($envelope[Metadata_Envelope::ENCRYPTED_DATA_KEY_V3]) || !isset($envelope[Metadata_Envelope::CONTENT_CIPHER_V3]) || !isset($envelope[Metadata_Envelope::KEY_COMMITMENT_V3]) || !isset($envelope[Metadata_Envelope::MESSAGE_ID_V3]) || !isset($envelope[Metadata_Envelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3]) || !isset($envelope[Metadata_Envelope::ENCRYPTION_CONTEXT_V3])) {
             return false;
         }
-
         return true;
     }
-
-    public static function getV2Fields(): array
+    public static function get_v2fields(): array
     {
-        return [
-            MetadataEnvelope::CONTENT_KEY_V2_HEADER,
-            MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER,
-            MetadataEnvelope::IV_HEADER,
-            MetadataEnvelope::KEY_WRAP_ALGORITHM_HEADER,
-            MetadataEnvelope::CONTENT_CRYPTO_SCHEME_HEADER,
-            MetadataEnvelope::CRYPTO_TAG_LENGTH_HEADER,
-        ];
+        return [Metadata_Envelope::CONTENT_KEY_V2_HEADER, Metadata_Envelope::MATERIALS_DESCRIPTION_HEADER, Metadata_Envelope::IV_HEADER, Metadata_Envelope::KEY_WRAP_ALGORITHM_HEADER, Metadata_Envelope::CONTENT_CRYPTO_SCHEME_HEADER, Metadata_Envelope::CRYPTO_TAG_LENGTH_HEADER];
     }
-
-    public static function getV3Fields(): array
+    public static function get_v3fields(): array
     {
-        return [
-            MetadataEnvelope::ENCRYPTED_DATA_KEY_V3,
-            MetadataEnvelope::CONTENT_CIPHER_V3,
-            MetadataEnvelope::KEY_COMMITMENT_V3,
-            MetadataEnvelope::MESSAGE_ID_V3,
-            MetadataEnvelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3,
-            MetadataEnvelope::ENCRYPTION_CONTEXT_V3,
-        ];
+        return [Metadata_Envelope::ENCRYPTED_DATA_KEY_V3, Metadata_Envelope::CONTENT_CIPHER_V3, Metadata_Envelope::KEY_COMMITMENT_V3, Metadata_Envelope::MESSAGE_ID_V3, Metadata_Envelope::ENCRYPTED_DATA_KEY_ALGORITHM_V3, Metadata_Envelope::ENCRYPTION_CONTEXT_V3];
     }
 }

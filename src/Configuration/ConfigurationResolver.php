@@ -1,16 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Configuration;
 
-class ConfigurationResolver
+class Configuration_Resolver
 {
     public const ENV_PROFILE = 'AWS_PROFILE';
     public const ENV_CONFIG_FILE = 'AWS_CONFIG_FILE';
-
-    public static $envPrefix = 'AWS_';
-
+    public static $env_prefix = 'AWS_';
     /**
      * Generic configuration resolver that first checks for environment
      * variables, then checks for a specified profile in the environment-defined
@@ -27,37 +24,21 @@ class ConfigurationResolver
      *
      * @return mixed
      */
-    public static function resolve(
-        $key,
-        $defaultValue,
-        $expectedType,
-        array $config = []
-    ) {
-        $iniOptions = $config['ini_resolver_options'] ?? [];
-
-        $envValue = self::env($key, $expectedType);
-        if (!is_null($envValue)) {
-            return $envValue;
+    public static function resolve($key, $default_value, $expected_type, array $config = [])
+    {
+        $ini_options = $config['ini_resolver_options'] ?? [];
+        $env_value = self::env($key, $expected_type);
+        if (!is_null($env_value)) {
+            return $env_value;
         }
-
-        if (!isset($config['use_aws_shared_config_files'])
-            || $config['use_aws_shared_config_files'] != false
-        ) {
-            $iniValue = self::ini(
-                $key,
-                $expectedType,
-                null,
-                null,
-                $iniOptions
-            );
-            if (!is_null($iniValue)) {
-                return $iniValue;
+        if (!isset($config['use_aws_shared_config_files']) || $config['use_aws_shared_config_files'] != false) {
+            $ini_value = self::ini($key, $expected_type, null, null, $ini_options);
+            if (!is_null($ini_value)) {
+                return $ini_value;
             }
         }
-
-        return $defaultValue;
+        return $default_value;
     }
-
     /**
      * Resolves config values from environment variables.
      *
@@ -67,20 +48,18 @@ class ConfigurationResolver
      *
      * @return null | mixed
      */
-    public static function env($key, $expectedType = 'string')
+    public static function env($key, $expected_type = 'string')
     {
         // Use config from environment variables, if available
-        $envValue = getenv(self::$envPrefix . strtoupper($key));
-        if (!empty($envValue)) {
-            if ($expectedType) {
-                return self::convertType($envValue, $expectedType);
+        $env_value = getenv(self::$env_prefix . strtoupper($key));
+        if (!empty($env_value)) {
+            if ($expected_type) {
+                return self::convert_type($env_value, $expected_type);
             }
-            return $envValue;
+            return $env_value;
         }
-
         return null;
     }
-
     /**
      * Gets config values from a config file whose location
      * is specified by an environment variable 'AWS_CONFIG_FILE', defaulting to
@@ -97,87 +76,61 @@ class ConfigurationResolver
      *
      * @return null | mixed
      */
-    public static function ini(
-        $key,
-        $expectedType,
-        $profile = null,
-        $filename = null,
-        array $options = []
-    ) {
-        $filename = $filename ?: (self::getDefaultConfigFilename());
+    public static function ini($key, $expected_type, $profile = null, $filename = null, array $options = [])
+    {
+        $filename = $filename ?: self::get_default_config_filename();
         $profile = $profile ?: (getenv(self::ENV_PROFILE) ?: 'default');
-
         if (!@is_readable($filename)) {
             return null;
         }
         // Use INI_SCANNER_NORMAL instead of INI_SCANNER_TYPED for PHP 5.5 compatibility
         //TODO change after deprecation
         $data = @\Aws\parse_ini_file($filename, true, INI_SCANNER_NORMAL);
-
-        if (isset($options['section'])
-            && isset($options['subsection'])
-            && isset($options['key'])) {
-            return self::retrieveValueFromIniSubsection(
-                $data,
-                $profile,
-                $filename,
-                $expectedType,
-                $options
-            );
+        if (isset($options['section']) && isset($options['subsection']) && isset($options['key'])) {
+            return self::retrieve_value_from_ini_subsection($data, $profile, $filename, $expected_type, $options);
         }
-
-        if ($data === false
-            || !isset($data[$profile])
-            || !isset($data[$profile][$key])
-        ) {
+        if ($data === false || !isset($data[$profile]) || !isset($data[$profile][$key])) {
             return null;
         }
-
         // INI_SCANNER_NORMAL parses false-y values as an empty string
         if ($data[$profile][$key] === '') {
-            if ($expectedType === 'bool') {
+            if ($expected_type === 'bool') {
                 $data[$profile][$key] = false;
-            } elseif ($expectedType === 'int') {
+            } elseif ($expected_type === 'int') {
                 $data[$profile][$key] = 0;
             }
         }
-
-        return self::convertType($data[$profile][$key], $expectedType);
+        return self::convert_type($data[$profile][$key], $expected_type);
     }
-
     /**
      * Gets the environment's HOME directory if available.
      *
      * @return null | string
      */
-    private static function getHomeDir()
+    private static function get_home_dir()
     {
         // On Linux/Unix-like systems, use the HOME environment variable
-        if ($homeDir = getenv('HOME')) {
-            return $homeDir;
+        if ($home_dir = getenv('HOME')) {
+            return $home_dir;
         }
-
         // Get the HOMEDRIVE and HOMEPATH values for Windows hosts
-        $homeDrive = getenv('HOMEDRIVE');
-        $homePath = getenv('HOMEPATH');
-
-        return ($homeDrive && $homePath) ? $homeDrive . $homePath : null;
+        $home_drive = getenv('HOMEDRIVE');
+        $home_path = getenv('HOMEPATH');
+        return $home_drive && $home_path ? $home_drive . $home_path : null;
     }
-
     /**
      * Gets default config file location from environment, falling back to aws
      * default location
      *
      * @return string
      */
-    private static function getDefaultConfigFilename()
+    private static function get_default_config_filename()
     {
         if ($filename = getenv(self::ENV_CONFIG_FILE)) {
             return $filename;
         }
-        return self::getHomeDir() . '/.aws/config';
+        return self::get_home_dir() . '/.aws/config';
     }
-
     /**
      * Normalizes string values pulled out of ini files and
      * environment variables.
@@ -188,23 +141,16 @@ class ConfigurationResolver
      *
      * @return mixed
      */
-    private static function convertType($value, $type)
+    private static function convert_type($value, $type)
     {
-        if ($type === 'bool'
-            && !is_null($convertedValue = \Aws\boolean_value($value))
-        ) {
-            return $convertedValue;
+        if ($type === 'bool' && !is_null($converted_value = \Aws\boolean_value($value))) {
+            return $converted_value;
         }
-
-        if ($type === 'int'
-            && filter_var($value, FILTER_VALIDATE_INT)
-        ) {
-            return intVal($value);
+        if ($type === 'int' && filter_var($value, FILTER_VALIDATE_INT)) {
+            return int_val($value);
         }
-
         return $value;
     }
-
     /**
      * Normalizes string values pulled out of ini files and
      * environment variables.
@@ -216,37 +162,19 @@ class ConfigurationResolver
      *
      * @return mixed
      */
-    private static function retrieveValueFromIniSubsection(
-        array $data,
-        $profile,
-        string $filename,
-        $expectedType,
-        array $options
-    ) {
+    private static function retrieve_value_from_ini_subsection(array $data, $profile, string $filename, $expected_type, array $options)
+    {
         $section = $options['section'];
-        if ($data === false
-            || !isset($data[$profile][$section])
-            || !isset($data["{$section} {$data[$profile][$section]}"])
-        ) {
+        if ($data === false || !isset($data[$profile][$section]) || !isset($data["{$section} {$data[$profile][$section]}"])) {
             return null;
         }
-
-        $services_section = \Aws\parse_ini_section_with_subsections(
-            $filename,
-            "services {$data[$profile]['services']}"
-        );
-
+        $services_section = \Aws\parse_ini_section_with_subsections($filename, "services {$data[$profile]['services']}");
         if (empty($options['subsection']) || empty($options['key'])) {
             return null;
         }
-
         if (!isset($services_section[$options['subsection']][$options['key']])) {
             return null;
         }
-
-        return self::convertType(
-            $services_section[$options['subsection']][$options['key']],
-            $expectedType
-        );
+        return self::convert_type($services_section[$options['subsection']][$options['key']], $expected_type);
     }
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Control_Tower;
 
-namespace Aws\ControlTower;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Control Tower** service.
  * @method \Aws\Result createLandingZone(array $args = [])
@@ -65,6 +63,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateLandingZone(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateLandingZoneAsync(array $args = [])
  */
-class ControlTowerClient extends AwsClient
+class Control_Tower_Client extends Aws_Client
 {
 }

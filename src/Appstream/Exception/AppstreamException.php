@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Appstream\Exception;
 
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon AppStream** service.
  */
-class AppstreamException extends AwsException
+class Appstream_Exception extends Aws_Exception
 {
 }

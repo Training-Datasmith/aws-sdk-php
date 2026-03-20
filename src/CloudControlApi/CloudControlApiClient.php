@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Control_Api;
 
-namespace Aws\CloudControlApi;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Cloud Control API** service.
  * @method \Aws\Result cancelResourceRequest(array $args = [])
@@ -25,6 +23,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateResourceAsync(array $args = [])
  */
-class CloudControlApiClient extends AwsClient
+class Cloud_Control_Api_Client extends Aws_Client
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Chime_Sdk_Identity;
 
-namespace Aws\ChimeSDKIdentity;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Chime SDK Identity** service.
  * @method \Aws\Result createAppInstance(array $args = [])
@@ -69,6 +67,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateAppInstanceUserEndpoint(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateAppInstanceUserEndpointAsync(array $args = [])
  */
-class ChimeSDKIdentityClient extends AwsClient
+class Chime_Sdk_Identity_Client extends Aws_Client
 {
 }

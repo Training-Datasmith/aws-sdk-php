@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Clean_Rooms_Ml;
 
-namespace Aws\CleanRoomsML;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **cleanrooms-ml** service.
  * @method \Aws\Result cancelTrainedModel(array $args = [])
@@ -127,6 +125,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateConfiguredAudienceModel(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateConfiguredAudienceModelAsync(array $args = [])
  */
-class CleanRoomsMLClient extends AwsClient
+class Clean_Rooms_Ml_Client extends Aws_Client
 {
 }

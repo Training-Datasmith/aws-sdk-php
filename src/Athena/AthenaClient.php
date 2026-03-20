@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Athena;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Athena** service.
  * @method \Aws\Result batchGetNamedQuery(array $args = [])
@@ -149,6 +147,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkGroupAsync(array $args = [])
  */
-class AthenaClient extends AwsClient
+class Athena_Client extends Aws_Client
 {
 }

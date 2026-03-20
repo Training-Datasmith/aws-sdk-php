@@ -1,31 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
-use Aws\Crypto\Cipher\CipherMethod;
-use GuzzleHttp\Psr7\Stream;
-
+use Aws\Crypto\Cipher\Cipher_Method;
+use Guzzle_Http\Psr7\Stream;
 /**
  * @internal
  */
-abstract class AbstractCryptoClientV2
+abstract class Abstract_Crypto_Client_V2
 {
-    public const KEY_COMMITMENT_POLICIES = [
-        'FORBID_ENCRYPT_ALLOW_DECRYPT',
-    ];
-
-    public static $supportedCiphers = ['gcm'];
-
-    public static $supportedKeyWraps = [
-        KmsMaterialsProviderV2::WRAP_ALGORITHM_NAME,
-    ];
-
-    public static $supportedSecurityProfiles = ['V2', 'V2_AND_LEGACY'];
-
-    public static $legacySecurityProfiles = ['V2_AND_LEGACY'];
-
+    public const KEY_COMMITMENT_POLICIES = ['FORBID_ENCRYPT_ALLOW_DECRYPT'];
+    public static $supported_ciphers = ['gcm'];
+    public static $supported_key_wraps = [Kms_Materials_Provider_V2::WRAP_ALGORITHM_NAME];
+    public static $supported_security_profiles = ['V2', 'V2_AND_LEGACY'];
+    public static $legacy_security_profiles = ['V2_AND_LEGACY'];
     /**
      * Returns if the passed policy name is supported for encryption by the SDK.
      *
@@ -33,11 +22,10 @@ abstract class AbstractCryptoClientV2
      *
      * @return bool If the key commitment policy passed is in our supported list.
      */
-    public static function isSupportedKeyCommitmentPolicy(string $policy): bool
+    public static function is_supported_key_commitment_policy(string $policy): bool
     {
         return in_array($policy, self::KEY_COMMITMENT_POLICIES, strict: true);
     }
-
     /**
      * Returns if the passed cipher name is supported for encryption by the SDK.
      *
@@ -45,11 +33,10 @@ abstract class AbstractCryptoClientV2
      *
      * @return bool If the cipher passed is in our supported list.
      */
-    public static function isSupportedCipher($cipherName)
+    public static function is_supported_cipher($cipher_name)
     {
-        return in_array($cipherName, self::$supportedCiphers, true);
+        return in_array($cipher_name, self::$supported_ciphers, true);
     }
-
     /**
      * Returns an identifier recognizable by `openssl_*` functions, such as
      * `aes-256-gcm`
@@ -61,8 +48,7 @@ abstract class AbstractCryptoClientV2
      *
      * @return string
      */
-    abstract protected function getCipherOpenSslName($cipherName, $keySize);
-
+    abstract protected function get_cipher_open_ssl_name($cipher_name, $key_size);
     /**
      * Constructs a CipherMethod for the given name, initialized with the other
      * data passed for use in encrypting or decrypting.
@@ -76,8 +62,7 @@ abstract class AbstractCryptoClientV2
      *
      * @internal
      */
-    abstract protected function buildCipherMethod($cipherName, $iv, $keySize);
-
+    abstract protected function build_cipher_method($cipher_name, $iv, $key_size);
     /**
      * Performs a reverse lookup to get the openssl_* cipher name from the
      * AESName passed in from the MetadataEnvelope.
@@ -88,8 +73,7 @@ abstract class AbstractCryptoClientV2
      *
      * @internal
      */
-    abstract protected function getCipherFromAesName($aesName);
-
+    abstract protected function get_cipher_from_aes_name($aes_name);
     /**
      * Dependency to provide an interface for building an encryption stream for
      * data given cipher details, metadata, and materials to do so.
@@ -106,13 +90,7 @@ abstract class AbstractCryptoClientV2
      *
      * @internal
      */
-    abstract public function encrypt(
-        Stream $plaintext,
-        array $options,
-        MaterialsProviderV2 $provider,
-        MetadataEnvelope $envelope
-    );
-
+    abstract public function encrypt(Stream $plaintext, array $options, Materials_Provider_V2 $provider, Metadata_Envelope $envelope);
     /**
      * Dependency to provide an interface for building a decryption stream for
      * cipher text given metadata and materials to do so.
@@ -129,10 +107,5 @@ abstract class AbstractCryptoClientV2
      *
      * @internal
      */
-    abstract public function decrypt(
-        $cipherText,
-        MaterialsProviderInterfaceV2 $provider,
-        MetadataEnvelope $envelope,
-        array $options = []
-    );
+    abstract public function decrypt($cipher_text, Materials_Provider_Interface_V2 $provider, Metadata_Envelope $envelope, array $options = []);
 }

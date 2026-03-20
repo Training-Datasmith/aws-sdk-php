@@ -1,38 +1,28 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api\Serializer;
 
-use Aws\Api\ListShape;
+use Aws\Api\List_Shape;
 use Aws\Api\Shape;
-
 /**
  * @internal
  */
-class Ec2ParamBuilder extends QueryParamBuilder
+class Ec2param_Builder extends Query_Param_Builder
 {
-    protected function queryName(Shape $shape, $default = null)
+    protected function query_name(Shape $shape, $default = null)
     {
-        return ($shape['queryName']
-            ?: ucfirst((string) @$shape['locationName'] ?: ''))
-                ?: $default;
+        return ($shape['queryName'] ?: ucfirst((string) @$shape['locationName'] ?: '')) ?: $default;
     }
-
-    protected function isFlat(Shape $shape): bool
+    protected function is_flat(Shape $shape): bool
     {
         return false;
     }
-
-    protected function format_list(
-        ListShape $shape,
-        array $value,
-        $prefix,
-        &$query
-    ) {
+    protected function format_list(List_Shape $shape, array $value, $prefix, &$query)
+    {
         // Handle empty list serialization
         if (!empty($value)) {
-            $items = $shape->getMember();
+            $items = $shape->get_member();
             foreach ($value as $k => $v) {
                 $this->format($items, $v, $prefix . '.' . ($k + 1), $query);
             }

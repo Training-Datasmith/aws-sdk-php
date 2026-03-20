@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Search\Exception;
 
-namespace Aws\CloudSearch\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the Amazon CloudSearch service.
  */
-class CloudSearchException extends AwsException
+class Cloud_Search_Exception extends Aws_Exception
 {
 }

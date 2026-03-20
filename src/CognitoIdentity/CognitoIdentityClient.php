@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cognito_Identity;
 
-namespace Aws\CognitoIdentity;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Cognito Identity** service.
  *
@@ -56,6 +54,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateIdentityPool(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateIdentityPoolAsync(array $args = [])
  */
-class CognitoIdentityClient extends AwsClient
+class Cognito_Identity_Client extends Aws_Client
 {
 }

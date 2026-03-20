@@ -1,65 +1,52 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api\Parser;
 
 use Aws\Api\Service;
-use Aws\Api\StructureShape;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
-
+use Aws\Api\Structure_Shape;
+use Psr\Http\Message\Response_Interface;
+use Psr\Http\Message\Stream_Interface;
 /**
  * @internal Implements REST-JSON parsing (e.g., Glacier, Elastic Transcoder)
  */
-class RestJsonParser extends AbstractRestParser
+class Rest_Json_Parser extends Abstract_Rest_Parser
 {
-    use PayloadParserTrait;
-
+    use Payload_Parser_Trait;
     /**
      * @param Service    $api    Service description
      * @param JsonParser $parser JSON body builder
      */
-    public function __construct(Service $api, ?JsonParser $parser = null)
+    public function __construct(Service $api, ?Json_Parser $parser = null)
     {
         parent::__construct($api);
-        $this->parser = $parser ?: new JsonParser();
+        $this->parser = $parser ?: new Json_Parser();
     }
-
-    protected function payload(
-        ResponseInterface $response,
-        StructureShape $member,
-        array &$result
-    ) {
-        $rawBody = AbstractParser::getBodyContents($response);
-
+    protected function payload(Response_Interface $response, Structure_Shape $member, array &$result)
+    {
+        $raw_body = Abstract_Parser::get_body_contents($response);
         // Parse JSON if we have content
-        if (!empty($rawBody)) {
-            $parsedJson = $this->parseJson($rawBody, $response);
+        if (!empty($raw_body)) {
+            $parsed_json = $this->parse_json($raw_body, $response);
         } else {
             // An empty response body should be deserialized as null
             $result = null;
             return;
         }
-
-        $parsedBody = $this->parser->parse($member, $parsedJson);
-        if (is_string($parsedBody) && $member['document']) {
+        $parsed_body = $this->parser->parse($member, $parsed_json);
+        if (is_string($parsed_body) && $member['document']) {
             // Document types can be strings: replace entire result
-            $result = $parsedBody;
+            $result = $parsed_body;
         } else {
             // Merge array/object results into existing result
-            $result = array_merge($result, (array) $parsedBody);
+            $result = array_merge($result, (array) $parsed_body);
         }
     }
-
-    public function parseMemberFromStream(
-        StreamInterface $stream,
-        StructureShape $member,
-        $response
-    ) {
-        $jsonBody = $this->parseJson($stream, $response);
-        if ($jsonBody) {
-            return $this->parser->parse($member, $jsonBody);
+    public function parse_member_from_stream(Stream_Interface $stream, Structure_Shape $member, $response)
+    {
+        $json_body = $this->parse_json($stream, $response);
+        if ($json_body) {
+            return $this->parser->parse($member, $json_body);
         }
         return [];
     }

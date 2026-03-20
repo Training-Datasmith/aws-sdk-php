@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Agent_Core_Control;
 
-namespace Aws\BedrockAgentCoreControl;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Bedrock Agent Core Control Plane Fronting Layer** service.
  * @method \Aws\Result createAgentRuntime(array $args = [])
@@ -181,6 +179,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkloadIdentity(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkloadIdentityAsync(array $args = [])
  */
-class BedrockAgentCoreControlClient extends AwsClient
+class Bedrock_Agent_Core_Control_Client extends Aws_Client
 {
 }

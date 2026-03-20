@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Chime_Sdk_Messaging\Exception;
 
-namespace Aws\ChimeSDKMessaging\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Chime SDK Messaging** service.
  */
-class ChimeSDKMessagingException extends AwsException
+class Chime_Sdk_Messaging_Exception extends Aws_Exception
 {
 }

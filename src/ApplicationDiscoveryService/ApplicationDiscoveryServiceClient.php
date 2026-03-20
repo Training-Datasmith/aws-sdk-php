@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Application_Discovery_Service;
 
-namespace Aws\ApplicationDiscoveryService;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Application Discovery Service** service.
  * @method \Aws\Result associateConfigurationItemsToApplication(array $args = [])
@@ -65,6 +63,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateApplication(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateApplicationAsync(array $args = [])
  */
-class ApplicationDiscoveryServiceClient extends AwsClient
+class Application_Discovery_Service_Client extends Aws_Client
 {
 }

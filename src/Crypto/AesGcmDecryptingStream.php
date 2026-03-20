@@ -1,28 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
-use Aws\Exception\CryptoException;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use Psr\Http\Message\StreamInterface;
-
+use Aws\Exception\Crypto_Exception;
+use Guzzle_Http\Psr7;
+use Guzzle_Http\Psr7\Stream_Decorator_Trait;
+use Psr\Http\Message\Stream_Interface;
 /**
  * @internal Represents a stream of data to be gcm decrypted.
  */
-class AesGcmDecryptingStream implements AesStreamInterface
+class Aes_Gcm_Decrypting_Stream implements Aes_Stream_Interface
 {
-    use StreamDecoratorTrait;
-
-    private $cipherText;
-
+    use Stream_Decorator_Trait;
+    private $cipher_text;
     /**
      * @var StreamInterface
      */
     private $stream;
-
     /**
      * @param string $key
      * @param string $initializationVector
@@ -31,57 +26,34 @@ class AesGcmDecryptingStream implements AesStreamInterface
      * @param int $tagLength
      * @param int $keySize
      */
-    public function __construct(
-        StreamInterface $cipherText,
-        private $key,
-        private $initializationVector,
-        private $tag,
-        private $aad = '',
-        private $tagLength = 128,
-        private $keySize = 256
-    ) {
-        $this->cipherText = $cipherText;
+    public function __construct(Stream_Interface $cipher_text, private $key, private $initialization_vector, private $tag, private $aad = '', private $tag_length = 128, private $key_size = 256)
+    {
+        $this->cipher_text = $cipher_text;
         // unsetting the property forces the first access to go through
         // __get().
         unset($this->stream);
     }
-
-    public function getOpenSslName(): string
+    public function get_open_ssl_name(): string
     {
-        return "aes-{$this->keySize}-gcm";
+        return "aes-{$this->key_size}-gcm";
     }
-
-    public function getAesName(): string
+    public function get_aes_name(): string
     {
         return 'AES/GCM/NoPadding';
     }
-
-    public function getCurrentIv()
+    public function get_current_iv()
     {
-        return $this->initializationVector;
+        return $this->initialization_vector;
     }
-
-    public function createStream()
+    public function create_stream()
     {
-
-        $result = \openssl_decrypt(
-            (string)$this->cipherText,
-            $this->getOpenSslName(),
-            $this->key,
-            OPENSSL_RAW_DATA,
-            $this->initializationVector,
-            $this->tag,
-            $this->aad
-        );
+        $result = \openssl_decrypt((string) $this->cipher_text, $this->get_open_ssl_name(), $this->key, OPENSSL_RAW_DATA, $this->initialization_vector, $this->tag, $this->aad);
         if ($result === false) {
-            throw new CryptoException('The requested object could not be '
-            . 'decrypted due to an invalid authentication tag.');
+            throw new Crypto_Exception('The requested object could not be ' . 'decrypted due to an invalid authentication tag.');
         }
-        return Psr7\Utils::streamFor($result);
-
+        return Psr7\Utils::stream_for($result);
     }
-
-    public function isWritable(): bool
+    public function is_writable(): bool
     {
         return false;
     }

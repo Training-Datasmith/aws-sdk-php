@@ -1,15 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Arn\S3;
 
-use Aws\Arn\ArnInterface;
-
+use Aws\Arn\Arn_Interface;
 /**
  * @internal
  */
-interface BucketArnInterface extends ArnInterface
+interface Bucket_Arn_Interface extends Arn_Interface
 {
-    public function getBucketName();
+    public function get_bucket_name();
 }

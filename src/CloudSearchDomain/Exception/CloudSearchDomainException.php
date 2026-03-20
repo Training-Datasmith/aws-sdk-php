@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Search_Domain\Exception;
 
-namespace Aws\CloudSearchDomain\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with an Amazon CloudSearch Domain.
  */
-class CloudSearchDomainException extends AwsException
+class Cloud_Search_Domain_Exception extends Aws_Exception
 {
 }

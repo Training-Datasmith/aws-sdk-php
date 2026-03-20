@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Config\Exception;
 
-namespace Aws\AppConfig\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon AppConfig** service.
  */
-class AppConfigException extends AwsException
+class App_Config_Exception extends Aws_Exception
 {
 }

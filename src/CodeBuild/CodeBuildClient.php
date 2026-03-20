@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Build;
 
-namespace Aws\CodeBuild;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS CodeBuild** service.
  * @method \Aws\Result batchDeleteBuilds(array $args = [])
@@ -127,6 +125,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWebhook(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWebhookAsync(array $args = [])
  */
-class CodeBuildClient extends AwsClient
+class Code_Build_Client extends Aws_Client
 {
 }

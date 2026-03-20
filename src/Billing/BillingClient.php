@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Billing;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Billing** service.
  * @method \Aws\Result associateSourceViews(array $args = [])
@@ -33,6 +31,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateBillingView(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBillingViewAsync(array $args = [])
  */
-class BillingClient extends AwsClient
+class Billing_Client extends Aws_Client
 {
 }

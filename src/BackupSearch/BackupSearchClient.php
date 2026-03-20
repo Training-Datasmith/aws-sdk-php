@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Backup_Search;
 
-namespace Aws\BackupSearch;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Backup Search** service.
  * @method \Aws\Result getSearchJob(array $args = [])
@@ -33,6 +31,6 @@ use Aws\AwsClient;
  * @method \Aws\Result untagResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
-class BackupSearchClient extends AwsClient
+class Backup_Search_Client extends Aws_Client
 {
 }

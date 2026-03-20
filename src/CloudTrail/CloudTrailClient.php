@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Trail;
 
-namespace Aws\CloudTrail;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS CloudTrail** service.
  *
@@ -130,6 +128,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateTrail(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateTrailAsync(array $args = [])
  */
-class CloudTrailClient extends AwsClient
+class Cloud_Trail_Client extends Aws_Client
 {
 }

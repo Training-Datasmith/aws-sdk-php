@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Campaign_Service\Exception;
 
-namespace Aws\ConnectCampaignService\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AmazonConnectCampaignService** service.
  */
-class ConnectCampaignServiceException extends AwsException
+class Connect_Campaign_Service_Exception extends Aws_Exception
 {
 }

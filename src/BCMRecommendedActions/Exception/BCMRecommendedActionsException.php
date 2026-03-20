@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bcm_Recommended_Actions\Exception;
 
-namespace Aws\BCMRecommendedActions\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Billing and Cost Management Recommended Actions** service.
  */
-class BCMRecommendedActionsException extends AwsException
+class Bcm_Recommended_Actions_Exception extends Aws_Exception
 {
 }

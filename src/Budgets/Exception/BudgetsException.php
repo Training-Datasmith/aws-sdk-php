@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Budgets\Exception;
 
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Budgets** service.
  */
-class BudgetsException extends AwsException
+class Budgets_Exception extends Aws_Exception
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Backup;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Backup** service.
  * @method \Aws\Result associateBackupVaultMpaApprovalTeam(array $args = [])
@@ -225,6 +223,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateTieringConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateTieringConfigurationAsync(array $args = [])
  */
-class BackupClient extends AwsClient
+class Backup_Client extends Aws_Client
 {
 }

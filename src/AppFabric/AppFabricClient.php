@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Fabric;
 
-namespace Aws\AppFabric;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AppFabric** service.
  * @method \Aws\Result batchGetUserAccessTasks(array $args = [])
@@ -61,6 +59,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateIngestionDestination(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateIngestionDestinationAsync(array $args = [])
  */
-class AppFabricClient extends AwsClient
+class App_Fabric_Client extends Aws_Client
 {
 }

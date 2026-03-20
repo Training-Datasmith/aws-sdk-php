@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Chatbot\Exception;
 
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **chatbot** service.
  */
-class ChatbotException extends AwsException
+class Chatbot_Exception extends Aws_Exception
 {
 }

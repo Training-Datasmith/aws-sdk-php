@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Mesh;
 
-namespace Aws\AppMesh;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS App Mesh** service.
  * @method \Aws\Result createMesh(array $args = [])
@@ -85,6 +83,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateVirtualService(array $args = []) (supported in versions 2019-01-25)
  * @method \GuzzleHttp\Promise\Promise updateVirtualServiceAsync(array $args = []) (supported in versions 2019-01-25)
  */
-class AppMeshClient extends AwsClient
+class App_Mesh_Client extends Aws_Client
 {
 }

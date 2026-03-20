@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Directory\Exception;
 
-namespace Aws\CloudDirectory\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon CloudDirectory** service.
  */
-class CloudDirectoryException extends AwsException
+class Cloud_Directory_Exception extends Aws_Exception
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Arc_Zonal_Shift;
 
-namespace Aws\ARCZonalShift;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS ARC - Zonal Shift** service.
  * @method \Aws\Result cancelPracticeRun(array $args = [])
@@ -39,6 +37,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateZonalShift(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateZonalShiftAsync(array $args = [])
  */
-class ARCZonalShiftClient extends AwsClient
+class Arc_Zonal_Shift_Client extends Aws_Client
 {
 }

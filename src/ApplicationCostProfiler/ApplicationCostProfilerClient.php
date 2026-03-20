@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Application_Cost_Profiler;
 
-namespace Aws\ApplicationCostProfiler;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Application Cost Profiler** service.
  * @method \Aws\Result deleteReportDefinition(array $args = [])
@@ -21,6 +19,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateReportDefinition(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateReportDefinitionAsync(array $args = [])
  */
-class ApplicationCostProfilerClient extends AwsClient
+class Application_Cost_Profiler_Client extends Aws_Client
 {
 }

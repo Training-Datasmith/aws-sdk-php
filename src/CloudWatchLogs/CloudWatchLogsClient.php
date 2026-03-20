@@ -1,12 +1,10 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Watch_Logs;
 
-namespace Aws\CloudWatchLogs;
-
-use Aws\AwsClient;
+use Aws\Aws_Client;
 use Generator;
-
 /**
  * This client is used to interact with the **Amazon CloudWatch Logs** service.
  *
@@ -227,7 +225,7 @@ use Generator;
  * @method \Aws\Result updateScheduledQuery(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateScheduledQueryAsync(array $args = [])
  */
-class CloudWatchLogsClient extends AwsClient
+class Cloud_Watch_Logs_Client extends Aws_Client
 {
     /**
      * Helper method for 'startLiveTail' operation that checks for results.
@@ -243,16 +241,16 @@ class CloudWatchLogsClient extends AwsClient
      *
      * @return Generator Yields session update or result stream chunks.
      */
-    public function startLiveTailCheckingForResults(array $args): Generator
+    public function start_live_tail_checking_for_results(array $args): Generator
     {
-        $response = $this->startLiveTail($args);
-        foreach ($response['responseStream'] as $streamChunk) {
-            if (isset($streamChunk['sessionUpdate'])) {
-                if (!empty($streamChunk['sessionUpdate']['sessionResults'])) {
-                    yield $streamChunk;
+        $response = $this->start_live_tail($args);
+        foreach ($response['responseStream'] as $stream_chunk) {
+            if (isset($stream_chunk['sessionUpdate'])) {
+                if (!empty($stream_chunk['sessionUpdate']['sessionResults'])) {
+                    yield $stream_chunk;
                 }
             } else {
-                yield $streamChunk;
+                yield $stream_chunk;
             }
         }
     }

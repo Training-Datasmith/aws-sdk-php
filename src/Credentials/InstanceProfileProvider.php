@@ -1,23 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Credentials;
 
-use Aws\Configuration\ConfigurationResolver;
-use Aws\Exception\CredentialsException;
-use Aws\Exception\InvalidJsonException;
+use Aws\Configuration\Configuration_Resolver;
+use Aws\Exception\Credentials_Exception;
+use Aws\Exception\Invalid_Json_Exception;
 use Aws\Sdk;
-use GuzzleHttp\Exception\TransferException;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7\Request;
-use Psr\Http\Message\ResponseInterface;
-
+use Guzzle_Http\Exception\Transfer_Exception;
+use Guzzle_Http\Promise;
+use Guzzle_Http\Promise\Promise_Interface;
+use Guzzle_Http\Psr7\Request;
+use Psr\Http\Message\Response_Interface;
 /**
  * Credential provider that provides credentials from the EC2 metadata service.
  */
-class InstanceProfileProvider
+class Instance_Profile_Provider
 {
     public const CRED_PATH = 'meta-data/iam/security-credentials/';
     public const TOKEN_PATH = 'api/token';
@@ -35,34 +33,23 @@ class InstanceProfileProvider
     public const ENDPOINT_MODE_IPv6 = 'IPv6';
     public const DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT = 'http://169.254.169.254';
     public const DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT = 'http://[fd00:ec2::254]';
-
     /** @var string */
     private $profile;
-
     /** @var callable */
     private $client;
-
     /** @var int */
     private $retries;
-
     private ?int $attempts = null;
-
     /** @var float|mixed */
     private $timeout;
-
-    private bool $secureMode = true;
-
+    private bool $secure_mode = true;
     /** @var bool|null */
-    private $ec2MetadataV1Disabled;
-
+    private $ec2metadata_v1disabled;
     /** @var string */
     private $endpoint;
-
     /** @var string */
-    private $endpointMode;
-
+    private $endpoint_mode;
     private readonly array $config;
-
     /**
      * The constructor accepts the following options:
      *
@@ -82,164 +69,94 @@ class InstanceProfileProvider
      */
     public function __construct(array $config = [])
     {
-        $this->timeout = (float) getenv(self::ENV_TIMEOUT) ?: ($config['timeout'] ?? self::DEFAULT_TIMEOUT);
+        $this->timeout = (float) getenv(self::ENV_TIMEOUT) ?: $config['timeout'] ?? self::DEFAULT_TIMEOUT;
         $this->profile = $config['profile'] ?? null;
-        $this->retries = (int) getenv(self::ENV_RETRIES) ?: ($config['retries'] ?? self::DEFAULT_RETRIES);
+        $this->retries = (int) getenv(self::ENV_RETRIES) ?: $config['retries'] ?? self::DEFAULT_RETRIES;
         $this->client = $config['client'] ?? \Aws\default_http_handler();
-        $this->ec2MetadataV1Disabled = $config[self::CFG_EC2_METADATA_V1_DISABLED] ?? null;
+        $this->ec2metadata_v1disabled = $config[self::CFG_EC2_METADATA_V1_DISABLED] ?? null;
         $this->endpoint = $config[self::CFG_EC2_METADATA_SERVICE_ENDPOINT] ?? null;
-        if (!empty($this->endpoint) && !$this->isValidEndpoint($this->endpoint)) {
+        if (!empty($this->endpoint) && !$this->is_valid_endpoint($this->endpoint)) {
             throw new \InvalidArgumentException('The provided URI "' . $this->endpoint . '" is invalid, or contains an unsupported host');
         }
-
-        $this->endpointMode = $config[self::CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE] ?? null;
+        $this->endpoint_mode = $config[self::CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE] ?? null;
         $this->config = $config;
     }
-
     /**
      * Loads instance profile credentials.
      *
      * @return PromiseInterface
      */
-    public function __invoke($previousCredentials = null)
+    public function __invoke($previous_credentials = null)
     {
         $this->attempts = 0;
-        return Promise\Coroutine::of(function () use ($previousCredentials) {
-
+        return Promise\Coroutine::of(function () use ($previous_credentials) {
             // Retrieve token or switch out of secure mode
             $token = null;
-            while ($this->secureMode && is_null($token)) {
+            while ($this->secure_mode && is_null($token)) {
                 try {
-                    $token = (yield $this->request(
-                        self::TOKEN_PATH,
-                        'PUT',
-                        [
-                            'x-aws-ec2-metadata-token-ttl-seconds' => self::DEFAULT_TOKEN_TTL_SECONDS,
-                        ]
-                    ));
-                } catch (TransferException $e) {
-                    if ($this->getExceptionStatusCode($e) === 500
-                        && $previousCredentials instanceof Credentials
-                    ) {
+                    $token = yield $this->request(self::TOKEN_PATH, 'PUT', ['x-aws-ec2-metadata-token-ttl-seconds' => self::DEFAULT_TOKEN_TTL_SECONDS]);
+                } catch (Transfer_Exception $e) {
+                    if ($this->get_exception_status_code($e) === 500 && $previous_credentials instanceof Credentials) {
                         goto generateCredentials;
-                    } elseif ($this->shouldFallbackToIMDSv1()
-                        && (!method_exists($e, 'getResponse')
-                        || empty($e->getResponse())
-                        || !in_array(
-                            $e->getResponse()->getStatusCode(),
-                            [400, 500, 502, 503, 504]
-                        ))
-                    ) {
-                        $this->secureMode = false;
+                    } elseif ($this->should_fallback_to_imd_sv1() && (!method_exists($e, 'getResponse') || empty($e->get_response()) || !in_array($e->get_response()->get_status_code(), [400, 500, 502, 503, 504]))) {
+                        $this->secure_mode = false;
                     } else {
-                        $this->handleRetryableException(
-                            $e,
-                            [],
-                            $this->createErrorMessage(
-                                'Error retrieving metadata token'
-                            )
-                        );
+                        $this->handle_retryable_exception($e, [], $this->create_error_message('Error retrieving metadata token'));
                     }
                 }
                 $this->attempts++;
             }
-
             // Set token header only for secure mode
             $headers = [];
-            if ($this->secureMode) {
-                $headers = [
-                    'x-aws-ec2-metadata-token' => $token,
-                ];
+            if ($this->secure_mode) {
+                $headers = ['x-aws-ec2-metadata-token' => $token];
             }
-
             // Retrieve profile
             while (!$this->profile) {
                 try {
-                    $this->profile = (yield $this->request(
-                        self::CRED_PATH,
-                        'GET',
-                        $headers
-                    ));
-                } catch (TransferException $e) {
+                    $this->profile = yield $this->request(self::CRED_PATH, 'GET', $headers);
+                } catch (Transfer_Exception $e) {
                     // 401 indicates insecure flow not supported, switch to
                     // attempting secure mode for subsequent calls
-                    if (!empty($this->getExceptionStatusCode($e))
-                        && $this->getExceptionStatusCode($e) === 401
-                    ) {
-                        $this->secureMode = true;
+                    if (!empty($this->get_exception_status_code($e)) && $this->get_exception_status_code($e) === 401) {
+                        $this->secure_mode = true;
                     }
-                    $this->handleRetryableException(
-                        $e,
-                        [ 'blacklist' => [401, 403] ],
-                        $this->createErrorMessage($e->getMessage())
-                    );
+                    $this->handle_retryable_exception($e, ['blacklist' => [401, 403]], $this->create_error_message($e->get_message()));
                 }
-
                 $this->attempts++;
             }
-
             // Retrieve credentials
             $result = null;
             while ($result == null) {
                 try {
-                    $json = (yield $this->request(
-                        self::CRED_PATH . $this->profile,
-                        'GET',
-                        $headers
-                    ));
-                    $result = $this->decodeResult($json);
-                } catch (InvalidJsonException $e) {
-                    $this->handleRetryableException(
-                        $e,
-                        [ 'blacklist' => [401, 403] ],
-                        $this->createErrorMessage(
-                            'Invalid JSON response, retries exhausted'
-                        )
-                    );
-                } catch (TransferException $e) {
+                    $json = yield $this->request(self::CRED_PATH . $this->profile, 'GET', $headers);
+                    $result = $this->decode_result($json);
+                } catch (Invalid_Json_Exception $e) {
+                    $this->handle_retryable_exception($e, ['blacklist' => [401, 403]], $this->create_error_message('Invalid JSON response, retries exhausted'));
+                } catch (Transfer_Exception $e) {
                     // 401 indicates insecure flow not supported, switch to
                     // attempting secure mode for subsequent calls
-                    if (($this->getExceptionStatusCode($e) === 500
-                            || str_contains($e->getMessage(), 'cURL error 28'))
-                        && $previousCredentials instanceof Credentials
-                    ) {
+                    if (($this->get_exception_status_code($e) === 500 || str_contains($e->get_message(), 'cURL error 28')) && $previous_credentials instanceof Credentials) {
                         goto generateCredentials;
-                    } elseif (!empty($this->getExceptionStatusCode($e))
-                        && $this->getExceptionStatusCode($e) === 401
-                    ) {
-                        $this->secureMode = true;
+                    } elseif (!empty($this->get_exception_status_code($e)) && $this->get_exception_status_code($e) === 401) {
+                        $this->secure_mode = true;
                     }
-                    $this->handleRetryableException(
-                        $e,
-                        [ 'blacklist' => [401, 403] ],
-                        $this->createErrorMessage($e->getMessage())
-                    );
+                    $this->handle_retryable_exception($e, ['blacklist' => [401, 403]], $this->create_error_message($e->get_message()));
                 }
                 $this->attempts++;
             }
             generateCredentials:
-
             if (!isset($result)) {
-                $credentials = $previousCredentials;
+                $credentials = $previous_credentials;
             } else {
-                $credentials = new Credentials(
-                    $result['AccessKeyId'],
-                    $result['SecretAccessKey'],
-                    $result['Token'],
-                    strtotime((string) $result['Expiration']),
-                    $result['AccountId'] ?? null,
-                    CredentialSources::IMDS
-                );
+                $credentials = new Credentials($result['AccessKeyId'], $result['SecretAccessKey'], $result['Token'], strtotime((string) $result['Expiration']), $result['AccountId'] ?? null, Credential_Sources::IMDS);
             }
-
-            if ($credentials->isExpired()) {
-                $credentials->extendExpiration();
+            if ($credentials->is_expired()) {
+                $credentials->extend_expiration();
             }
-
             yield $credentials;
         });
     }
-
     /**
      * @return PromiseInterface Returns a promise that is fulfilled with the
      *                          body of the response as a string.
@@ -248,87 +165,62 @@ class InstanceProfileProvider
     {
         $disabled = getenv(self::ENV_DISABLE) ?: false;
         if (strcasecmp($disabled, 'true') === 0) {
-            throw new CredentialsException(
-                $this->createErrorMessage('EC2 metadata service access disabled')
-            );
+            throw new Credentials_Exception($this->create_error_message('EC2 metadata service access disabled'));
         }
-
         $fn = $this->client;
-        $request = new Request($method, $this->resolveEndpoint() . $url);
-        $userAgent = 'aws-sdk-php/' . Sdk::VERSION;
+        $request = new Request($method, $this->resolve_endpoint() . $url);
+        $user_agent = 'aws-sdk-php/' . Sdk::VERSION;
         if (defined('HHVM_VERSION')) {
-            $userAgent .= ' HHVM/' . HHVM_VERSION;
+            $user_agent .= ' HHVM/' . HHVM_VERSION;
         }
-        $userAgent .= ' ' . \Aws\default_user_agent();
-        $request = $request->withHeader('User-Agent', $userAgent);
+        $user_agent .= ' ' . \Aws\default_user_agent();
+        $request = $request->with_header('User-Agent', $user_agent);
         foreach ($headers as $key => $value) {
-            $request = $request->withHeader($key, $value);
+            $request = $request->with_header($key, $value);
         }
-
-        return $fn($request, ['timeout' => $this->timeout])
-            ->then(fn (ResponseInterface $response) => (string) $response->getBody())->otherwise(function (array $reason): void {
-                $reason = $reason['exception'];
-                if ($reason instanceof TransferException) {
-                    throw $reason;
-                }
-                $msg = $reason->getMessage();
-                throw new CredentialsException(
-                    $this->createErrorMessage($msg)
-                );
-            });
+        return $fn($request, ['timeout' => $this->timeout])->then(fn(Response_Interface $response) => (string) $response->get_body())->otherwise(function (array $reason): void {
+            $reason = $reason['exception'];
+            if ($reason instanceof Transfer_Exception) {
+                throw $reason;
+            }
+            $msg = $reason->get_message();
+            throw new Credentials_Exception($this->create_error_message($msg));
+        });
     }
-
-    private function handleRetryableException(
-        \Exception $e,
-        array $retryOptions,
-        $message
-    ): void {
-        $isRetryable = true;
-        if (!empty($status = $this->getExceptionStatusCode($e))
-            && isset($retryOptions['blacklist'])
-            && in_array($status, $retryOptions['blacklist'])
-        ) {
-            $isRetryable = false;
+    private function handle_retryable_exception(\Exception $e, array $retry_options, $message): void
+    {
+        $is_retryable = true;
+        if (!empty($status = $this->get_exception_status_code($e)) && isset($retry_options['blacklist']) && in_array($status, $retry_options['blacklist'])) {
+            $is_retryable = false;
         }
-        if ($isRetryable && $this->attempts < $this->retries) {
+        if ($is_retryable && $this->attempts < $this->retries) {
             sleep((int) 1.2 ** $this->attempts);
         } else {
-            throw new CredentialsException($message);
+            throw new Credentials_Exception($message);
         }
     }
-
-    private function getExceptionStatusCode(\Exception $e)
+    private function get_exception_status_code(\Exception $e)
     {
-        if (method_exists($e, 'getResponse')
-            && !empty($e->getResponse())
-        ) {
-            return $e->getResponse()->getStatusCode();
+        if (method_exists($e, 'getResponse') && !empty($e->get_response())) {
+            return $e->get_response()->get_status_code();
         }
         return null;
     }
-
-    private function createErrorMessage($previous): string
+    private function create_error_message($previous): string
     {
-        return 'Error retrieving credentials from the instance profile '
-            . "metadata service. ({$previous})";
+        return 'Error retrieving credentials from the instance profile ' . "metadata service. ({$previous})";
     }
-
-    private function decodeResult($response)
+    private function decode_result($response)
     {
         $result = json_decode((string) $response, true);
-
         if (json_last_error() > 0) {
-            throw new InvalidJsonException();
+            throw new Invalid_Json_Exception();
         }
-
         if ($result['Code'] !== 'Success') {
-            throw new CredentialsException('Unexpected instance profile '
-                .  'response code: ' . $result['Code']);
+            throw new Credentials_Exception('Unexpected instance profile ' . 'response code: ' . $result['Code']);
         }
-
         return $result;
     }
-
     /**
      * This functions checks for whether we should fall back to IMDSv1 or not.
      * If $ec2MetadataV1Disabled is null then we will try to resolve this value from
@@ -337,22 +229,11 @@ class InstanceProfileProvider
      * - From config file: aws_ec2_metadata_v1_disabled
      * - Defaulted to false
      */
-    private function shouldFallbackToIMDSv1(): bool
+    private function should_fallback_to_imd_sv1(): bool
     {
-        $isImdsV1Disabled = \Aws\boolean_value($this->ec2MetadataV1Disabled)
-            ?? \Aws\boolean_value(
-                ConfigurationResolver::resolve(
-                    self::CFG_EC2_METADATA_V1_DISABLED,
-                    self::DEFAULT_AWS_EC2_METADATA_V1_DISABLED,
-                    'bool',
-                    $this->config
-                )
-            )
-            ?? self::DEFAULT_AWS_EC2_METADATA_V1_DISABLED;
-
-        return !$isImdsV1Disabled;
+        $is_imds_v1disabled = \Aws\boolean_value($this->ec2metadata_v1disabled) ?? \Aws\boolean_value(Configuration_Resolver::resolve(self::CFG_EC2_METADATA_V1_DISABLED, self::DEFAULT_AWS_EC2_METADATA_V1_DISABLED, 'bool', $this->config)) ?? self::DEFAULT_AWS_EC2_METADATA_V1_DISABLED;
+        return !$is_imds_v1disabled;
     }
-
     /**
      * Resolves the metadata service endpoint. If the endpoint is not provided
      * or configured then, the default endpoint, based on the endpoint mode resolved,
@@ -360,29 +241,20 @@ class InstanceProfileProvider
      * Example: if endpoint_mode is resolved to be IPv4 and the endpoint is not provided
      * then, the endpoint to be used will be http://169.254.169.254.
      */
-    private function resolveEndpoint(): string
+    private function resolve_endpoint(): string
     {
         $endpoint = $this->endpoint;
         if (is_null($endpoint)) {
-            $endpoint = ConfigurationResolver::resolve(
-                self::CFG_EC2_METADATA_SERVICE_ENDPOINT,
-                $this->getDefaultEndpoint(),
-                'string',
-                $this->config
-            );
+            $endpoint = Configuration_Resolver::resolve(self::CFG_EC2_METADATA_SERVICE_ENDPOINT, $this->get_default_endpoint(), 'string', $this->config);
         }
-
-        if (!$this->isValidEndpoint($endpoint)) {
-            throw new CredentialsException('The provided URI "' . $endpoint . '" is invalid, or contains an unsupported host');
+        if (!$this->is_valid_endpoint($endpoint)) {
+            throw new Credentials_Exception('The provided URI "' . $endpoint . '" is invalid, or contains an unsupported host');
         }
-
         if (substr($endpoint, strlen($endpoint) - 1) !== '/') {
             $endpoint = $endpoint . '/';
         }
-
         return $endpoint . 'latest/';
     }
-
     /**
      * Resolves the default metadata service endpoint.
      * If endpoint_mode is resolved as IPv4 then:
@@ -390,63 +262,49 @@ class InstanceProfileProvider
      * If endpoint_mode is resolved as IPv6 then:
      * - endpoint = http://[fd00:ec2::254]
      */
-    private function getDefaultEndpoint(): string
+    private function get_default_endpoint(): string
     {
-        $endpointMode = $this->resolveEndpointMode();
-        return match ($endpointMode) {
+        $endpoint_mode = $this->resolve_endpoint_mode();
+        return match ($endpoint_mode) {
             self::ENDPOINT_MODE_IPv4 => self::DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT,
             self::ENDPOINT_MODE_IPv6 => self::DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT,
-            default => throw new CredentialsException("Invalid endpoint mode '$endpointMode' resolved"),
+            default => throw new Credentials_Exception("Invalid endpoint mode '{$endpoint_mode}' resolved"),
         };
     }
-
     /**
      * Resolves the endpoint mode to be considered when resolving the default
      * metadata service endpoint.
      */
-    private function resolveEndpointMode(): string
+    private function resolve_endpoint_mode(): string
     {
-        $endpointMode = $this->endpointMode;
-        if (is_null($endpointMode)) {
-            return ConfigurationResolver::resolve(
-                self::CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE,
-                self::ENDPOINT_MODE_IPv4,
-                'string',
-                $this->config
-            );
+        $endpoint_mode = $this->endpoint_mode;
+        if (is_null($endpoint_mode)) {
+            return Configuration_Resolver::resolve(self::CFG_EC2_METADATA_SERVICE_ENDPOINT_MODE, self::ENDPOINT_MODE_IPv4, 'string', $this->config);
         }
-
-        return $endpointMode;
+        return $endpoint_mode;
     }
-
     /**
      * This method checks for whether a provide URI is valid.
      * @param string $uri this parameter is the uri to do the validation against to.
      *
      * @return string|null
      */
-    private function isValidEndpoint(
-        $uri
-    ): bool {
+    private function is_valid_endpoint($uri): bool
+    {
         // We make sure first the provided uri is a valid URL
-        $isValidURL = filter_var($uri, FILTER_VALIDATE_URL) !== false;
-        if (!$isValidURL) {
+        $is_valid_url = filter_var($uri, FILTER_VALIDATE_URL) !== false;
+        if (!$is_valid_url) {
             return false;
         }
-
         // We make sure that if is a no secure host then it must be a loop back address.
-        $parsedUri = parse_url($uri);
-        if ($parsedUri['scheme'] !== 'https') {
-            $host = trim($parsedUri['host'], '[]');
-            if (CredentialsUtils::isLoopBackAddress(gethostbyname($host))) {
+        $parsed_uri = parse_url($uri);
+        if ($parsed_uri['scheme'] !== 'https') {
+            $host = trim($parsed_uri['host'], '[]');
+            if (Credentials_Utils::is_loop_back_address(gethostbyname($host))) {
                 return true;
             }
-            return in_array(
-                $uri,
-                [self::DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT, self::DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT]
-            );
+            return in_array($uri, [self::DEFAULT_METADATA_SERVICE_IPv4_ENDPOINT, self::DEFAULT_METADATA_SERVICE_IPv6_ENDPOINT]);
         }
-
         return true;
     }
 }

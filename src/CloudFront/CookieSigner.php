@@ -1,18 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Front;
 
-namespace Aws\CloudFront;
-
-class CookieSigner
+class Cookie_Signer
 {
-    private readonly \Aws\CloudFront\Signer $signer;
-
-    private static array $schemes = [
-        'http' => true,
-        'https' => true,
-    ];
-
+    private readonly \Aws\Cloud_Front\Signer $signer;
+    private static array $schemes = ['http' => true, 'https' => true];
     /**
      * @param $keyPairId  string ID of the key pair
      * @param $privateKey string Path to the private key used for signing
@@ -20,11 +14,10 @@ class CookieSigner
      * @throws \RuntimeException if the openssl extension is missing
      * @throws \InvalidArgumentException if the private key cannot be found.
      */
-    public function __construct($keyPairId, $privateKey)
+    public function __construct($key_pair_id, $private_key)
     {
-        $this->signer = new Signer($keyPairId, $privateKey);
+        $this->signer = new Signer($key_pair_id, $private_key);
     }
-
     /**
      * Create a signed Amazon CloudFront Cookie.
      *
@@ -42,22 +35,19 @@ class CookieSigner
      * @throws \InvalidArgumentException if the URL provided is invalid
      * @link http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-signed-cookies.html
      */
-    public function getSignedCookie($url = null, $expires = null, $policy = null): array
+    public function get_signed_cookie($url = null, $expires = null, $policy = null): array
     {
         if ($url) {
-            $this->validateUrl($url);
+            $this->validate_url($url);
         }
-
-        $cookieParameters = [];
-        $signature = $this->signer->getSignature($url, $expires, $policy);
+        $cookie_parameters = [];
+        $signature = $this->signer->get_signature($url, $expires, $policy);
         foreach ($signature as $key => $value) {
-            $cookieParameters["CloudFront-$key"] = $value;
+            $cookie_parameters["CloudFront-{$key}"] = $value;
         }
-
-        return $cookieParameters;
+        return $cookie_parameters;
     }
-
-    private function validateUrl($url): void
+    private function validate_url($url): void
     {
         $scheme = str_replace('*', '', explode('://', (string) $url)[0]);
         if (empty(self::$schemes[strtolower($scheme)])) {

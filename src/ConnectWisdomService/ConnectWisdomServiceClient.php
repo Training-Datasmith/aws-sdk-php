@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Wisdom_Service;
 
-namespace Aws\ConnectWisdomService;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Connect Wisdom Service** service.
  * @method \Aws\Result createAssistant(array $args = [])
@@ -91,6 +89,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateQuickResponse(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateQuickResponseAsync(array $args = [])
  */
-class ConnectWisdomServiceClient extends AwsClient
+class Connect_Wisdom_Service_Client extends Aws_Client
 {
 }

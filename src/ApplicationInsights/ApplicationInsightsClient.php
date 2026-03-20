@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Application_Insights;
 
-namespace Aws\ApplicationInsights;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CloudWatch Application Insights** service.
  * @method \Aws\Result addWorkload(array $args = [])
@@ -75,6 +73,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkload(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkloadAsync(array $args = [])
  */
-class ApplicationInsightsClient extends AwsClient
+class Application_Insights_Client extends Aws_Client
 {
 }

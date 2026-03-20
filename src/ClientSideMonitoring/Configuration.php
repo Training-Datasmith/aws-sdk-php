@@ -1,15 +1,13 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Client_Side_Monitoring;
 
-namespace Aws\ClientSideMonitoring;
-
-class Configuration implements ConfigurationInterface
+class Configuration implements Configuration_Interface
 {
-    private readonly string $clientId;
+    private readonly string $client_id;
     private readonly bool $enabled;
     private readonly int|bool $port;
-
     /**
      * Constructs a new Configuration object with the specified CSM options set.
      *
@@ -18,62 +16,49 @@ class Configuration implements ConfigurationInterface
      * @param string|int $port
      * @param string $clientId
      */
-    public function __construct($enabled, private $host, $port, $clientId = '')
+    public function __construct($enabled, private $host, $port, $client_id = '')
     {
         $this->port = filter_var($port, FILTER_VALIDATE_INT);
         if ($this->port === false) {
-            throw new \InvalidArgumentException(
-                "CSM 'port' value must be an integer!"
-            );
+            throw new \InvalidArgumentException("CSM 'port' value must be an integer!");
         }
-
         // Unparsable $enabled flag errors on the side of disabling CSM
         $this->enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
-        $this->clientId = trim($clientId);
+        $this->client_id = trim($client_id);
     }
-
     /**
      * {@inheritdoc}
      */
-    public function isEnabled()
+    public function is_enabled()
     {
         return $this->enabled;
     }
-
     /**
      * {@inheritdoc}
      */
-    public function getClientId()
+    public function get_client_id()
     {
-        return $this->clientId;
+        return $this->client_id;
     }
-
     /**
      * /{@inheritdoc}
      */
-    public function getHost()
+    public function get_host()
     {
         return $this->host;
     }
-
     /**
      * {@inheritdoc}
      */
-    public function getPort()
+    public function get_port()
     {
         return $this->port;
     }
-
     /**
      * {@inheritdoc}
      */
-    public function toArray(): array
+    public function to_array(): array
     {
-        return [
-            'client_id' => $this->getClientId(),
-            'enabled' => $this->isEnabled(),
-            'host' => $this->getHost(),
-            'port' => $this->getPort(),
-        ];
+        return ['client_id' => $this->get_client_id(), 'enabled' => $this->is_enabled(), 'host' => $this->get_host(), 'port' => $this->get_port()];
     }
 }

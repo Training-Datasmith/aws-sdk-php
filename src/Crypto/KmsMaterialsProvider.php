@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
-use Aws\Kms\KmsClient;
-
+use Aws\Kms\Kms_Client;
 /**
  * Uses KMS to supply materials for encrypting and decrypting data.
  *
@@ -16,58 +14,41 @@ use Aws\Kms\KmsClient;
  *
  * @deprecated
  */
-class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProviderInterface
+class Kms_Materials_Provider extends Materials_Provider implements Materials_Provider_Interface
 {
     public const WRAP_ALGORITHM_NAME = 'kms';
-
     /**
      * @param KmsClient $kmsClient A KMS Client for use encrypting and
      *                             decrypting keys.
      * @param string $kmsKeyId The private KMS key id to be used for encrypting
      *                         and decrypting keys.
      */
-    public function __construct(private readonly KmsClient $kmsClient, private $kmsKeyId = null)
+    public function __construct(private readonly Kms_Client $kms_client, private $kms_key_id = null)
     {
     }
-
-    public function fromDecryptionEnvelope(MetadataEnvelope $envelope): self
+    public function from_decryption_envelope(Metadata_Envelope $envelope): self
     {
-        if (empty($envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER])) {
+        if (empty($envelope[Metadata_Envelope::MATERIALS_DESCRIPTION_HEADER])) {
             throw new \RuntimeException('Not able to detect the materials description.');
         }
-
-        $materialsDescription = json_decode(
-            (string) $envelope[MetadataEnvelope::MATERIALS_DESCRIPTION_HEADER],
-            true
-        );
-
-        if (empty($materialsDescription['kms_cmk_id'])
-            && empty($materialsDescription['aws:x-amz-cek-alg'])) {
-            throw new \RuntimeException('Not able to detect kms_cmk_id (legacy'
-                . ' implementation) or aws:x-amz-cek-alg (current implementation)'
-                . ' from kms materials description.');
+        $materials_description = json_decode((string) $envelope[Metadata_Envelope::MATERIALS_DESCRIPTION_HEADER], true);
+        if (empty($materials_description['kms_cmk_id']) && empty($materials_description['aws:x-amz-cek-alg'])) {
+            throw new \RuntimeException('Not able to detect kms_cmk_id (legacy' . ' implementation) or aws:x-amz-cek-alg (current implementation)' . ' from kms materials description.');
         }
-
-        return new self(
-            $this->kmsClient,
-            $materialsDescription['kms_cmk_id'] ?? null
-        );
+        return new self($this->kms_client, $materials_description['kms_cmk_id'] ?? null);
     }
-
     /**
      * The KMS key id for use in matching this Provider to its keys,
      * consistently with other SDKs as 'kms_cmk_id'.
      */
-    public function getMaterialsDescription(): array
+    public function get_materials_description(): array
     {
-        return ['kms_cmk_id' => $this->kmsKeyId];
+        return ['kms_cmk_id' => $this->kms_key_id];
     }
-
-    public function getWrapAlgorithmName(): string
+    public function get_wrap_algorithm_name(): string
     {
         return self::WRAP_ALGORITHM_NAME;
     }
-
     /**
      * Takes a content encryption key (CEK) and description to return an encrypted
      * key by using KMS' Encrypt API.
@@ -78,16 +59,11 @@ class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProvide
      * @param string $materialDescription Material Description for use in
      *                                    encrypting the $cek.
      */
-    public function encryptCek($unencryptedCek, $materialDescription): string
+    public function encrypt_cek($unencrypted_cek, $material_description): string
     {
-        $encryptedDataKey = $this->kmsClient->encrypt([
-            'Plaintext' => $unencryptedCek,
-            'KeyId' => $this->kmsKeyId,
-            'EncryptionContext' => $materialDescription,
-        ]);
-        return base64_encode((string) $encryptedDataKey['CiphertextBlob']);
+        $encrypted_data_key = $this->kms_client->encrypt(['Plaintext' => $unencrypted_cek, 'KeyId' => $this->kms_key_id, 'EncryptionContext' => $material_description]);
+        return base64_encode((string) $encrypted_data_key['CiphertextBlob']);
     }
-
     /**
      * Takes an encrypted content encryption key (CEK) and material description
      * for use decrypting the key by using KMS' Decrypt API.
@@ -99,13 +75,9 @@ class KmsMaterialsProvider extends MaterialsProvider implements MaterialsProvide
      *
      * @return string
      */
-    public function decryptCek($encryptedCek, $materialDescription)
+    public function decrypt_cek($encrypted_cek, $material_description)
     {
-        $result = $this->kmsClient->decrypt([
-            'CiphertextBlob' => $encryptedCek,
-            'EncryptionContext' => $materialDescription,
-        ]);
-
+        $result = $this->kms_client->decrypt(['CiphertextBlob' => $encrypted_cek, 'EncryptionContext' => $material_description]);
         return $result['Plaintext'];
     }
 }

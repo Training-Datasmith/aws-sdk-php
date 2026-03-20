@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Amplify_Backend;
 
-namespace Aws\AmplifyBackend;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AmplifyBackend** service.
  * @method \Aws\Result cloneBackend(array $args = [])
@@ -71,6 +69,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateBackendStorage(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBackendStorageAsync(array $args = [])
  */
-class AmplifyBackendClient extends AwsClient
+class Amplify_Backend_Client extends Aws_Client
 {
 }

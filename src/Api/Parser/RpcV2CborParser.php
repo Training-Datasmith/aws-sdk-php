@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api\Parser;
 
-use Aws\Api\Cbor\CborDecoder;
+use Aws\Api\Cbor\Cbor_Decoder;
 use Aws\Api\Service;
-use Aws\Api\StructureShape;
-use Psr\Http\Message\StreamInterface;
-
+use Aws\Api\Structure_Shape;
+use Psr\Http\Message\Stream_Interface;
 /**
  * Parses responses according to Smithy RPC V2 CBOR protocol standards.
  *
@@ -16,31 +14,25 @@ use Psr\Http\Message\StreamInterface;
  *
  * @internal
  */
-final class RpcV2CborParser extends AbstractRpcV2Parser
+final class Rpc_V2cbor_Parser extends Abstract_Rpc_V2parser
 {
-    use RpcV2ParserTrait;
-    protected static string $smithyProtocol = 'rpc-v2-cbor';
-
-    private CborDecoder $decoder;
-
+    use Rpc_V2parser_Trait;
+    protected static string $smithy_protocol = 'rpc-v2-cbor';
+    private Cbor_Decoder $decoder;
     /**
      * @param Service $api Service description
      */
     public function __construct(Service $api)
     {
-        $this->decoder = new CborDecoder();
+        $this->decoder = new Cbor_Decoder();
         parent::__construct($api);
     }
-
     /**
      * @param $response
      *
      */
-    public function parseMemberFromStream(
-        StreamInterface $stream,
-        StructureShape $member,
-        $response
-    ): mixed {
-        return $this->resolveOutputShape($member, $this->parseCbor($stream, $response));
+    public function parse_member_from_stream(Stream_Interface $stream, Structure_Shape $member, $response): mixed
+    {
+        return $this->resolve_output_shape($member, $this->parse_cbor($stream, $response));
     }
 }

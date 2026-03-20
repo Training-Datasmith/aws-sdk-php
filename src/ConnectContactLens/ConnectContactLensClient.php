@@ -1,16 +1,14 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Contact_Lens;
 
-namespace Aws\ConnectContactLens;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Connect Contact Lens** service.
  * @method \Aws\Result listRealtimeContactAnalysisSegments(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listRealtimeContactAnalysisSegmentsAsync(array $args = [])
  */
-class ConnectContactLensClient extends AwsClient
+class Connect_Contact_Lens_Client extends Aws_Client
 {
 }

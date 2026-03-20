@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Commit;
 
-namespace Aws\CodeCommit;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS CodeCommit** service.
  *
@@ -168,6 +166,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRepositoryName(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRepositoryNameAsync(array $args = [])
  */
-class CodeCommitClient extends AwsClient
+class Code_Commit_Client extends Aws_Client
 {
 }

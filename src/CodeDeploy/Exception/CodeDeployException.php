@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Deploy\Exception;
 
-namespace Aws\CodeDeploy\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with AWS CodeDeploy.
  */
-class CodeDeployException extends AwsException
+class Code_Deploy_Exception extends Aws_Exception
 {
 }

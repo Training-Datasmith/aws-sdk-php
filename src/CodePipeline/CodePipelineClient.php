@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Pipeline;
 
-namespace Aws\CodePipeline;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CodePipeline** service.
  *
@@ -98,6 +96,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updatePipeline(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updatePipelineAsync(array $args = [])
  */
-class CodePipelineClient extends AwsClient
+class Code_Pipeline_Client extends Aws_Client
 {
 }

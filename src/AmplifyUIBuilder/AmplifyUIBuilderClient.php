@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Amplify_Ui_Builder;
 
-namespace Aws\AmplifyUIBuilder;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Amplify UI Builder** service.
  * @method \Aws\Result createComponent(array $args = [])
@@ -65,6 +63,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateTheme(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateThemeAsync(array $args = [])
  */
-class AmplifyUIBuilderClient extends AwsClient
+class Amplify_Ui_Builder_Client extends Aws_Client
 {
 }

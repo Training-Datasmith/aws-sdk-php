@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Chime_Sdk_Media_Pipelines\Exception;
 
-namespace Aws\ChimeSDKMediaPipelines\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Chime SDK Media Pipelines** service.
  */
-class ChimeSDKMediaPipelinesException extends AwsException
+class Chime_Sdk_Media_Pipelines_Exception extends Aws_Exception
 {
 }

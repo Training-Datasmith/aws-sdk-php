@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Campaign_Service;
 
-namespace Aws\ConnectCampaignService;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AmazonConnectCampaignService** service.
  * @method \Aws\Result createCampaign(array $args = [])
@@ -53,6 +51,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateCampaignOutboundCallConfig(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateCampaignOutboundCallConfigAsync(array $args = [])
  */
-class ConnectCampaignServiceClient extends AwsClient
+class Connect_Campaign_Service_Client extends Aws_Client
 {
 }

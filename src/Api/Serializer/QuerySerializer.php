@@ -1,37 +1,29 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api\Serializer;
 
 use Aws\Api\Service;
-use Aws\CommandInterface;
-use Aws\EndpointV2\EndpointProviderV2;
-use Aws\EndpointV2\EndpointV2SerializerTrait;
-use Aws\EndpointV2\Ruleset\RulesetEndpoint;
-use GuzzleHttp\Psr7\Request;
-use Psr\Http\Message\RequestInterface;
-
+use Aws\Command_Interface;
+use Aws\Endpoint_V2\Endpoint_Provider_V2;
+use Aws\Endpoint_V2\Endpoint_V2serializer_Trait;
+use Aws\Endpoint_V2\Ruleset\Ruleset_Endpoint;
+use Guzzle_Http\Psr7\Request;
+use Psr\Http\Message\Request_Interface;
 /**
  * Serializes a query protocol request.
  * @internal
  */
-class QuerySerializer
+class Query_Serializer
 {
-    use EndpointV2SerializerTrait;
-
+    use Endpoint_V2serializer_Trait;
     private $endpoint;
-    private $paramBuilder;
-
-    public function __construct(
-        private Service $api,
-        $endpoint,
-        ?callable $paramBuilder = null
-    ) {
+    private $param_builder;
+    public function __construct(private Service $api, $endpoint, ?callable $param_builder = null)
+    {
         $this->endpoint = $endpoint;
-        $this->paramBuilder = $paramBuilder ?: new QueryParamBuilder();
+        $this->param_builder = $param_builder ?: new Query_Param_Builder();
     }
-
     /**
      * When invoked with an AWS command, returns a serialization array
      * containing "method", "uri", "headers", and "body" key value pairs.
@@ -40,43 +32,22 @@ class QuerySerializer
      * @param null $endpoint Endpoint resolved using EndpointProviderV2
      * @return RequestInterface
      */
-    public function __invoke(
-        CommandInterface $command,
-        $endpoint = null
-    ) {
-        $operation = $this->api->getOperation($command->getName());
-        $body = [
-            'Action'  => $command->getName(),
-            'Version' => $this->api->getMetadata('apiVersion'),
-        ];
-        $commandArgs = $command->toArray();
-
+    public function __invoke(Command_Interface $command, $endpoint = null)
+    {
+        $operation = $this->api->get_operation($command->get_name());
+        $body = ['Action' => $command->get_name(), 'Version' => $this->api->get_metadata('apiVersion')];
+        $command_args = $command->to_array();
         // Only build up the parameters when there are parameters to build
-        if ($commandArgs) {
-            $body += call_user_func(
-                $this->paramBuilder,
-                $operation->getInput(),
-                $commandArgs
-            );
+        if ($command_args) {
+            $body += call_user_func($this->param_builder, $operation->get_input(), $command_args);
         }
         $body = http_build_query($body, '', '&', PHP_QUERY_RFC3986);
-        $headers = [
-            'Content-Length' => strlen($body),
-            'Content-Type'   => 'application/x-www-form-urlencoded',
-        ];
-        $requestUri = $operation['http']['requestUri'] ?? null;
-
-        if ($endpoint instanceof RulesetEndpoint) {
-            $this->setEndpointV2RequestOptions($endpoint, $headers);
+        $headers = ['Content-Length' => strlen($body), 'Content-Type' => 'application/x-www-form-urlencoded'];
+        $request_uri = $operation['http']['requestUri'] ?? null;
+        if ($endpoint instanceof Ruleset_Endpoint) {
+            $this->set_endpoint_v2request_options($endpoint, $headers);
         }
-        $absoluteUri = str_ends_with((string) $this->endpoint, '/')
-            ? $this->endpoint : $this->endpoint . $requestUri;
-
-        return new Request(
-            'POST',
-            $absoluteUri,
-            $headers,
-            $body
-        );
+        $absolute_uri = str_ends_with((string) $this->endpoint, '/') ? $this->endpoint : $this->endpoint . $request_uri;
+        return new Request('POST', $absolute_uri, $headers, $body);
     }
 }

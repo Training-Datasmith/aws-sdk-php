@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Front_Key_Value_Store;
 
-namespace Aws\CloudFrontKeyValueStore;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CloudFront KeyValueStore** service.
  * @method \Aws\Result deleteKey(array $args = [])
@@ -21,6 +19,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateKeys(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateKeysAsync(array $args = [])
  */
-class CloudFrontKeyValueStoreClient extends AwsClient
+class Cloud_Front_Key_Value_Store_Client extends Aws_Client
 {
 }

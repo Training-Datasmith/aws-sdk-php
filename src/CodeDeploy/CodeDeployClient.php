@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Deploy;
 
-namespace Aws\CodeDeploy;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with AWS CodeDeploy
  *
@@ -104,6 +102,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateDeploymentGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateDeploymentGroupAsync(array $args = [])
  */
-class CodeDeployClient extends AwsClient
+class Code_Deploy_Client extends Aws_Client
 {
 }

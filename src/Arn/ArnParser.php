@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Arn;
 
-use Aws\Arn\S3\AccessPointArn as S3AccessPointArn;
-use Aws\Arn\S3\MultiRegionAccessPointArn;
-use Aws\Arn\S3\OutpostsAccessPointArn;
-use Aws\Arn\S3\OutpostsBucketArn;
-
+use Aws\Arn\S3\Access_Point_Arn as S3AccessPointArn;
+use Aws\Arn\S3\Multi_Region_Access_Point_Arn;
+use Aws\Arn\S3\Outposts_Access_Point_Arn;
+use Aws\Arn\S3\Outposts_Bucket_Arn;
 /**
  * This class provides functionality to parse ARN strings and return a
  * corresponding ARN object. ARN-parsing logic may be subject to change in the
@@ -16,16 +14,15 @@ use Aws\Arn\S3\OutpostsBucketArn;
  *
  * @internal
  */
-class ArnParser
+class Arn_Parser
 {
     /**
      * @param $string
      */
-    public static function isArn($string): bool
+    public static function is_arn($string): bool
     {
         return $string !== null && str_starts_with($string, 'arn:');
     }
-
     /**
      * Parses a string and returns an instance of ArnInterface. Returns a
      * specific type of Arn object if it has a specific class representation
@@ -34,36 +31,34 @@ class ArnParser
      * @param $string
      * @return ArnInterface
      */
-    public static function parse($string): \Aws\Arn\ObjectLambdaAccessPointArn|\Aws\Arn\S3\OutpostsBucketArn|\Aws\Arn\S3\OutpostsAccessPointArn|\Aws\Arn\S3\MultiRegionAccessPointArn|\Aws\Arn\S3\AccessPointArn|\Aws\Arn\AccessPointArn|\Aws\Arn\Arn
+    public static function parse($string): \Aws\Arn\Object_Lambda_Access_Point_Arn|\Aws\Arn\S3\Outposts_Bucket_Arn|\Aws\Arn\S3\Outposts_Access_Point_Arn|\Aws\Arn\S3\Multi_Region_Access_Point_Arn|\Aws\Arn\S3\Access_Point_Arn|\Aws\Arn\Access_Point_Arn|\Aws\Arn\Arn
     {
         $data = Arn::parse($string);
         if ($data['service'] === 's3-object-lambda') {
-            return new ObjectLambdaAccessPointArn($string);
+            return new Object_Lambda_Access_Point_Arn($string);
         }
-        $resource = self::explodeResourceComponent($data['resource']);
+        $resource = self::explode_resource_component($data['resource']);
         if ($resource[0] === 'outpost') {
             if (isset($resource[2]) && $resource[2] === 'bucket') {
-                return new OutpostsBucketArn($string);
+                return new Outposts_Bucket_Arn($string);
             }
             if (isset($resource[2]) && $resource[2] === 'accesspoint') {
-                return new OutpostsAccessPointArn($string);
+                return new Outposts_Access_Point_Arn($string);
             }
         }
         if (empty($data['region'])) {
-            return new MultiRegionAccessPointArn($string);
+            return new Multi_Region_Access_Point_Arn($string);
         }
         if ($resource[0] === 'accesspoint') {
             if ($data['service'] === 's3') {
-                return new S3AccessPointArn($string);
+                return new S3access_Point_Arn($string);
             }
-            return new AccessPointArn($string);
+            return new Access_Point_Arn($string);
         }
-
         return new Arn($data);
     }
-
-    private static function explodeResourceComponent($resource)
+    private static function explode_resource_component($resource)
     {
-        return preg_split("/[\/:]/", (string) $resource);
+        return preg_split("/[\\/:]/", (string) $resource);
     }
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Star_Notifications;
 
-namespace Aws\CodeStarNotifications;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS CodeStar Notifications** service.
  * @method \Aws\Result createNotificationRule(array $args = [])
@@ -35,6 +33,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateNotificationRule(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateNotificationRuleAsync(array $args = [])
  */
-class CodeStarNotificationsClient extends AwsClient
+class Code_Star_Notifications_Client extends Aws_Client
 {
 }

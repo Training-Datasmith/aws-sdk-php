@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Agent_Core;
 
-namespace Aws\BedrockAgentCore;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Bedrock AgentCore Data Plane Fronting Layer** service.
  * @method \Aws\Result batchCreateMemoryRecords(array $args = [])
@@ -83,6 +81,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateBrowserStream(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateBrowserStreamAsync(array $args = [])
  */
-class BedrockAgentCoreClient extends AwsClient
+class Bedrock_Agent_Core_Client extends Aws_Client
 {
 }

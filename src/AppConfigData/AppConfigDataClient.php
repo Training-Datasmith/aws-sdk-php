@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Config_Data;
 
-namespace Aws\AppConfigData;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS AppConfig Data** service.
  * @method \Aws\Result getLatestConfiguration(array $args = [])
@@ -13,6 +11,6 @@ use Aws\AwsClient;
  * @method \Aws\Result startConfigurationSession(array $args = [])
  * @method \GuzzleHttp\Promise\Promise startConfigurationSessionAsync(array $args = [])
  */
-class AppConfigDataClient extends AwsClient
+class App_Config_Data_Client extends Aws_Client
 {
 }

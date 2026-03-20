@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api;
 
 /**
@@ -9,7 +8,7 @@ namespace Aws\Api;
  * provides methods for extracting the desired parts related to a service,
  * operation, error, or shape (i.e., parameter).
  */
-class DocModel
+class Doc_Model
 {
     /**
      * @throws \RuntimeException
@@ -20,27 +19,24 @@ class DocModel
             throw new \RuntimeException('The "tidy" PHP extension is required.');
         }
     }
-
     /**
      * Convert the doc model to an array.
      *
      * @return array
      */
-    public function toArray()
+    public function to_array()
     {
         return $this->docs;
     }
-
     /**
      * Retrieves documentation about the service.
      *
      * @return null|string
      */
-    public function getServiceDocs()
+    public function get_service_docs()
     {
         return $this->docs['service'] ?? null;
     }
-
     /**
      * Retrieves documentation about an operation.
      *
@@ -48,11 +44,10 @@ class DocModel
      *
      * @return null|string
      */
-    public function getOperationDocs($operation)
+    public function get_operation_docs($operation)
     {
         return $this->docs['operations'][$operation] ?? null;
     }
-
     /**
      * Retrieves documentation about an error.
      *
@@ -60,11 +55,10 @@ class DocModel
      *
      * @return null|string
      */
-    public function getErrorDocs($error)
+    public function get_error_docs($error)
     {
         return $this->docs['shapes'][$error]['base'] ?? null;
     }
-
     /**
      * Retrieves documentation about a shape, specific to the context.
      *
@@ -74,57 +68,36 @@ class DocModel
      *
      * @return null|string
      */
-    public function getShapeDocs($shapeName, $parentName, $ref)
+    public function get_shape_docs($shape_name, $parent_name, $ref)
     {
-        if (!isset($this->docs['shapes'][$shapeName])) {
+        if (!isset($this->docs['shapes'][$shape_name])) {
             return '';
         }
-
         $result = '';
-        $d = $this->docs['shapes'][$shapeName];
-        if (isset($d['refs']["{$parentName}\${$ref}"])) {
-            $result = $d['refs']["{$parentName}\${$ref}"];
+        $d = $this->docs['shapes'][$shape_name];
+        if (isset($d['refs']["{$parent_name}\${$ref}"])) {
+            $result = $d['refs']["{$parent_name}\${$ref}"];
         } elseif (isset($d['base'])) {
             $result = $d['base'];
         }
-
         if (isset($d['append'])) {
-            if (!isset($d['excludeAppend'])
-                || !in_array($parentName, $d['excludeAppend'])
-            ) {
+            if (!isset($d['excludeAppend']) || !in_array($parent_name, $d['excludeAppend'])) {
                 $result .= $d['append'];
             }
         }
-
-        if (isset($d['appendOnly'])
-           && in_array($parentName, $d['appendOnly']['shapes'])
-        ) {
+        if (isset($d['appendOnly']) && in_array($parent_name, $d['appendOnly']['shapes'])) {
             $result .= $d['appendOnly']['message'];
         }
-
         return $this->clean($result);
     }
-
     private function clean($content): string
     {
         if (!$content) {
             return '';
         }
-
         $tidy = new \tidy();
-        $tidy->parseString($content, [
-            'indent' => true,
-            'doctype' => 'omit',
-            'output-html' => true,
-            'show-body-only' => true,
-            'drop-empty-paras' => true,
-            'clean' => true,
-            'drop-proprietary-attributes' => true,
-            'hide-comments' => true,
-            'logical-emphasis' => true,
-        ]);
-        $tidy->cleanRepair();
-
+        $tidy->parse_string($content, ['indent' => true, 'doctype' => 'omit', 'output-html' => true, 'show-body-only' => true, 'drop-empty-paras' => true, 'clean' => true, 'drop-proprietary-attributes' => true, 'hide-comments' => true, 'logical-emphasis' => true]);
+        $tidy->clean_repair();
         return (string) $content;
     }
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Directory;
 
-namespace Aws\CloudDirectory;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CloudDirectory** service.
  * @method \Aws\Result addFacetToObject(array $args = [])
@@ -141,6 +139,6 @@ use Aws\AwsClient;
  * @method \Aws\Result listManagedSchemaArns(array $args = []) (supported in versions 2017-01-11)
  * @method \GuzzleHttp\Promise\Promise listManagedSchemaArnsAsync(array $args = []) (supported in versions 2017-01-11)
  */
-class CloudDirectoryClient extends AwsClient
+class Cloud_Directory_Client extends Aws_Client
 {
 }

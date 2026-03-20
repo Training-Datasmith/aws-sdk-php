@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws;
 
 /**
  * Represents a simple cache interface.
  */
-interface CacheInterface
+interface Cache_Interface
 {
     /**
      * Get a cache item by key.
@@ -17,7 +16,6 @@ interface CacheInterface
      * @return mixed|null Returns the value or null if not found.
      */
     public function get($key);
-
     /**
      * Set a cache key value.
      *
@@ -27,7 +25,6 @@ interface CacheInterface
      *                      to 0 to allow an unlimited lifetime.
      */
     public function set($key, $value, $ttl = 0);
-
     /**
      * Remove a cache key.
      *

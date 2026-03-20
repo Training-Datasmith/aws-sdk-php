@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Data_Automation_Runtime;
 
-namespace Aws\BedrockDataAutomationRuntime;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Runtime for Amazon Bedrock Data Automation** service.
  * @method \Aws\Result getDataAutomationStatus(array $args = [])
@@ -21,6 +19,6 @@ use Aws\AwsClient;
  * @method \Aws\Result untagResource(array $args = [])
  * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
-class BedrockDataAutomationRuntimeClient extends AwsClient
+class Bedrock_Data_Automation_Runtime_Client extends Aws_Client
 {
 }

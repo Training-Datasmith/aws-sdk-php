@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Cloud9;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Cloud9** service.
  * @method \Aws\Result createEnvironmentEC2(array $args = [])
@@ -35,6 +33,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateEnvironmentMembership(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateEnvironmentMembershipAsync(array $args = [])
  */
-class Cloud9Client extends AwsClient
+class Cloud9Client extends Aws_Client
 {
 }

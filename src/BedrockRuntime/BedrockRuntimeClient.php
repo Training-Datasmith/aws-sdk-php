@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Runtime;
 
-namespace Aws\BedrockRuntime;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Bedrock Runtime** service.
  * @method \Aws\Result applyGuardrail(array $args = [])
@@ -27,6 +25,6 @@ use Aws\AwsClient;
  * @method \Aws\Result startAsyncInvoke(array $args = [])
  * @method \GuzzleHttp\Promise\Promise startAsyncInvokeAsync(array $args = [])
  */
-class BedrockRuntimeClient extends AwsClient
+class Bedrock_Runtime_Client extends Aws_Client
 {
 }

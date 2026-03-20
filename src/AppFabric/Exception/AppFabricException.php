@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\App_Fabric\Exception;
 
-namespace Aws\AppFabric\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AppFabric** service.
  */
-class AppFabricException extends AwsException
+class App_Fabric_Exception extends Aws_Exception
 {
 }

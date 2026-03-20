@@ -1,84 +1,63 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api\Serializer;
 
-use Aws\Api\ListShape;
-use Aws\Api\MapShape;
+use Aws\Api\List_Shape;
+use Aws\Api\Map_Shape;
 use Aws\Api\Operation;
 use Aws\Api\Service;
 use Aws\Api\Shape;
-use Aws\Api\StructureShape;
-use Aws\Api\TimestampShape;
-use Aws\CommandInterface;
-use Aws\EndpointV2\EndpointV2SerializerTrait;
-use Aws\EndpointV2\Ruleset\RulesetEndpoint;
+use Aws\Api\Structure_Shape;
+use Aws\Api\Timestamp_Shape;
+use Aws\Command_Interface;
+use Aws\Endpoint_V2\Endpoint_V2serializer_Trait;
+use Aws\Endpoint_V2\Ruleset\Ruleset_Endpoint;
 use DateTimeInterface;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Uri;
-use GuzzleHttp\Psr7\UriResolver;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\UriInterface;
-
+use Guzzle_Http\Psr7;
+use Guzzle_Http\Psr7\Request;
+use Guzzle_Http\Psr7\Uri;
+use Guzzle_Http\Psr7\Uri_Resolver;
+use Psr\Http\Message\Request_Interface;
+use Psr\Http\Message\Uri_Interface;
 /**
  * Serializes HTTP locations like header, uri, payload, etc...
  * @internal
  */
-abstract class RestSerializer
+abstract class Rest_Serializer
 {
-    use EndpointV2SerializerTrait;
+    use Endpoint_V2serializer_Trait;
     private const TEMPLATE_STRING_REGEX = '/\{([^\}]+)\}/';
-
-    private static array $excludeContentType = [
-        's3' => true,
-        'glacier' => true,
-    ];
-
+    private static array $exclude_content_type = ['s3' => true, 'glacier' => true];
     /** @var Uri */
     private $endpoint;
-
-    private ?bool $isUseEndpointV2 = null;
-
+    private ?bool $is_use_endpoint_v2 = null;
     /**
      * @param Service $api Service API description
      * @param string $endpoint Endpoint to connect to
      */
     public function __construct(private Service $api, $endpoint)
     {
-        $this->endpoint = Psr7\Utils::uriFor($endpoint);
+        $this->endpoint = Psr7\Utils::uri_for($endpoint);
     }
-
     /**
      * @param CommandInterface $command Command to serialize into a request.
      * @param mixed|null $endpoint
      * @return RequestInterface
      */
-    public function __invoke(
-        CommandInterface $command,
-        mixed $endpoint = null
-    ) {
-        $operation = $this->api->getOperation($command->getName());
-        $commandArgs = $command->toArray();
-        $opts = $this->serialize($operation, $commandArgs);
+    public function __invoke(Command_Interface $command, mixed $endpoint = null)
+    {
+        $operation = $this->api->get_operation($command->get_name());
+        $command_args = $command->to_array();
+        $opts = $this->serialize($operation, $command_args);
         $headers = $opts['headers'] ?? [];
-
-        if ($endpoint instanceof RulesetEndpoint) {
-            $this->isUseEndpointV2 = true;
-            $this->setEndpointV2RequestOptions($endpoint, $headers);
+        if ($endpoint instanceof Ruleset_Endpoint) {
+            $this->is_use_endpoint_v2 = true;
+            $this->set_endpoint_v2request_options($endpoint, $headers);
         }
-
-        $uri = $this->buildEndpoint($operation, $commandArgs, $opts);
-
-        return new Request(
-            $operation['http']['method'],
-            $uri,
-            $headers,
-            $opts['body'] ?? null
-        );
+        $uri = $this->build_endpoint($operation, $command_args, $opts);
+        return new Request($operation['http']['method'], $uri, $headers, $opts['body'] ?? null);
     }
-
     /**
      * Modifies a hash of request options for a payload body.
      *
@@ -86,66 +65,52 @@ abstract class RestSerializer
      * @param array $value Value to serialize
      * @param array $opts Request options to modify.
      */
-    abstract protected function payload(
-        StructureShape $member,
-        array $value,
-        array &$opts
-    );
-
+    abstract protected function payload(Structure_Shape $member, array $value, array &$opts);
     /**
      * @return mixed[]
      */
     private function serialize(Operation $operation, array $args): array
     {
         $opts = [];
-        $input = $operation->getInput();
-
+        $input = $operation->get_input();
         // Apply the payload trait if present
         if ($payload = $input['payload']) {
-            $this->applyPayload($input, $payload, $args, $opts);
+            $this->apply_payload($input, $payload, $args, $opts);
         }
-
         foreach ($args as $name => $value) {
-            if ($input->hasMember($name)) {
-                $member = $input->getMember($name);
+            if ($input->has_member($name)) {
+                $member = $input->get_member($name);
                 $location = $member['location'];
                 if (!$payload && !$location) {
-                    $bodyMembers[$name] = $value;
+                    $body_members[$name] = $value;
                 } elseif ($location === 'header') {
-                    $this->applyHeader($name, $member, $value, $opts);
+                    $this->apply_header($name, $member, $value, $opts);
                 } elseif ($location === 'querystring') {
-                    $this->applyQuery($name, $member, $value, $opts);
+                    $this->apply_query($name, $member, $value, $opts);
                 } elseif ($location === 'headers') {
-                    $this->applyHeaderMap($member, $value, $opts);
+                    $this->apply_header_map($member, $value, $opts);
                 }
             }
         }
-
-        if (isset($bodyMembers)) {
-            $this->payload($input, $bodyMembers, $opts);
-        } elseif (!isset($opts['body']) && $this->hasPayloadParam($input, $payload)) {
+        if (isset($body_members)) {
+            $this->payload($input, $body_members, $opts);
+        } elseif (!isset($opts['body']) && $this->has_payload_param($input, $payload)) {
             $this->payload($input, [], $opts);
         }
-
         return $opts;
     }
-
-    private function applyPayload(StructureShape $input, $name, array $args, array &$opts): void
+    private function apply_payload(Structure_Shape $input, $name, array $args, array &$opts): void
     {
         if (!isset($args[$name])) {
             return;
         }
-
-        $m = $input->getMember($name);
-
-        $type = $m->getType();
-        if ($m['streaming'] ||
-           ($type === 'string' || $type === 'blob')
-        ) {
+        $m = $input->get_member($name);
+        $type = $m->get_type();
+        if ($m['streaming'] || ($type === 'string' || $type === 'blob')) {
             // This path skips setting the content-type header usually done in
             // RestJsonSerializer and RestXmlSerializer.certain S3 and glacier
             // operations determine content type in Middleware::ContentType()
-            if (!isset(self::$excludeContentType[$this->api->getServiceName() ?? ''])) {
+            if (!isset(self::$exclude_content_type[$this->api->get_service_name() ?? ''])) {
                 switch ($type) {
                     case 'string':
                         $opts['headers']['Content-Type'] = 'text/plain';
@@ -155,163 +120,126 @@ abstract class RestSerializer
                         break;
                 }
             }
-
             $body = $args[$name];
             if (!$m['streaming'] && is_string($body)) {
                 $opts['headers']['Content-Length'] = strlen($body);
             }
-
             // Streaming bodies or payloads that are strings are
             // always just a stream of data.
-            $opts['body'] = Psr7\Utils::streamFor($body);
+            $opts['body'] = Psr7\Utils::stream_for($body);
             return;
         }
-
         $this->payload($m, $args[$name], $opts);
     }
-
-    private function applyHeader(int|string $name, Shape $member, $value, array &$opts): void
+    private function apply_header(int|string $name, Shape $member, $value, array &$opts): void
     {
         // Handle lists by recursively applying header logic to each element
-        if ($member instanceof ListShape) {
-            $listMember = $member->getMember();
-            $headerValues = [];
-
-            foreach ($value as $listValue) {
-                $tempOpts = ['headers' => []];
-                $this->applyHeader('temp', $listMember, $listValue, $tempOpts);
-                $convertedValue = $tempOpts['headers']['temp'];
-                $headerValues[] = $convertedValue;
+        if ($member instanceof List_Shape) {
+            $list_member = $member->get_member();
+            $header_values = [];
+            foreach ($value as $list_value) {
+                $temp_opts = ['headers' => []];
+                $this->apply_header('temp', $list_member, $list_value, $temp_opts);
+                $converted_value = $temp_opts['headers']['temp'];
+                $header_values[] = $converted_value;
             }
-
-            $value = $headerValues;
+            $value = $header_values;
         } elseif (!is_null($value)) {
-            switch ($member->getType()) {
+            switch ($member->get_type()) {
                 case 'timestamp':
-                    $timestampFormat = $member['timestampFormat'] ?? 'rfc822';
-                    $value = $this->formatTimestamp($value, $timestampFormat);
+                    $timestamp_format = $member['timestampFormat'] ?? 'rfc822';
+                    $value = $this->format_timestamp($value, $timestamp_format);
                     break;
                 case 'boolean':
-                    $value = $this->formatBoolean($value);
+                    $value = $this->format_boolean($value);
                     break;
             }
         }
-
         if ($member['jsonvalue']) {
             $value = json_encode($value);
             if (empty($value) && JSON_ERROR_NONE !== json_last_error()) {
-                throw new \InvalidArgumentException('Unable to encode the provided value'
-                    . ' with \'json_encode\'. ' . json_last_error_msg());
+                throw new \InvalidArgumentException('Unable to encode the provided value' . ' with \'json_encode\'. ' . json_last_error_msg());
             }
-
             $value = base64_encode($value);
         }
-
         $opts['headers'][$member['locationName'] ?: $name] = $value;
     }
-
     /**
      * Note: This is currently only present in the Amazon S3 model.
      */
-    private function applyHeaderMap(Shape $member, array $value, array &$opts): void
+    private function apply_header_map(Shape $member, array $value, array &$opts): void
     {
         $prefix = $member['locationName'];
         foreach ($value as $k => $v) {
             $opts['headers'][$prefix . $k] = $v;
         }
     }
-
-    private function applyQuery(int|string $name, Shape $member, $value, array &$opts): void
+    private function apply_query(int|string $name, Shape $member, $value, array &$opts): void
     {
-        if ($member instanceof MapShape) {
-            $opts['query'] = isset($opts['query']) && is_array($opts['query'])
-                ? $opts['query'] + $value
-                : $value;
-        } elseif ($member instanceof ListShape) {
-            $listMember = $member->getMember();
-            $paramName = $member['locationName'] ?: $name;
-
-            foreach ($value as $listValue) {
+        if ($member instanceof Map_Shape) {
+            $opts['query'] = isset($opts['query']) && is_array($opts['query']) ? $opts['query'] + $value : $value;
+        } elseif ($member instanceof List_Shape) {
+            $list_member = $member->get_member();
+            $param_name = $member['locationName'] ?: $name;
+            foreach ($value as $list_value) {
                 // Recursively call applyQuery for each list element
-                $tempOpts = ['query' => []];
-                $this->applyQuery('temp', $listMember, $listValue, $tempOpts);
-                $opts['query'][$paramName][] = $tempOpts['query']['temp'];
+                $temp_opts = ['query' => []];
+                $this->apply_query('temp', $list_member, $list_value, $temp_opts);
+                $opts['query'][$param_name][] = $temp_opts['query']['temp'];
             }
         } elseif (!is_null($value)) {
-            switch ($member->getType()) {
+            switch ($member->get_type()) {
                 case 'timestamp':
-                    $timestampFormat = $member['timestampFormat'] ?? 'iso8601';
-                    $value = $this->formatTimestamp($value, $timestampFormat);
+                    $timestamp_format = $member['timestampFormat'] ?? 'iso8601';
+                    $value = $this->format_timestamp($value, $timestamp_format);
                     break;
                 case 'boolean':
-                    $value = $this->formatBoolean($value);
+                    $value = $this->format_boolean($value);
                     break;
             }
-
             $opts['query'][$member['locationName'] ?: $name] = $value;
         }
     }
-
-    private function buildEndpoint(
-        Operation $operation,
-        array $args,
-        array $opts
-    ): UriInterface {
+    private function build_endpoint(Operation $operation, array $args, array $opts): Uri_Interface
+    {
         // Expand `requestUri` field members
-        $relativeUri = $this->expandUriTemplate($operation, $args);
-
+        $relative_uri = $this->expand_uri_template($operation, $args);
         // Add query members to relativeUri
         if (!empty($opts['query'])) {
-            $relativeUri = $this->appendQuery($opts['query'], $relativeUri);
+            $relative_uri = $this->append_query($opts['query'], $relative_uri);
         }
-
         // Special case - S3 keys that need path preservation
-        if ($this->api->getServiceName() === 's3'
-            && isset($args['Key'])
-            && $this->shouldPreservePath($args['Key'])
-        ) {
-            return new Uri($this->endpoint . $relativeUri);
+        if ($this->api->get_service_name() === 's3' && isset($args['Key']) && $this->should_preserve_path($args['Key'])) {
+            return new Uri($this->endpoint . $relative_uri);
         }
-
-        return $this->resolveUri($relativeUri, $opts);
+        return $this->resolve_uri($relative_uri, $opts);
     }
-
     /**
      * Expands `requestUri` members
      *
      *
      */
-    private function expandUriTemplate(Operation $operation, array $args): string
+    private function expand_uri_template(Operation $operation, array $args): string
     {
-        $varDefinitions = $this->getVarDefinitions($operation, $args);
-
-        return preg_replace_callback(
-            self::TEMPLATE_STRING_REGEX,
-            static function (array $matches) use ($varDefinitions): string {
-                $isGreedy = str_ends_with((string) $matches[1], '+');
-                $varName = $isGreedy ? substr((string) $matches[1], 0, -1) : $matches[1];
-
-                if (!isset($varDefinitions[$varName])) {
-                    return '';
-                }
-
-                $value = $varDefinitions[$varName];
-
-                if ($isGreedy) {
-                    return str_replace('%2F', '/', rawurlencode($value));
-                }
-
-                return rawurlencode($value);
-            },
-            (string) $operation['http']['requestUri']
-        );
+        $var_definitions = $this->get_var_definitions($operation, $args);
+        return preg_replace_callback(self::TEMPLATE_STRING_REGEX, static function (array $matches) use ($var_definitions): string {
+            $is_greedy = str_ends_with((string) $matches[1], '+');
+            $var_name = $is_greedy ? substr((string) $matches[1], 0, -1) : $matches[1];
+            if (!isset($var_definitions[$var_name])) {
+                return '';
+            }
+            $value = $var_definitions[$var_name];
+            if ($is_greedy) {
+                return str_replace('%2F', '/', rawurlencode($value));
+            }
+            return rawurlencode($value);
+        }, (string) $operation['http']['requestUri']);
     }
-
     /**
      * Checks for path-like key names. If detected, traditional
      * URI resolution is bypassed.
      */
-    private function shouldPreservePath(string $key): bool
+    private function should_preserve_path(string $key): bool
     {
         // Keys with dot segments
         if (str_contains($key, '.')) {
@@ -322,134 +250,107 @@ abstract class RestSerializer
                 }
             }
         }
-
         // Keys starting with slash
         if (str_starts_with($key, '/')) {
             return true;
         }
-
         return false;
     }
-
-    private function resolveUri(string $relativeUri, array $opts): UriInterface
+    private function resolve_uri(string $relative_uri, array $opts): Uri_Interface
     {
-        $basePath = $this->endpoint->getPath();
-
+        $base_path = $this->endpoint->get_path();
         // Only process if we have a non-empty base path
-        if (!empty($basePath) && $basePath !== '/') {
+        if (!empty($base_path) && $base_path !== '/') {
             // if relative is just '/', we want just the base path without trailing slash
-            if ($relativeUri === '/' || empty($relativeUri)) {
+            if ($relative_uri === '/' || empty($relative_uri)) {
                 // Remove trailing slash if present
-                return $this->endpoint->withPath(rtrim((string) $basePath, '/'));
+                return $this->endpoint->with_path(rtrim((string) $base_path, '/'));
             }
-
             // if relative is '/?query', we want base path without trailing slash + query
             // for now, this is only seen with S3 GetBucketLocation after processing the model
-            if (empty($opts['query'])
-                && str_starts_with($relativeUri, '/?')
-            ) {
-                $query = substr($relativeUri, 2); // Remove '/?'
-                return $this->endpoint->withQuery($query);
+            if (empty($opts['query']) && str_starts_with($relative_uri, '/?')) {
+                $query = substr($relative_uri, 2);
+                // Remove '/?'
+                return $this->endpoint->with_query($query);
             }
-
             // Ensure base path has trailing slash
-            if (!str_ends_with((string) $basePath, '/')) {
-                $this->endpoint = $this->endpoint->withPath($basePath . '/');
+            if (!str_ends_with((string) $base_path, '/')) {
+                $this->endpoint = $this->endpoint->with_path($base_path . '/');
             }
-
             // Remove leading slash from relative path to make it relative
-            if (str_starts_with($relativeUri, '/')) {
-                $relativeUri = substr($relativeUri, 1);
+            if (str_starts_with($relative_uri, '/')) {
+                $relative_uri = substr($relative_uri, 1);
             }
         }
-
-        return UriResolver::resolve($this->endpoint, new Uri($relativeUri));
+        return Uri_Resolver::resolve($this->endpoint, new Uri($relative_uri));
     }
-
     /**
      * @param $payload
      *
      */
-    private function hasPayloadParam(StructureShape $input, $payload): bool
+    private function has_payload_param(Structure_Shape $input, $payload): bool
     {
         if ($payload) {
-            $potentiallyEmptyTypes = ['blob','string'];
-            if ($this->api->getProtocol() === 'rest-xml') {
-                $potentiallyEmptyTypes[] = 'structure';
+            $potentially_empty_types = ['blob', 'string'];
+            if ($this->api->get_protocol() === 'rest-xml') {
+                $potentially_empty_types[] = 'structure';
             }
-
-            $payloadMember = $input->getMember($payload);
+            $payload_member = $input->get_member($payload);
             //unions may also be empty/unset
-            if (!empty($payloadMember['union'])
-                || in_array($payloadMember['type'], $potentiallyEmptyTypes)
-            ) {
+            if (!empty($payload_member['union']) || in_array($payload_member['type'], $potentially_empty_types)) {
                 return false;
             }
         }
-
-        foreach ($input->getMembers() as $member) {
+        foreach ($input->get_members() as $member) {
             if (!isset($member['location'])) {
                 return true;
             }
         }
-
         return false;
     }
-
     /**
      * @param $query
      * @param $relativeUri
      */
-    private function appendQuery($query, string $relativeUri): string
+    private function append_query($query, string $relative_uri): string
     {
         $append = Psr7\Query::build($query);
-        return $relativeUri
-            . (str_contains($relativeUri, '?') ? "&{$append}" : "?{$append}");
+        return $relative_uri . (str_contains($relative_uri, '?') ? "&{$append}" : "?{$append}");
     }
-
     /**
      * @param CommandInterface $command
      *
      */
-    private function getVarDefinitions(
-        Operation $operation,
-        array $args
-    ): array {
-        $varDefinitions = [];
-
-        foreach ($operation->getInput()->getMembers() as $name => $member) {
+    private function get_var_definitions(Operation $operation, array $args): array
+    {
+        $var_definitions = [];
+        foreach ($operation->get_input()->get_members() as $name => $member) {
             if ($member['location'] === 'uri') {
                 $value = $args[$name] ?? null;
                 if (!is_null($value)) {
-                    switch ($member->getType()) {
+                    switch ($member->get_type()) {
                         case 'timestamp':
-                            $timestampFormat = $member['timestampFormat'] ?? 'iso8601';
-                            $value = $this->formatTimestamp($value, $timestampFormat);
+                            $timestamp_format = $member['timestampFormat'] ?? 'iso8601';
+                            $value = $this->format_timestamp($value, $timestamp_format);
                             break;
                         case 'boolean':
-                            $value = $this->formatBoolean($value);
+                            $value = $this->format_boolean($value);
                             break;
                     }
                 }
-
-                $varDefinitions[$member['locationName'] ?: $name] = $value;
+                $var_definitions[$member['locationName'] ?: $name] = $value;
             }
         }
-
-        return $varDefinitions;
+        return $var_definitions;
     }
-
-    private function formatTimestamp(
-        DateTimeInterface|string|int $value,
-        string $timestampFormat
-    ): string {
-        return TimestampShape::format($value, $timestampFormat);
+    private function format_timestamp(DateTimeInterface|string|int $value, string $timestamp_format): string
+    {
+        return Timestamp_Shape::format($value, $timestamp_format);
     }
-
     /**
      * @param $value
      */
-    private function formatBoolean($value): string
+    private function format_boolean($value): string
     {
         return $value ? 'true' : 'false';
     }

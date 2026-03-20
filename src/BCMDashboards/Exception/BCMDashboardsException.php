@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bcm_Dashboards\Exception;
 
-namespace Aws\BCMDashboards\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Billing and Cost Management Dashboards** service.
  */
-class BCMDashboardsException extends AwsException
+class Bcm_Dashboards_Exception extends Aws_Exception
 {
 }

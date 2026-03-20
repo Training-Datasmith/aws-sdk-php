@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Formation\Exception;
 
-namespace Aws\CloudFormation\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the AWS CloudFormation service.
  */
-class CloudFormationException extends AwsException
+class Cloud_Formation_Exception extends Aws_Exception
 {
 }

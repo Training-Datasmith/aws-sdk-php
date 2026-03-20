@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Account\Exception;
 
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS Account** service.
  */
-class AccountException extends AwsException
+class Account_Exception extends Aws_Exception
 {
 }

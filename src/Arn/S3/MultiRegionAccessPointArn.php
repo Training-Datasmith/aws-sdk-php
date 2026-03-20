@@ -1,22 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Arn\S3;
 
 use Aws\Arn\Arn;
-use Aws\Arn\ResourceTypeAndIdTrait;
-
+use Aws\Arn\Resource_Type_And_Id_Trait;
 /**
  * This class represents an S3 multi-region bucket ARN, which is in the
  * following format:
  *
  * @internal
  */
-class MultiRegionAccessPointArn extends AccessPointArn
+class Multi_Region_Access_Point_Arn extends Access_Point_Arn
 {
-    use ResourceTypeAndIdTrait;
-
+    use Resource_Type_And_Id_Trait;
     /**
      * Parses a string into an associative array of components that represent
      * a MultiRegionArn
@@ -28,10 +25,8 @@ class MultiRegionAccessPointArn extends AccessPointArn
     {
         return parent::parse($string);
     }
-
     public static function validate(array $data): void
     {
         Arn::validate($data);
     }
-
 }

@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws;
 
 /**
@@ -11,22 +10,20 @@ namespace Aws;
  * Using the toArray() method will return the input parameters of the command
  * as an associative array.
  */
-interface CommandInterface extends \ArrayAccess, \Countable, \IteratorAggregate
+interface Command_Interface extends \ArrayAccess, \Countable, \IteratorAggregate
 {
     /**
      * Converts the command parameters to an array
      *
      * @return array
      */
-    public function toArray();
-
+    public function to_array();
     /**
      * Get the name of the command
      *
      * @return string
      */
-    public function getName();
-
+    public function get_name();
     /**
      * Check if the command has a parameter by name.
      *
@@ -34,12 +31,11 @@ interface CommandInterface extends \ArrayAccess, \Countable, \IteratorAggregate
      *
      * @return bool
      */
-    public function hasParam($name);
-
+    public function has_param($name);
     /**
      * Get the handler list used to transfer the command.
      *
      * @return HandlerList
      */
-    public function getHandlerList();
+    public function get_handler_list();
 }

@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Hsm\Exception;
 
-namespace Aws\CloudHsm\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * AWS CloudHSM exception.
  */
-class CloudHsmException extends AwsException
+class Cloud_Hsm_Exception extends Aws_Exception
 {
 }

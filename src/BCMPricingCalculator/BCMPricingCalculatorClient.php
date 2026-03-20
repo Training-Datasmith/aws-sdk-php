@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bcm_Pricing_Calculator;
 
-namespace Aws\BCMPricingCalculator;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Billing and Cost Management Pricing Calculator** service.
  * @method \Aws\Result batchCreateBillScenarioCommitmentModification(array $args = [])
@@ -81,6 +79,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateWorkloadEstimate(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateWorkloadEstimateAsync(array $args = [])
  */
-class BCMPricingCalculatorClient extends AwsClient
+class Bcm_Pricing_Calculator_Client extends Aws_Client
 {
 }

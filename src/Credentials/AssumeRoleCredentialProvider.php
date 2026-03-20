@@ -1,28 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Credentials;
 
-use Aws\Exception\CredentialsException;
+use Aws\Exception\Credentials_Exception;
 use Aws\Result;
-use Aws\Sts\StsClient;
-use GuzzleHttp\Promise\PromiseInterface;
-
+use Aws\Sts\Sts_Client;
+use Guzzle_Http\Promise\Promise_Interface;
 /**
  * Credential provider that provides credentials via assuming a role
  * More Information, see: http://docs.aws.amazon.com/aws-sdk-php/v3/api/api-sts-2011-06-15.html#assumerole
  */
-class AssumeRoleCredentialProvider
+class Assume_Role_Credential_Provider
 {
     public const ERROR_MSG = "Missing required 'AssumeRoleCredentialProvider' configuration option: ";
-
     /** @var StsClient */
     private $client;
-
     /** @var array */
-    private $assumeRoleParams;
-
+    private $assume_role_params;
     /**
      * The constructor requires following configure parameters:
      *  - client: a StsClient
@@ -36,15 +31,12 @@ class AssumeRoleCredentialProvider
         if (!isset($config['assume_role_params'])) {
             throw new \InvalidArgumentException(self::ERROR_MSG . "'assume_role_params'.");
         }
-
         if (!isset($config['client'])) {
             throw new \InvalidArgumentException(self::ERROR_MSG . "'client'.");
         }
-
         $this->client = $config['client'];
-        $this->assumeRoleParams = $config['assume_role_params'];
+        $this->assume_role_params = $config['assume_role_params'];
     }
-
     /**
      * Loads assume role credentials.
      *
@@ -53,16 +45,8 @@ class AssumeRoleCredentialProvider
     public function __invoke()
     {
         $client = $this->client;
-        return $client->assumeRoleAsync($this->assumeRoleParams)
-            ->then(fn (Result $result) => $this->client->createCredentials(
-                $result,
-                CredentialSources::STS_ASSUME_ROLE
-            ))->otherwise(function (\RuntimeException $exception): void {
-                throw new CredentialsException(
-                    'Error in retrieving assume role credentials.',
-                    0,
-                    $exception
-                );
-            });
+        return $client->assume_role_async($this->assume_role_params)->then(fn(Result $result) => $this->client->create_credentials($result, Credential_Sources::STS_ASSUME_ROLE))->otherwise(function (\RuntimeException $exception): void {
+            throw new Credentials_Exception('Error in retrieving assume role credentials.', 0, $exception);
+        });
     }
 }

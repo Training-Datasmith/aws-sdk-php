@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cost_Optimization_Hub\Exception;
 
-namespace Aws\CostOptimizationHub\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Cost Optimization Hub** service.
  */
-class CostOptimizationHubException extends AwsException
+class Cost_Optimization_Hub_Exception extends Aws_Exception
 {
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Access_Analyzer;
 
-namespace Aws\AccessAnalyzer;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Access Analyzer** service.
  * @method \Aws\Result applyArchiveRule(array $args = [])
@@ -83,6 +81,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validatePolicy(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validatePolicyAsync(array $args = [])
  */
-class AccessAnalyzerClient extends AwsClient
+class Access_Analyzer_Client extends Aws_Client
 {
 }

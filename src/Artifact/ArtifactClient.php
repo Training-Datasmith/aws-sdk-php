@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Artifact;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Artifact** service.
  * @method \Aws\Result getAccountSettings(array $args = [])
@@ -25,6 +23,6 @@ use Aws\AwsClient;
  * @method \Aws\Result putAccountSettings(array $args = [])
  * @method \GuzzleHttp\Promise\Promise putAccountSettingsAsync(array $args = [])
  */
-class ArtifactClient extends AwsClient
+class Artifact_Client extends Aws_Client
 {
 }

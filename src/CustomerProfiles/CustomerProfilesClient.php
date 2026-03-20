@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Customer_Profiles;
 
-namespace Aws\CustomerProfiles;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon Connect Customer Profiles** service.
  * @method \Aws\Result addProfileKey(array $args = [])
@@ -213,6 +211,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRecommender(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRecommenderAsync(array $args = [])
  */
-class CustomerProfilesClient extends AwsClient
+class Customer_Profiles_Client extends Aws_Client
 {
 }

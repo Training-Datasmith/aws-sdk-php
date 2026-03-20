@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Auto_Scaling_Plans;
 
-namespace Aws\AutoScalingPlans;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Auto Scaling Plans** service.
  * @method \Aws\Result createScalingPlan(array $args = [])
@@ -21,6 +19,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateScalingPlan(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateScalingPlanAsync(array $args = [])
  */
-class AutoScalingPlansClient extends AwsClient
+class Auto_Scaling_Plans_Client extends Aws_Client
 {
 }

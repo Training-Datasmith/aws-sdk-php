@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
-class AlgorithmConstants
+class Algorithm_Constants
 {
     /**
      * The maximum number of 16-byte blocks that can be encrypted with a
@@ -16,12 +15,10 @@ class AlgorithmConstants
      * @link http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf
      */
     public const GCM_MAX_CONTENT_LENGTH_BITS = (1 << 39) - 256;
-
     /**
      * The Maximum length of the content that can be encrypted in CBC mode.
      */
     public const CBC_MAX_CONTENT_LENGTH_BYTES = 1 << 55;
-
     /**
      * The maximum number of bytes that can be securely encrypted per a single key using AES/CTR.
      */

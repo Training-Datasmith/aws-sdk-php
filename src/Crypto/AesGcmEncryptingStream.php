@@ -1,38 +1,31 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Crypto;
 
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Psr7\StreamDecoratorTrait;
-use Psr\Http\Message\StreamInterface;
-
+use Guzzle_Http\Psr7;
+use Guzzle_Http\Psr7\Stream_Decorator_Trait;
+use Psr\Http\Message\Stream_Interface;
 /**
  * @internal Represents a stream of data to be gcm encrypted.
  */
-class AesGcmEncryptingStream implements AesStreamInterface, AesStreamInterfaceV2
+class Aes_Gcm_Encrypting_Stream implements Aes_Stream_Interface, Aes_Stream_Interface_V2
 {
-    use StreamDecoratorTrait;
-
+    use Stream_Decorator_Trait;
     private $plaintext;
-
     private string $tag = '';
-
     /**
      * @var StreamInterface
      */
     private $stream;
-
     /**
      * Same as non-static 'getAesName' method, allowing calls in a static
      * context.
      */
-    public static function getStaticAesName(): string
+    public static function get_static_aes_name(): string
     {
         return 'AES/GCM/NoPadding';
     }
-
     /**
      * @param string $key
      * @param string $initializationVector
@@ -40,64 +33,42 @@ class AesGcmEncryptingStream implements AesStreamInterface, AesStreamInterfaceV2
      * @param int $tagLength
      * @param int $keySize
      */
-    public function __construct(
-        StreamInterface $plaintext,
-        private $key,
-        private $initializationVector,
-        private $aad = '',
-        private $tagLength = 16,
-        private $keySize = 256
-    ) {
-
+    public function __construct(Stream_Interface $plaintext, private $key, private $initialization_vector, private $aad = '', private $tag_length = 16, private $key_size = 256)
+    {
         $this->plaintext = $plaintext;
         // unsetting the property forces the first access to go through
         // __get().
         unset($this->stream);
     }
-
-    public function getOpenSslName(): string
+    public function get_open_ssl_name(): string
     {
-        return "aes-{$this->keySize}-gcm";
+        return "aes-{$this->key_size}-gcm";
     }
-
     /**
      * Same as static method and retained for backwards compatibility
      *
      * @return string
      */
-    public function getAesName()
+    public function get_aes_name()
     {
-        return self::getStaticAesName();
+        return self::get_static_aes_name();
     }
-
-    public function getCurrentIv()
+    public function get_current_iv()
     {
-        return $this->initializationVector;
+        return $this->initialization_vector;
     }
-
-    public function createStream()
+    public function create_stream()
     {
-        return Psr7\Utils::streamFor(\openssl_encrypt(
-            (string)$this->plaintext,
-            $this->getOpenSslName(),
-            $this->key,
-            OPENSSL_RAW_DATA,
-            $this->initializationVector,
-            $this->tag,
-            $this->aad,
-            $this->tagLength
-        ));
+        return Psr7\Utils::stream_for(\openssl_encrypt((string) $this->plaintext, $this->get_open_ssl_name(), $this->key, OPENSSL_RAW_DATA, $this->initialization_vector, $this->tag, $this->aad, $this->tag_length));
     }
-
     /**
      * @return string
      */
-    public function getTag()
+    public function get_tag()
     {
         return $this->tag;
     }
-
-    public function isWritable(): bool
+    public function is_writable(): bool
     {
         return false;
     }

@@ -1,23 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Credentials;
 
-use Aws\Identity\AwsCredentialIdentity;
-
+use Aws\Identity\Aws_Credential_Identity;
 /**
  * Basic implementation of the AWS Credentials interface that allows callers to
  * pass in the AWS Access Key and AWS Secret Access Key in the constructor.
  */
-class Credentials extends AwsCredentialIdentity implements
-    CredentialsInterface,
-    \Serializable
+class Credentials extends Aws_Credential_Identity implements Credentials_Interface, \Serializable
 {
     private string $key;
     private string $secret;
     private $source;
-
     /**
      * Constructs a new BasicAWSCredentials object, with the specified AWS
      * access key and AWS secret key
@@ -27,121 +22,86 @@ class Credentials extends AwsCredentialIdentity implements
      * @param string $token   Security token to use
      * @param int    $expires UNIX timestamp for when credentials expire
      */
-    public function __construct(
-        $key,
-        $secret,
-        private $token = null,
-        private $expires = null,
-        private $accountId = null,
-        $source = CredentialSources::STATIC
-    ) {
+    public function __construct($key, $secret, private $token = null, private $expires = null, private $account_id = null, $source = Credential_Sources::STATIC)
+    {
         $this->key = trim((string) $key);
         $this->secret = trim((string) $secret);
-        $this->source = $source ?? CredentialSources::STATIC;
+        $this->source = $source ?? Credential_Sources::STATIC;
     }
-
     public static function __set_state(array $state)
     {
-        return new self(
-            $state['key'],
-            $state['secret'],
-            $state['token'],
-            $state['expires'],
-            $state['accountId'],
-            $state['source'] ?? null
-        );
+        return new self($state['key'], $state['secret'], $state['token'], $state['expires'], $state['accountId'], $state['source'] ?? null);
     }
-
-    public function getAccessKeyId()
+    public function get_access_key_id()
     {
         return $this->key;
     }
-
-    public function getSecretKey()
+    public function get_secret_key()
     {
         return $this->secret;
     }
-
-    public function getSecurityToken()
+    public function get_security_token()
     {
         return $this->token;
     }
-
-    public function getExpiration()
+    public function get_expiration()
     {
         return $this->expires;
     }
-
-    public function isExpired(): bool
+    public function is_expired(): bool
     {
         return $this->expires !== null && time() >= $this->expires;
     }
-
-    public function getAccountId()
+    public function get_account_id()
     {
-        return $this->accountId;
+        return $this->account_id;
     }
-
-    public function getSource()
+    public function get_source()
     {
         return $this->source;
     }
-
-    public function toArray(): array
+    public function to_array(): array
     {
-        return [
-            'key'     => $this->key,
-            'secret'  => $this->secret,
-            'token'   => $this->token,
-            'expires' => $this->expires,
-            'accountId' =>  $this->accountId,
-            'source' => $this->source,
-        ];
+        return ['key' => $this->key, 'secret' => $this->secret, 'token' => $this->token, 'expires' => $this->expires, 'accountId' => $this->account_id, 'source' => $this->source];
     }
-
     public function serialize()
     {
         return json_encode($this->__serialize());
     }
-
     public function unserialize($serialized): void
     {
         $data = json_decode($serialized, true);
-
         $this->__unserialize($data);
     }
-
     public function __serialize()
     {
-        return $this->toArray();
+        return $this->to_array();
     }
-
     public function __unserialize(array $data)
     {
         $this->key = $data['key'];
         $this->secret = $data['secret'];
         $this->token = $data['token'];
         $this->expires = $data['expires'];
-        $this->accountId = $data['accountId'] ?? null;
+        $this->account_id = $data['accountId'] ?? null;
         $this->source = $data['source'] ?? null;
     }
-
     /**
      * Internal-only. Used when IMDS is unreachable
      * or returns expires credentials.
      *
      * @internal
      */
-    public function extendExpiration(): void
+    public function extend_expiration(): void
     {
         $extension = mt_rand(5, 10);
         $this->expires = time() + $extension * 60;
-
         $message = <<<EOT
-Attempting credential expiration extension due to a credential service 
-availability issue. A refresh of these credentials will be attempted again 
-after {$extension} minutes.\n
-EOT;
+        Attempting credential expiration extension due to a credential service 
+        availability issue. A refresh of these credentials will be attempted again 
+        after {$extension} minutes.
+        
+        EOT;
         trigger_error($message, E_USER_WARNING);
     }
 }

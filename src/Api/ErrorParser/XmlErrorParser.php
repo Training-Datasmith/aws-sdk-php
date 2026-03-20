@@ -1,127 +1,93 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Api\Error_Parser;
 
-namespace Aws\Api\ErrorParser;
-
-use Aws\Api\Parser\AbstractParser;
-use Aws\Api\Parser\PayloadParserTrait;
-use Aws\Api\Parser\XmlParser;
+use Aws\Api\Parser\Abstract_Parser;
+use Aws\Api\Parser\Payload_Parser_Trait;
+use Aws\Api\Parser\Xml_Parser;
 use Aws\Api\Service;
-use Aws\Api\StructureShape;
-use Aws\CommandInterface;
-use Psr\Http\Message\ResponseInterface;
-
+use Aws\Api\Structure_Shape;
+use Aws\Command_Interface;
+use Psr\Http\Message\Response_Interface;
 /**
  * Parses XML errors.
  */
-class XmlErrorParser extends AbstractErrorParser
+class Xml_Error_Parser extends Abstract_Error_Parser
 {
-    use PayloadParserTrait;
-
-    protected \Aws\Api\Parser\XmlParser $parser;
-
-    public function __construct(?Service $api = null, ?XmlParser $parser = null)
+    use Payload_Parser_Trait;
+    protected \Aws\Api\Parser\Xml_Parser $parser;
+    public function __construct(?Service $api = null, ?Xml_Parser $parser = null)
     {
         parent::__construct($api);
-        $this->parser = $parser ?: new XmlParser();
+        $this->parser = $parser ?: new Xml_Parser();
     }
-
     /**
      * @return mixed[]
      */
-    public function __invoke(
-        ResponseInterface $response,
-        ?CommandInterface $command = null
-    ): array {
-        $response = AbstractParser::getResponseWithCachingStream($response);
-        $code = (string) $response->getStatusCode();
-
-        $data = [
-            'type' => $code[0] == '4' ? 'client' : 'server',
-            'request_id' => null,
-            'code' => null,
-            'message' => null,
-            'parsed' => null,
-        ];
-
-        $rawBody = AbstractParser::getBodyContents($response);
-        if (!empty($rawBody)) {
-            $this->parseBody($this->parseXml($rawBody, $response), $data);
+    public function __invoke(Response_Interface $response, ?Command_Interface $command = null): array
+    {
+        $response = Abstract_Parser::get_response_with_caching_stream($response);
+        $code = (string) $response->get_status_code();
+        $data = ['type' => $code[0] == '4' ? 'client' : 'server', 'request_id' => null, 'code' => null, 'message' => null, 'parsed' => null];
+        $raw_body = Abstract_Parser::get_body_contents($response);
+        if (!empty($raw_body)) {
+            $this->parse_body($this->parse_xml($raw_body, $response), $data);
         } else {
-            $this->parseHeaders($response, $data);
+            $this->parse_headers($response, $data);
         }
-
-        $this->populateShape($data, $response, $command);
-
+        $this->populate_shape($data, $response, $command);
         return $data;
     }
-
-    private function parseHeaders(ResponseInterface $response, array &$data): void
+    private function parse_headers(Response_Interface $response, array &$data): void
     {
-        if ($response->getStatusCode() == '404') {
+        if ($response->get_status_code() == '404') {
             $data['code'] = 'NotFound';
         }
-
-        $data['message'] = $response->getStatusCode() . ' '
-            . $response->getReasonPhrase();
-
-        if ($requestId = $response->getHeaderLine('x-amz-request-id')) {
-            $data['request_id'] = $requestId;
-            $data['message'] .= " (Request-ID: $requestId)";
+        $data['message'] = $response->get_status_code() . ' ' . $response->get_reason_phrase();
+        if ($request_id = $response->get_header_line('x-amz-request-id')) {
+            $data['request_id'] = $request_id;
+            $data['message'] .= " (Request-ID: {$request_id})";
         }
     }
-
-    private function parseBody(\SimpleXMLElement $body, array &$data): void
+    private function parse_body(\Simple_Xml_Element $body, array &$data): void
     {
         $data['parsed'] = $body;
-        $prefix = $this->registerNamespacePrefix($body);
-
-        if ($tempXml = $body->xpath("//{$prefix}Code[1]")) {
-            $data['code'] = (string) $tempXml[0];
+        $prefix = $this->register_namespace_prefix($body);
+        if ($temp_xml = $body->xpath("//{$prefix}Code[1]")) {
+            $data['code'] = (string) $temp_xml[0];
         }
-
-        if ($tempXml = $body->xpath("//{$prefix}Message[1]")) {
-            $data['message'] = (string) $tempXml[0];
+        if ($temp_xml = $body->xpath("//{$prefix}Message[1]")) {
+            $data['message'] = (string) $temp_xml[0];
         }
-
-        $tempXml = $body->xpath("//{$prefix}RequestId[1]");
-        if (isset($tempXml[0])) {
-            $data['request_id'] = (string)$tempXml[0];
+        $temp_xml = $body->xpath("//{$prefix}RequestId[1]");
+        if (isset($temp_xml[0])) {
+            $data['request_id'] = (string) $temp_xml[0];
         }
     }
-
-    protected function registerNamespacePrefix(\SimpleXMLElement $element): string
+    protected function register_namespace_prefix(\Simple_Xml_Element $element): string
     {
-        $namespaces = $element->getDocNamespaces();
+        $namespaces = $element->get_doc_namespaces();
         if (!isset($namespaces[''])) {
             return '';
         }
-
         // Account for the default namespace being defined and PHP not
         // being able to handle it :(.
-        $element->registerXPathNamespace('ns', $namespaces['']);
+        $element->register_x_path_namespace('ns', $namespaces['']);
         return 'ns:';
     }
-
-    protected function payload(
-        ResponseInterface $response,
-        StructureShape $member
-    ) {
-        $rawBody = AbstractParser::getBodyContents($response);
-
-        if (empty($rawBody)) {
-            return $rawBody;
+    protected function payload(Response_Interface $response, Structure_Shape $member)
+    {
+        $raw_body = Abstract_Parser::get_body_contents($response);
+        if (empty($raw_body)) {
+            return $raw_body;
         }
-
-        $xmlBody = $this->parseXml($rawBody, $response);
-        $prefix = $this->registerNamespacePrefix($xmlBody);
-        $errorBody = $xmlBody->xpath("//{$prefix}Error");
-
-        if (is_array($errorBody) && !empty($errorBody[0])) {
-            return $this->parser->parse($member, $errorBody[0]);
+        $xml_body = $this->parse_xml($raw_body, $response);
+        $prefix = $this->register_namespace_prefix($xml_body);
+        $error_body = $xml_body->xpath("//{$prefix}Error");
+        if (is_array($error_body) && !empty($error_body[0])) {
+            return $this->parser->parse($member, $error_body[0]);
         }
-
-        return $rawBody;
+        return $raw_body;
     }
 }

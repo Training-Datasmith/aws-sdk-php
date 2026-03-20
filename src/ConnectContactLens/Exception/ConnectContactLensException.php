@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Contact_Lens\Exception;
 
-namespace Aws\ConnectContactLens\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Connect Contact Lens** service.
  */
-class ConnectContactLensException extends AwsException
+class Connect_Contact_Lens_Exception extends Aws_Exception
 {
 }

@@ -1,16 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws;
 
-use GuzzleHttp\Promise\PromiseInterface;
-use Psr\Http\Message\UriInterface;
-
+use Guzzle_Http\Promise\Promise_Interface;
+use Psr\Http\Message\Uri_Interface;
 /**
  * Represents an AWS client.
  */
-interface AwsClientInterface
+interface Aws_Client_Interface
 {
     /**
      * Creates and executes a command for an operation by name.
@@ -25,7 +23,6 @@ interface AwsClientInterface
      * @throws \Exception
      */
     public function __call($name, array $arguments);
-
     /**
      * Create a command for an operation name.
      *
@@ -43,8 +40,7 @@ interface AwsClientInterface
      * @return CommandInterface
      * @throws \InvalidArgumentException if no command can be found by name
      */
-    public function getCommand($name, array $args = []);
-
+    public function get_command($name, array $args = []);
     /**
      * Execute a single command.
      *
@@ -53,8 +49,7 @@ interface AwsClientInterface
      * @return ResultInterface
      * @throws \Exception
      */
-    public function execute(CommandInterface $command);
-
+    public function execute(Command_Interface $command);
     /**
      * Execute a command asynchronously.
      *
@@ -62,8 +57,7 @@ interface AwsClientInterface
      *
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
-    public function executeAsync(CommandInterface $command);
-
+    public function execute_async(Command_Interface $command);
     /**
      * Returns a promise that is fulfilled with an
      * {@see \Aws\Credentials\CredentialsInterface} object.
@@ -73,29 +67,25 @@ interface AwsClientInterface
      *
      * @return PromiseInterface
      */
-    public function getCredentials();
-
+    public function get_credentials();
     /**
      * Get the region to which the client is configured to send requests.
      *
      * @return string
      */
-    public function getRegion();
-
+    public function get_region();
     /**
      * Gets the default endpoint, or base URL, used by the client.
      *
      * @return UriInterface
      */
-    public function getEndpoint();
-
+    public function get_endpoint();
     /**
      * Get the service description associated with the client.
      *
      * @return \Aws\Api\Service
      */
-    public function getApi();
-
+    public function get_api();
     /**
      * Get a client configuration value.
      *
@@ -103,8 +93,7 @@ interface AwsClientInterface
      *                            all options.
      * @return mixed|null
      */
-    public function getConfig($option = null);
-
+    public function get_config($option = null);
     /**
      * Get the handler list used to transfer commands.
      *
@@ -113,8 +102,7 @@ interface AwsClientInterface
      *
      * @return HandlerList
      */
-    public function getHandlerList();
-
+    public function get_handler_list();
     /**
      * Get a resource iterator for the specified operation.
      *
@@ -125,7 +113,6 @@ interface AwsClientInterface
      * @throws \UnexpectedValueException if the iterator config is invalid.
      */
     public function getIterator($name, array $args = []);
-
     /**
      * Get a result paginator for the specified operation.
      *
@@ -135,8 +122,7 @@ interface AwsClientInterface
      * @return \Aws\ResultPaginator
      * @throws \UnexpectedValueException if the iterator config is invalid.
      */
-    public function getPaginator($name, array $args = []);
-
+    public function get_paginator($name, array $args = []);
     /**
      * Wait until a resource is in a particular state.
      *
@@ -149,8 +135,7 @@ interface AwsClientInterface
      * @return void
      * @throws \UnexpectedValueException if the waiter is invalid.
      */
-    public function waitUntil($name, array $args = []);
-
+    public function wait_until($name, array $args = []);
     /**
      * Get a waiter that waits until a resource is in a particular state.
      *
@@ -168,5 +153,5 @@ interface AwsClientInterface
      * @return \Aws\Waiter
      * @throws \UnexpectedValueException if the waiter is invalid.
      */
-    public function getWaiter($name, array $args = []);
+    public function get_waiter($name, array $args = []);
 }

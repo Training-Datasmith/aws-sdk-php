@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Guru_Profiler\Exception;
 
-namespace Aws\CodeGuruProfiler\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon CodeGuru Profiler** service.
  */
-class CodeGuruProfilerException extends AwsException
+class Code_Guru_Profiler_Exception extends Aws_Exception
 {
 }

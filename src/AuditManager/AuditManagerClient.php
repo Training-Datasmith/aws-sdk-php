@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Audit_Manager;
 
-namespace Aws\AuditManager;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Audit Manager** service.
  * @method \Aws\Result associateAssessmentReportEvidenceFolder(array $args = [])
@@ -133,6 +131,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validateAssessmentReportIntegrity(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validateAssessmentReportIntegrityAsync(array $args = [])
  */
-class AuditManagerClient extends AwsClient
+class Audit_Manager_Client extends Aws_Client
 {
 }

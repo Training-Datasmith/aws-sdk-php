@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Formation;
 
-namespace Aws\CloudFormation;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS CloudFormation** service.
  *
@@ -190,6 +188,6 @@ use Aws\AwsClient;
  * @method \Aws\Result validateTemplate(array $args = [])
  * @method \GuzzleHttp\Promise\Promise validateTemplateAsync(array $args = [])
  */
-class CloudFormationClient extends AwsClient
+class Cloud_Formation_Client extends Aws_Client
 {
 }

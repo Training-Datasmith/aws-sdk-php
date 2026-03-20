@@ -1,20 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api;
 
 /**
  * Represents a timestamp shape.
  */
-class TimestampShape extends Shape
+class Timestamp_Shape extends Shape
 {
-    public function __construct(array $definition, ShapeMap $shapeMap)
+    public function __construct(array $definition, Shape_Map $shape_map)
     {
         $definition['type'] = 'timestamp';
-        parent::__construct($definition, $shapeMap);
+        parent::__construct($definition, $shape_map);
     }
-
     /**
      * Formats a timestamp value for a service.
      *
@@ -28,20 +26,17 @@ class TimestampShape extends Shape
     public static function format($value, $format)
     {
         if ($value instanceof \DateTimeInterface) {
-            $value = $value->getTimestamp();
+            $value = $value->get_timestamp();
         } elseif (is_string($value)) {
             $value = strtotime($value);
         } elseif (!is_int($value) && !is_float($value)) {
-            throw new \InvalidArgumentException('Unable to handle the provided'
-                . ' timestamp type: ' . gettype($value));
+            throw new \InvalidArgumentException('Unable to handle the provided' . ' timestamp type: ' . gettype($value));
         }
-
         return match ($format) {
             'iso8601' => gmdate('Y-m-d\TH:i:s\Z', (int) $value),
             'rfc822' => gmdate('D, d M Y H:i:s \G\M\T', (int) $value),
             'unixTimestamp' => $value,
-            default => throw new \UnexpectedValueException('Unknown timestamp format: '
-                . $format),
+            default => throw new \UnexpectedValueException('Unknown timestamp format: ' . $format),
         };
     }
 }

@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Connect_Cases\Exception;
 
-namespace Aws\ConnectCases\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon Connect Cases** service.
  */
-class ConnectCasesException extends AwsException
+class Connect_Cases_Exception extends Aws_Exception
 {
 }

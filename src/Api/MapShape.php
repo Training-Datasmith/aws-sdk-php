@@ -1,57 +1,44 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Api;
 
 /**
  * Represents a map shape.
  */
-class MapShape extends Shape
+class Map_Shape extends Shape
 {
     /** @var Shape */
     private $value;
-
     /** @var Shape */
     private $key;
-
-    public function __construct(array $definition, ShapeMap $shapeMap)
+    public function __construct(array $definition, Shape_Map $shape_map)
     {
         $definition['type'] = 'map';
-        parent::__construct($definition, $shapeMap);
+        parent::__construct($definition, $shape_map);
     }
-
     /**
      * @return Shape
      * @throws \RuntimeException if no value is specified
      */
-    public function getValue()
+    public function get_value()
     {
         if (!$this->value) {
             if (!isset($this->definition['value'])) {
                 throw new \RuntimeException('No value specified');
             }
-
-            $this->value = Shape::create(
-                $this->definition['value'],
-                $this->shapeMap
-            );
+            $this->value = Shape::create($this->definition['value'], $this->shape_map);
         }
-
         return $this->value;
     }
-
     /**
      * @return Shape
      */
-    public function getKey()
+    public function get_key()
     {
         if (!$this->key) {
-            $this->key = isset($this->definition['key'])
-                ? Shape::create($this->definition['key'], $this->shapeMap)
-                : new Shape(['type' => 'string'], $this->shapeMap);
+            $this->key = isset($this->definition['key']) ? Shape::create($this->definition['key'], $this->shape_map) : new Shape(['type' => 'string'], $this->shape_map);
         }
-
         return $this->key;
     }
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\ACMPCA;
 
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Certificate Manager Private Certificate Authority** service.
  * @method \Aws\Result createCertificateAuthority(array $args = [])
@@ -55,6 +53,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateCertificateAuthority(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateCertificateAuthorityAsync(array $args = [])
  */
-class ACMPCAClient extends AwsClient
+class Acmpca_Client extends Aws_Client
 {
 }

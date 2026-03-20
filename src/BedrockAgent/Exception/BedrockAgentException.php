@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Bedrock_Agent\Exception;
 
-namespace Aws\BedrockAgent\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Agents for Amazon Bedrock** service.
  */
-class BedrockAgentException extends AwsException
+class Bedrock_Agent_Exception extends Aws_Exception
 {
 }

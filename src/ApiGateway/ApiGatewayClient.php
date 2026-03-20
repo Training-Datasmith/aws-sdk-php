@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Api_Gateway;
 
-namespace Aws\ApiGateway;
-
-use Aws\AwsClient;
-use Aws\CommandInterface;
-use Psr\Http\Message\RequestInterface;
-
+use Aws\Aws_Client;
+use Aws\Command_Interface;
+use Psr\Http\Message\Request_Interface;
 /**
  * This client is used to interact with the **AWS API Gateway** service.
  *
@@ -260,23 +258,18 @@ use Psr\Http\Message\RequestInterface;
  * @method \Aws\Result updateVpcLink(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateVpcLinkAsync(array $args = [])
  */
-class ApiGatewayClient extends AwsClient
+class Api_Gateway_Client extends Aws_Client
 {
     public function __construct(array $args)
     {
         parent::__construct($args);
-        $stack = $this->getHandlerList();
-        $stack->appendBuild([self::class, '_add_accept_header']);
+        $stack = $this->get_handler_list();
+        $stack->append_build([self::class, '_add_accept_header']);
     }
-
     public static function _add_accept_header(callable $handler)
     {
-        return function (
-            CommandInterface $command,
-            RequestInterface $request
-        ) use ($handler) {
-            $request = $request->withHeader('Accept', 'application/json');
-
+        return function (Command_Interface $command, Request_Interface $request) use ($handler) {
+            $request = $request->with_header('Accept', 'application/json');
             return $handler($command, $request);
         };
     }

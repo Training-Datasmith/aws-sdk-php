@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Auto_Scaling;
 
-namespace Aws\AutoScaling;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **AWS Auto Scaling** service.
  *
@@ -142,6 +140,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateAutoScalingGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateAutoScalingGroupAsync(array $args = [])
  */
-class AutoScalingClient extends AwsClient
+class Auto_Scaling_Client extends Aws_Client
 {
 }

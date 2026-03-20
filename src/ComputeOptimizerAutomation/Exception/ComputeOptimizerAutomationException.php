@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Compute_Optimizer_Automation\Exception;
 
-namespace Aws\ComputeOptimizerAutomation\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Compute Optimizer Automation** service.
  */
-class ComputeOptimizerAutomationException extends AwsException
+class Compute_Optimizer_Automation_Exception extends Aws_Exception
 {
 }

@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Build\Exception;
 
-namespace Aws\CodeBuild\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **AWS CodeBuild** service.
  */
-class CodeBuildException extends AwsException
+class Code_Build_Exception extends Aws_Exception
 {
 }

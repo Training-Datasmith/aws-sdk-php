@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Aws\Arn;
 
 /**
@@ -10,7 +9,7 @@ namespace Aws\Arn;
  *
  * @internal
  */
-class ObjectLambdaAccessPointArn extends AccessPointArn
+class Object_Lambda_Access_Point_Arn extends Access_Point_Arn
 {
     /**
      * Parses a string into an associative array of components that represent
@@ -22,13 +21,12 @@ class ObjectLambdaAccessPointArn extends AccessPointArn
     public static function parse($string)
     {
         $data = parent::parse($string);
-        return parent::parseResourceTypeAndId($data);
+        return parent::parse_resource_type_and_id($data);
     }
-
     protected static function validate(array $data)
     {
         parent::validate($data);
-        self::validateRegion($data, 'S3 Object Lambda ARN');
-        self::validateAccountId($data, 'S3 Object Lambda ARN');
+        self::validate_region($data, 'S3 Object Lambda ARN');
+        self::validate_account_id($data, 'S3 Object Lambda ARN');
     }
 }

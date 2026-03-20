@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Guru_Security;
 
-namespace Aws\CodeGuruSecurity;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **Amazon CodeGuru Security** service.
  * @method \Aws\Result batchGetFindings(array $args = [])
@@ -35,6 +33,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateAccountConfiguration(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateAccountConfigurationAsync(array $args = [])
  */
-class CodeGuruSecurityClient extends AwsClient
+class Code_Guru_Security_Client extends Aws_Client
 {
 }

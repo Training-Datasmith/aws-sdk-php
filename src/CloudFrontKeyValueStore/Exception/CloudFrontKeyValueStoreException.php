@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Cloud_Front_Key_Value_Store\Exception;
 
-namespace Aws\CloudFrontKeyValueStore\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon CloudFront KeyValueStore** service.
  */
-class CloudFrontKeyValueStoreException extends AwsException
+class Cloud_Front_Key_Value_Store_Exception extends Aws_Exception
 {
 }

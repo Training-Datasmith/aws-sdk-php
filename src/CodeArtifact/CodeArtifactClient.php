@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Artifact;
 
-namespace Aws\CodeArtifact;
-
-use Aws\AwsClient;
-
+use Aws\Aws_Client;
 /**
  * This client is used to interact with the **CodeArtifact** service.
  * @method \Aws\Result associateExternalConnection(array $args = [])
@@ -105,6 +103,6 @@ use Aws\AwsClient;
  * @method \Aws\Result updateRepository(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateRepositoryAsync(array $args = [])
  */
-class CodeArtifactClient extends AwsClient
+class Code_Artifact_Client extends Aws_Client
 {
 }

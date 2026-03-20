@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Access_Analyzer\Exception;
 
-namespace Aws\AccessAnalyzer\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Access Analyzer** service.
  */
-class AccessAnalyzerException extends AwsException
+class Access_Analyzer_Exception extends Aws_Exception
 {
 }

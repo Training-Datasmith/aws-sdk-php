@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Aws\Code_Guru_Security\Exception;
 
-namespace Aws\CodeGuruSecurity\Exception;
-
-use Aws\Exception\AwsException;
-
+use Aws\Exception\Aws_Exception;
 /**
  * Represents an error interacting with the **Amazon CodeGuru Security** service.
  */
-class CodeGuruSecurityException extends AwsException
+class Code_Guru_Security_Exception extends Aws_Exception
 {
 }
